@@ -1,0 +1,22 @@
+# The 20 golden fixtures. category drives the contract-test distribution check.
+fixtures:
+  - { id: "00_baseline_clean",    category: baseline,     target_detector: none, description: "Clean RESOLVED order-status call; all detectors silent." }
+  - { id: "01_over_model",        category: detector,     target_detector: 1,    description: "Frontier gpt-5 used for a route decision, output_tokens<32." }
+  - { id: "02_context_bloat",     category: detector,     target_detector: 2,    description: "input_tokens grow >400/turn, cache_read/input<0.5." }
+  - { id: "03_redundant_retrieval", category: detector,   target_detector: 3,    description: "retrieval tool returns a doc already in prior context." }
+  - { id: "04_turn_inflation",    category: detector,     target_detector: 4,    description: "14 turns for an intent whose baseline p50 is 8." }
+  - { id: "05_reprompt_loop",     category: detector,     target_detector: 5,    description: "Same slot_fill decision_kind twice, no fill between." }
+  - { id: "06_dead_tokens",       category: detector,     target_detector: 6,    description: "llm output_text with no matching tts.synthesize." }
+  - { id: "07_barge_in_waste",    category: detector,     target_detector: 7,    description: "chars_synthesized > chars_played; caller interrupted." }
+  - { id: "08_silence_tax",       category: detector,     target_detector: 8,    description: "Inter-span gaps >200ms with meter running." }
+  - { id: "09_escalation_debt",   category: detector,     target_detector: 9,    description: "Escalated; predictable at turn 3, ran 9 more turns." }
+  - { id: "10_tool_thrash",       category: detector,     target_detector: 10,   description: "Duplicate args_hash for same tool within conversation." }
+  - { id: "11_multi_waste_a",     category: multi_waste,  target_detector: "1,2,8", description: "over_model + context_bloat + silence_tax." }
+  - { id: "12_multi_waste_b",     category: multi_waste,  target_detector: "6,7,10", description: "dead_tokens + barge_in + tool_thrash." }
+  - { id: "13_multi_waste_c",     category: multi_waste,  target_detector: "3,4,5", description: "redundant_retrieval + turn_inflation + reprompt_loop." }
+  - { id: "14_escalation_early",  category: escalation,   target_detector: 9,    description: "Escalated; turn_of_no_return at turn 3." }
+  - { id: "15_escalation_late",   category: escalation,   target_detector: 9,    description: "Escalated near end; low escalation debt (control)." }
+  - { id: "16_abandoned",         category: abandoned,    target_detector: none, description: "caller_hangup mid-flow; verdict ABANDONED." }
+  - { id: "17_false_resolve",     category: false_resolve, target_detector: none, description: "Agent asserts done; terminal mutation tool contradicts." }
+  - { id: "18_edge_single_turn",  category: edge,         target_detector: none, description: "Single-turn RESOLVED call." }
+  - { id: "19_edge_40_turn",      category: edge,         target_detector: none, description: "40-turn call; scaling/perf edge." }
