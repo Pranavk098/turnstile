@@ -1,10 +1,12 @@
 from __future__ import annotations
+import json
 from datetime import datetime
+from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 from turnstile_schema.enums import EndReason, SpeakerFirst
 from turnstile_schema.spans import (
     VadSegment, AsrTranscribe, ContextAssemble, LlmDecide,
-    ToolCall, TtsSynthesize, AudioPlayback,
+    ToolCall, TtsSynthesize, AudioPlayback, TelephonyLeg,
 )
 
 _STRICT = ConfigDict(populate_by_name=True, extra="forbid")
@@ -33,3 +35,12 @@ class Turn(BaseModel):
     tools: list[ToolCall] = Field(default_factory=list)
     tts: list[TtsSynthesize] = Field(default_factory=list)
     playback: list[AudioPlayback] = Field(default_factory=list)
+
+class Trace(BaseModel):
+    model_config = _STRICT
+    conversation: Conversation
+    turns: list[Turn]
+    telephony: TelephonyLeg | None = None
+
+def load_trace(path: str | Path) -> Trace:
+    return Trace.model_validate(json.loads(Path(path).read_text(encoding="utf-8")))
