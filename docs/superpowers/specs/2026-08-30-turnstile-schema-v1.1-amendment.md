@@ -35,11 +35,12 @@ Mapping (the `process_refund` example):
 ### Validator rule (enforced in the schema; makes fixtures self-checking at contract-test time)
 
 ```
-tool_kind = mutation             → effect ∈ {committed, pending, rejected, unknown}
+tool_kind ∈ {mutation, handoff}  → effect ∈ {committed, pending, rejected, unknown}
 tool_kind ∈ {lookup, retrieval}  → effect = none
-tool_kind = handoff              → effect ∈ {committed, none, unknown}   # RULING: a transfer completes, doesn't happen, or is indeterminate; pending/rejected don't apply
 tool_status = error              → effect ∈ {rejected, none, unknown}     # a failed call cannot have committed/pending
 ```
+
+**`handoff` is mutation-like — the full enum, deliberately.** A handoff has the same four terminal states as any mutation, and the two that a "did-it-complete" boolean would erase are the most expensive in a contact center: `pending` = transfer initiated, caller sitting in a queue waiting for an available human (queue time is real and often long — collapsing it into `committed` claims completion while the caller is still on hold); `rejected` = no agents available / after-hours / queue at capacity — the AI tried to hand off and couldn't, and the caller is stranded after paying the full conversation cost. A rejected handoff is the worst single outcome in the taxonomy; the enum must be able to say it.
 
 Implement as a Pydantic `model_validator(mode="after")` on `ToolCall`. A fixture that violates the relationship fails `contract-test`.
 
@@ -47,6 +48,8 @@ Implement as a Pydantic `model_validator(mode="after")` on `ToolCall`. A fixture
 
 - **Deterministic FALSE_RESOLVE:** agent asserts completion for intent X **and** the mutation bound to X has `effect ∈ {pending, rejected}` (or `tool_status = error`) ⇒ `FALSE_RESOLVE`. No hash-parsing, no LLM judgment for this case.
 - **RESOLVED requires** `effect = committed` on the intent's terminal required mutation.
+- **ESCALATED requires `handoff.effect = committed`.** A `rejected` handoff is `UNRESOLVED`, not `ESCALATED`, and a `pending` handoff (caller queued, still on hold) is not yet `ESCALATED` either. Vendors habitually count every escalation as a clean outcome; a *failed* escalation is a stranded caller who paid full cost and must never land in the same bucket. Worth a sentence in the demo.
+- **Detector 9 (escalation debt) gains a second tier.** Tier 1 (existing): spend before an *inevitable* handoff. Tier 2 (new): spend before a handoff that then **failed** (`effect = rejected`) — the full conversation cost **plus a lost customer**, the single most damning number the tool can produce. This is exactly what justifies the `escalation_policy` replay variant: if rejection is predictable (after-hours, queue depth), fail over to a callback at turn 3 instead of burning to turn 14 and stranding the caller.
 - **`unknown` blocks confident verdicts** (the calibration demo line): if any *required* mutation resolves to `effect = unknown`, then
   - `verdict.confidence` is capped at **0.6**,
   - the label may **not** be `RESOLVED` or `FALSE_RESOLVE`,
@@ -89,18 +92,22 @@ attribution      = label each maximal gap by the span that STARTS NEXT
 
 ## Fixture & contract-test impact
 
-- **All fixtures** gain `start_offset_ms`/`duration_ms` on every span (regenerated via the authoring scripts). Author realistic timelines, including at least one fixture with genuine TTS/LLM **overlap** so the union-vs-sum difference is demonstrable.
+- **All fixtures** gain `start_offset_ms`/`duration_ms` on every span (regenerated via the authoring scripts). Author realistic timelines, and give **at least two** fixtures genuine TTS/LLM **overlap with different overlap shapes** — a single overlap case can pass against a subtly wrong union implementation; two different shapes will not.
 - **Fixture 17 (`false_resolve`)** → `process_refund` mutation with `tool_status = ok`, `effect = rejected`, agent `output_text` asserting "processed."
-- **NEW fixture** (e.g. `20_unknown_mutation`) → a required mutation at `effect = unknown` (timeout after send), so the verdict confidence-cap has a test. Add a manifest category for it.
+- **THREE new effect-driven fixtures** (new `effect_edge` manifest category):
+  - `unknown_mutation` — a required mutation at `effect = unknown` (timeout after send); tests the verdict confidence-cap (≤0.6, not RESOLVED/FALSE_RESOLVE).
+  - `handoff_rejected` — `tool_kind=handoff`, `effect=rejected` (no agents/after-hours); expected verdict `UNRESOLVED` (not ESCALATED), and exercises Detector 9 tier 2 (spend-before-failed-handoff).
+  - `handoff_pending` — `tool_kind=handoff`, `effect=pending` (caller queued/on hold); expected verdict not ESCALATED.
 - **Manifest** gains `expected_verdict` per fixture (test metadata).
-- **contract-test**: update `REQUIRED_DISTRIBUTION` for the new fixture (20 → 21); add a test asserting the `effect × tool_kind × tool_status` validator rejects an illegal combination; add the D8 residual-vs-union invariant test.
-- Baseline `00` mutation (if any) → `effect = committed`.
+- **contract-test**: update `REQUIRED_DISTRIBUTION` (20 → **23**; `effect_edge: 3`); add a test asserting the `effect × tool_kind × tool_status` validator rejects an illegal combination (incl. a `handoff` with `effect=none`, now illegal); add the D8 residual-vs-union invariant test.
+- Baseline `00` mutation (if any) → `effect = committed`. Escalation fixtures 09/14/15 → `handoff.effect = committed` (successful transfers, correctly ESCALATED).
 
 ## PRD sections to update to v1.1
 
 - §3.1/§3.2 — add `start_offset_ms`/`duration_ms` to span attributes; add `tool_status`/`effect` to `tool.call`; note `result_hash` demoted.
 - §6 Detector 8 — replace the gap rule with the union formula + attribution.
-- §7 — terminal-tool-state evidence now reads `effect`; add the `unknown` confidence-cap rule.
+- §6 Detector 9 — add tier 2 (spend before a `rejected` handoff) alongside the existing inevitable-handoff tier.
+- §7 — terminal-tool-state evidence now reads `effect`; add the `unknown` confidence-cap rule; `ESCALATED` requires `handoff.effect = committed` (rejected → `UNRESOLVED`, pending → not yet ESCALATED).
 - Bump `turnstile.schema_version` default to `1.1`.
 
 ## Execution
