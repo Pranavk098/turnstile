@@ -2,7 +2,7 @@ SCHEMA_VERSION = "1.0"
 
 from turnstile_schema.enums import (
     EndReason, SpeakerFirst, PruningStrategy, DecisionKind, ToolKind,
-    Direction, VerdictLabel,
+    Direction, VerdictLabel, ToolStatus, Effect,
 )
 from turnstile_schema.spans import (
     Span, VadSegment, AsrTranscribe, ContextAssemble, LlmDecide, ToolCall,
@@ -13,7 +13,8 @@ from turnstile_schema.rates import RateTable, load_rates
 
 __all__ = [
     "SCHEMA_VERSION", "EndReason", "SpeakerFirst", "PruningStrategy",
-    "DecisionKind", "ToolKind", "Direction", "VerdictLabel", "Span",
+    "DecisionKind", "ToolKind", "Direction", "VerdictLabel", "ToolStatus",
+    "Effect", "Span",
     "VadSegment", "AsrTranscribe", "ContextAssemble", "LlmDecide", "ToolCall",
     "TtsSynthesize", "AudioPlayback", "TelephonyLeg", "Conversation", "Turn",
     "Trace", "load_trace", "RateTable", "load_rates",

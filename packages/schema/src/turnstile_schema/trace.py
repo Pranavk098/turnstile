@@ -19,7 +19,7 @@ class Conversation(BaseModel):
     started_at: datetime
     ended_at: datetime
     end_reason: EndReason
-    schema_version: str = Field("1.0", alias="turnstile.schema_version")
+    schema_version: str = Field("1.1", alias="turnstile.schema_version")
 
 class Turn(BaseModel):
     model_config = _STRICT

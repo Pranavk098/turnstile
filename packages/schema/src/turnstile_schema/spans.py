@@ -1,13 +1,17 @@
 from __future__ import annotations
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field
-from turnstile_schema.enums import PruningStrategy, DecisionKind, ToolKind, Direction
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from turnstile_schema.enums import (
+    PruningStrategy, DecisionKind, ToolKind, Direction, ToolStatus, Effect,
+)
 
 _STRICT = ConfigDict(populate_by_name=True, extra="forbid")
 
 class Span(BaseModel):
     model_config = _STRICT
     span_id: str
+    start_offset_ms: int = Field(alias="turnstile.start_offset_ms")
+    duration_ms: int = Field(alias="turnstile.duration_ms")
 
 class VadSegment(Span):
     # PRD does not freeze VAD attributes; allow extra so we do not invent contract.
@@ -52,6 +56,21 @@ class ToolCall(Span):
     latency_ms: int = Field(alias="turnstile.latency_ms")
     cost_usd: float = Field(0.0, alias="turnstile.cost_usd")
     tool_kind: ToolKind = Field(alias="turnstile.tool_kind")
+    tool_status: ToolStatus = Field(ToolStatus.ok, alias="turnstile.tool_status")
+    effect: Effect = Field(Effect.none, alias="turnstile.effect")
+
+    @model_validator(mode="after")
+    def _check_effect(self):
+        mutating = {ToolKind.mutation, ToolKind.handoff}
+        if self.tool_kind in mutating and self.effect not in {
+                Effect.committed, Effect.pending, Effect.rejected, Effect.unknown}:
+            raise ValueError(f"{self.tool_kind} requires a mutating effect, got {self.effect}")
+        if self.tool_kind in {ToolKind.lookup, ToolKind.retrieval} and self.effect is not Effect.none:
+            raise ValueError(f"{self.tool_kind} must have effect=none, got {self.effect}")
+        if self.tool_status is ToolStatus.error and self.effect not in {
+                Effect.rejected, Effect.none, Effect.unknown}:
+            raise ValueError(f"tool_status=error cannot have effect={self.effect}")
+        return self
 
 class TtsSynthesize(Span):
     gen_ai_system: str = Field(alias="gen_ai.system")

@@ -11,13 +11,17 @@ MINIMAL = {
         "turn_index": 0, "speaker_first": "caller",
         "wall_start_ms": 0, "wall_end_ms": 3000,
         "llm": [{
-            "span_id": "l0", "gen_ai.system": "openai", "gen_ai.request.model": "gpt-5",
+            "span_id": "l0",
+            "turnstile.start_offset_ms": 0, "turnstile.duration_ms": 300,
+            "gen_ai.system": "openai", "gen_ai.request.model": "gpt-5",
             "gen_ai.usage.input_tokens": 500, "gen_ai.usage.output_tokens": 20,
             "turnstile.decision_kind": "compose", "turnstile.decision_chosen": "greet",
             "turnstile.decision_candidates": ["greet"], "turnstile.output_text": "hello",
             "turnstile.latency_ms": 300}]}],
     "telephony": {
-        "span_id": "leg1", "turnstile.provider": "twilio",
+        "span_id": "leg1",
+        "turnstile.start_offset_ms": 0, "turnstile.duration_ms": 30000,
+        "turnstile.provider": "twilio",
         "turnstile.direction": "inbound", "turnstile.billable_seconds": 30},
 }
 

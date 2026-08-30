@@ -42,3 +42,14 @@ class VerdictLabel(str, Enum):
     ABANDONED = "ABANDONED"
     MISROUTED = "MISROUTED"
     FALSE_RESOLVE = "FALSE_RESOLVE"
+
+class ToolStatus(str, Enum):
+    ok = "ok"
+    error = "error"
+
+class Effect(str, Enum):
+    committed = "committed"
+    pending = "pending"
+    rejected = "rejected"
+    none = "none"
+    unknown = "unknown"
