@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
-from turnstile_schema.enums import PruningStrategy
+from turnstile_schema.enums import PruningStrategy, DecisionKind, ToolKind
 
 _STRICT = ConfigDict(populate_by_name=True, extra="forbid")
 
@@ -28,8 +28,30 @@ class ContextAssemble(Span):
     retrieved_doc_ids: list[str] = Field(alias="turnstile.retrieved_doc_ids")
     pruning_strategy: PruningStrategy = Field(alias="turnstile.pruning_strategy")
 
-# Placeholders kept so trace.py imports still resolve until Tasks 4-5 replace them.
-class LlmDecide(Span): ...
-class ToolCall(Span): ...
+class LlmDecide(Span):
+    gen_ai_system: str = Field(alias="gen_ai.system")
+    gen_ai_request_model: str = Field(alias="gen_ai.request.model")
+    input_tokens: int = Field(alias="gen_ai.usage.input_tokens")
+    output_tokens: int = Field(alias="gen_ai.usage.output_tokens")
+    cache_read_tokens: int = Field(0, alias="turnstile.cache_read_tokens")
+    cache_write_tokens: int = Field(0, alias="turnstile.cache_write_tokens")
+    reasoning_tokens: int = Field(0, alias="turnstile.reasoning_tokens")
+    decision_kind: DecisionKind = Field(alias="turnstile.decision_kind")
+    decision_chosen: str = Field(alias="turnstile.decision_chosen")
+    decision_candidates: list[str] = Field(alias="turnstile.decision_candidates")
+    output_text: str = Field(alias="turnstile.output_text")
+    latency_ms: int = Field(alias="turnstile.latency_ms")
+    retry_of: str | None = Field(None, alias="turnstile.retry_of")
+
+class ToolCall(Span):
+    tool_name: str = Field(alias="turnstile.tool_name")
+    args_hash: str = Field(alias="turnstile.args_hash")
+    args_json: str = Field(alias="turnstile.args_json")
+    result_hash: str = Field(alias="turnstile.result_hash")
+    latency_ms: int = Field(alias="turnstile.latency_ms")
+    cost_usd: float = Field(0.0, alias="turnstile.cost_usd")
+    tool_kind: ToolKind = Field(alias="turnstile.tool_kind")
+
+# Placeholders kept so trace.py imports still resolve until Task 5 replaces them.
 class TtsSynthesize(Span): ...
 class AudioPlayback(Span): ...
