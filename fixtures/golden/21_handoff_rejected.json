@@ -1,11 +1,11 @@
 {
   "conversation": {
-    "conversation_id": "00000000-0000-0000-0000-000000000014",
+    "conversation_id": "00000000-0000-0000-0000-000000000021",
     "agent_version": "agent@abc123",
     "scenario_id": "billing_dispute",
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
-    "end_reason": "escalated",
+    "end_reason": "caller_hangup",
     "turnstile.schema_version": "1.1"
   },
   "turns": [
@@ -13,7 +13,7 @@
       "turn_index": 0,
       "speaker_first": "caller",
       "wall_start_ms": 0,
-      "wall_end_ms": 4100,
+      "wall_end_ms": 4700,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -25,7 +25,7 @@
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 550,
+          "gen_ai.usage.input_tokens": 560,
           "gen_ai.usage.output_tokens": 16,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
@@ -35,7 +35,7 @@
           "turnstile.decision_candidates": [
             "try_0"
           ],
-          "turnstile.output_text": "Let me try to help with that.",
+          "turnstile.output_text": "Let me see what I can do about that.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
@@ -45,20 +45,20 @@
         {
           "span_id": "t0",
           "turnstile.start_offset_ms": 500,
-          "turnstile.duration_ms": 1800,
+          "turnstile.duration_ms": 2100,
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 27,
-          "turnstile.audio_seconds_generated": 1.8,
-          "turnstile.text": "Let me try to help with that."
+          "turnstile.chars_synthesized": 36,
+          "turnstile.audio_seconds_generated": 2.1,
+          "turnstile.text": "Let me see what I can do about that."
         }
       ],
       "playback": [
         {
           "span_id": "p0",
-          "turnstile.start_offset_ms": 2300,
-          "turnstile.duration_ms": 1800,
-          "turnstile.chars_played": 27,
-          "turnstile.audio_seconds_played": 1.8,
+          "turnstile.start_offset_ms": 2600,
+          "turnstile.duration_ms": 2100,
+          "turnstile.chars_played": 36,
+          "turnstile.audio_seconds_played": 2.1,
           "turnstile.truncated_by": null
         }
       ]
@@ -66,8 +66,8 @@
     {
       "turn_index": 1,
       "speaker_first": "agent",
-      "wall_start_ms": 4100,
-      "wall_end_ms": 8200,
+      "wall_start_ms": 4700,
+      "wall_end_ms": 9400,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -75,11 +75,11 @@
       "llm": [
         {
           "span_id": "l1",
-          "turnstile.start_offset_ms": 4100,
+          "turnstile.start_offset_ms": 4700,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 550,
+          "gen_ai.usage.input_tokens": 560,
           "gen_ai.usage.output_tokens": 16,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
@@ -89,7 +89,7 @@
           "turnstile.decision_candidates": [
             "try_1"
           ],
-          "turnstile.output_text": "Let me try to help with that.",
+          "turnstile.output_text": "Let me see what I can do about that.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
@@ -98,21 +98,21 @@
       "tts": [
         {
           "span_id": "t1",
-          "turnstile.start_offset_ms": 4600,
-          "turnstile.duration_ms": 1800,
+          "turnstile.start_offset_ms": 5200,
+          "turnstile.duration_ms": 2100,
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 27,
-          "turnstile.audio_seconds_generated": 1.8,
-          "turnstile.text": "Let me try to help with that."
+          "turnstile.chars_synthesized": 36,
+          "turnstile.audio_seconds_generated": 2.1,
+          "turnstile.text": "Let me see what I can do about that."
         }
       ],
       "playback": [
         {
           "span_id": "p1",
-          "turnstile.start_offset_ms": 6400,
-          "turnstile.duration_ms": 1800,
-          "turnstile.chars_played": 27,
-          "turnstile.audio_seconds_played": 1.8,
+          "turnstile.start_offset_ms": 7300,
+          "turnstile.duration_ms": 2100,
+          "turnstile.chars_played": 36,
+          "turnstile.audio_seconds_played": 2.1,
           "turnstile.truncated_by": null
         }
       ]
@@ -120,8 +120,8 @@
     {
       "turn_index": 2,
       "speaker_first": "caller",
-      "wall_start_ms": 8200,
-      "wall_end_ms": 12300,
+      "wall_start_ms": 9400,
+      "wall_end_ms": 14100,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -129,11 +129,11 @@
       "llm": [
         {
           "span_id": "l2",
-          "turnstile.start_offset_ms": 8200,
+          "turnstile.start_offset_ms": 9400,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 550,
+          "gen_ai.usage.input_tokens": 560,
           "gen_ai.usage.output_tokens": 16,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
@@ -143,7 +143,7 @@
           "turnstile.decision_candidates": [
             "try_2"
           ],
-          "turnstile.output_text": "Let me try to help with that.",
+          "turnstile.output_text": "Let me see what I can do about that.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
@@ -152,21 +152,21 @@
       "tts": [
         {
           "span_id": "t2",
-          "turnstile.start_offset_ms": 8700,
-          "turnstile.duration_ms": 1800,
+          "turnstile.start_offset_ms": 9900,
+          "turnstile.duration_ms": 2100,
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 27,
-          "turnstile.audio_seconds_generated": 1.8,
-          "turnstile.text": "Let me try to help with that."
+          "turnstile.chars_synthesized": 36,
+          "turnstile.audio_seconds_generated": 2.1,
+          "turnstile.text": "Let me see what I can do about that."
         }
       ],
       "playback": [
         {
           "span_id": "p2",
-          "turnstile.start_offset_ms": 10500,
-          "turnstile.duration_ms": 1800,
-          "turnstile.chars_played": 27,
-          "turnstile.audio_seconds_played": 1.8,
+          "turnstile.start_offset_ms": 12000,
+          "turnstile.duration_ms": 2100,
+          "turnstile.chars_played": 36,
+          "turnstile.audio_seconds_played": 2.1,
           "turnstile.truncated_by": null
         }
       ]
@@ -174,8 +174,8 @@
     {
       "turn_index": 3,
       "speaker_first": "caller",
-      "wall_start_ms": 12300,
-      "wall_end_ms": 17900,
+      "wall_start_ms": 14100,
+      "wall_end_ms": 21100,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -183,12 +183,12 @@
       "llm": [
         {
           "span_id": "l3",
-          "turnstile.start_offset_ms": 12600,
+          "turnstile.start_offset_ms": 14400,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 700,
-          "gen_ai.usage.output_tokens": 20,
+          "gen_ai.usage.input_tokens": 690,
+          "gen_ai.usage.output_tokens": 19,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
           "turnstile.reasoning_tokens": 0,
@@ -198,7 +198,7 @@
             "resolve",
             "escalate"
           ],
-          "turnstile.output_text": "Transferring you to a specialist now.",
+          "turnstile.output_text": "I'm sorry, all our specialists are unavailable right now.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
@@ -206,37 +206,37 @@
       "tools": [
         {
           "span_id": "tool3",
-          "turnstile.start_offset_ms": 12300,
+          "turnstile.start_offset_ms": 14100,
           "turnstile.duration_ms": 300,
           "turnstile.tool_name": "transfer_to_agent",
-          "turnstile.args_hash": "sha256:xfer3",
+          "turnstile.args_hash": "sha256:xfer_rej3",
           "turnstile.args_json": "{}",
-          "turnstile.result_hash": "sha256:r",
+          "turnstile.result_hash": "sha256:no_agents_available",
           "turnstile.latency_ms": 300,
           "turnstile.cost_usd": 0.0,
           "turnstile.tool_kind": "handoff",
           "turnstile.tool_status": "ok",
-          "turnstile.effect": "committed"
+          "turnstile.effect": "rejected"
         }
       ],
       "tts": [
         {
           "span_id": "t3",
-          "turnstile.start_offset_ms": 13100,
-          "turnstile.duration_ms": 2400,
+          "turnstile.start_offset_ms": 14900,
+          "turnstile.duration_ms": 3100,
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 39,
-          "turnstile.audio_seconds_generated": 2.4,
-          "turnstile.text": "Transferring you to a specialist now."
+          "turnstile.chars_synthesized": 58,
+          "turnstile.audio_seconds_generated": 3.1,
+          "turnstile.text": "I'm sorry, all our specialists are unavailable right now."
         }
       ],
       "playback": [
         {
           "span_id": "p3",
-          "turnstile.start_offset_ms": 15500,
-          "turnstile.duration_ms": 2400,
-          "turnstile.chars_played": 39,
-          "turnstile.audio_seconds_played": 2.4,
+          "turnstile.start_offset_ms": 18000,
+          "turnstile.duration_ms": 3100,
+          "turnstile.chars_played": 58,
+          "turnstile.audio_seconds_played": 3.1,
           "turnstile.truncated_by": null
         }
       ]
@@ -245,9 +245,9 @@
   "telephony": {
     "span_id": "leg",
     "turnstile.start_offset_ms": 0,
-    "turnstile.duration_ms": 18000,
+    "turnstile.duration_ms": 22000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 18
+    "turnstile.billable_seconds": 22
   }
 }

@@ -6,14 +6,14 @@
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
     "end_reason": "escalated",
-    "turnstile.schema_version": "1.0"
+    "turnstile.schema_version": "1.1"
   },
   "turns": [
     {
       "turn_index": 0,
       "speaker_first": "caller",
       "wall_start_ms": 0,
-      "wall_end_ms": 2000,
+      "wall_end_ms": 4100,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -21,6 +21,8 @@
       "llm": [
         {
           "span_id": "l0",
+          "turnstile.start_offset_ms": 0,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -42,6 +44,8 @@
       "tts": [
         {
           "span_id": "t0",
+          "turnstile.start_offset_ms": 500,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -51,6 +55,8 @@
       "playback": [
         {
           "span_id": "p0",
+          "turnstile.start_offset_ms": 2300,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -60,8 +66,8 @@
     {
       "turn_index": 1,
       "speaker_first": "agent",
-      "wall_start_ms": 2000,
-      "wall_end_ms": 4000,
+      "wall_start_ms": 4100,
+      "wall_end_ms": 8200,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -69,6 +75,8 @@
       "llm": [
         {
           "span_id": "l1",
+          "turnstile.start_offset_ms": 4100,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -90,6 +98,8 @@
       "tts": [
         {
           "span_id": "t1",
+          "turnstile.start_offset_ms": 4600,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -99,6 +109,8 @@
       "playback": [
         {
           "span_id": "p1",
+          "turnstile.start_offset_ms": 6400,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -108,8 +120,8 @@
     {
       "turn_index": 2,
       "speaker_first": "caller",
-      "wall_start_ms": 4000,
-      "wall_end_ms": 6000,
+      "wall_start_ms": 8200,
+      "wall_end_ms": 12300,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -117,6 +129,8 @@
       "llm": [
         {
           "span_id": "l2",
+          "turnstile.start_offset_ms": 8200,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -138,6 +152,8 @@
       "tts": [
         {
           "span_id": "t2",
+          "turnstile.start_offset_ms": 8700,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -147,6 +163,8 @@
       "playback": [
         {
           "span_id": "p2",
+          "turnstile.start_offset_ms": 10500,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -156,8 +174,8 @@
     {
       "turn_index": 3,
       "speaker_first": "agent",
-      "wall_start_ms": 6000,
-      "wall_end_ms": 8000,
+      "wall_start_ms": 12300,
+      "wall_end_ms": 16400,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -165,6 +183,8 @@
       "llm": [
         {
           "span_id": "l3",
+          "turnstile.start_offset_ms": 12300,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -186,6 +206,8 @@
       "tts": [
         {
           "span_id": "t3",
+          "turnstile.start_offset_ms": 12800,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -195,6 +217,8 @@
       "playback": [
         {
           "span_id": "p3",
+          "turnstile.start_offset_ms": 14600,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -204,8 +228,8 @@
     {
       "turn_index": 4,
       "speaker_first": "caller",
-      "wall_start_ms": 8000,
-      "wall_end_ms": 10000,
+      "wall_start_ms": 16400,
+      "wall_end_ms": 20500,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -213,6 +237,8 @@
       "llm": [
         {
           "span_id": "l4",
+          "turnstile.start_offset_ms": 16400,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -234,6 +260,8 @@
       "tts": [
         {
           "span_id": "t4",
+          "turnstile.start_offset_ms": 16900,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -243,6 +271,8 @@
       "playback": [
         {
           "span_id": "p4",
+          "turnstile.start_offset_ms": 18700,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -252,8 +282,8 @@
     {
       "turn_index": 5,
       "speaker_first": "agent",
-      "wall_start_ms": 10000,
-      "wall_end_ms": 12000,
+      "wall_start_ms": 20500,
+      "wall_end_ms": 24600,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -261,6 +291,8 @@
       "llm": [
         {
           "span_id": "l5",
+          "turnstile.start_offset_ms": 20500,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -282,6 +314,8 @@
       "tts": [
         {
           "span_id": "t5",
+          "turnstile.start_offset_ms": 21000,
+          "turnstile.duration_ms": 1800,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 28,
           "turnstile.audio_seconds_generated": 1.8,
@@ -291,6 +325,8 @@
       "playback": [
         {
           "span_id": "p5",
+          "turnstile.start_offset_ms": 22800,
+          "turnstile.duration_ms": 1800,
           "turnstile.chars_played": 28,
           "turnstile.audio_seconds_played": 1.8,
           "turnstile.truncated_by": null
@@ -300,8 +336,8 @@
     {
       "turn_index": 6,
       "speaker_first": "caller",
-      "wall_start_ms": 12000,
-      "wall_end_ms": 14000,
+      "wall_start_ms": 24600,
+      "wall_end_ms": 27900,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -309,6 +345,8 @@
       "llm": [
         {
           "span_id": "l6",
+          "turnstile.start_offset_ms": 24600,
+          "turnstile.duration_ms": 700,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 700,
@@ -323,7 +361,7 @@
             "escalate"
           ],
           "turnstile.output_text": "This needs a human.",
-          "turnstile.latency_ms": 500,
+          "turnstile.latency_ms": 700,
           "turnstile.retry_of": null
         }
       ],
@@ -331,6 +369,8 @@
       "tts": [
         {
           "span_id": "t6",
+          "turnstile.start_offset_ms": 25300,
+          "turnstile.duration_ms": 1300,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 19,
           "turnstile.audio_seconds_generated": 1.3,
@@ -340,6 +380,8 @@
       "playback": [
         {
           "span_id": "p6",
+          "turnstile.start_offset_ms": 26600,
+          "turnstile.duration_ms": 1300,
           "turnstile.chars_played": 19,
           "turnstile.audio_seconds_played": 1.3,
           "turnstile.truncated_by": null
@@ -349,8 +391,8 @@
     {
       "turn_index": 7,
       "speaker_first": "agent",
-      "wall_start_ms": 14000,
-      "wall_end_ms": 16000,
+      "wall_start_ms": 27900,
+      "wall_end_ms": 31700,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -358,6 +400,8 @@
       "llm": [
         {
           "span_id": "l7",
+          "turnstile.start_offset_ms": 28200,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 650,
@@ -378,18 +422,24 @@
       "tools": [
         {
           "span_id": "tool7",
+          "turnstile.start_offset_ms": 27900,
+          "turnstile.duration_ms": 300,
           "turnstile.tool_name": "transfer_to_agent",
           "turnstile.args_hash": "sha256:xfer7",
           "turnstile.args_json": "{}",
           "turnstile.result_hash": "sha256:r",
           "turnstile.latency_ms": 300,
           "turnstile.cost_usd": 0.0,
-          "turnstile.tool_kind": "handoff"
+          "turnstile.tool_kind": "handoff",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "committed"
         }
       ],
       "tts": [
         {
           "span_id": "t7",
+          "turnstile.start_offset_ms": 28700,
+          "turnstile.duration_ms": 1500,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 22,
           "turnstile.audio_seconds_generated": 1.5,
@@ -399,6 +449,8 @@
       "playback": [
         {
           "span_id": "p7",
+          "turnstile.start_offset_ms": 30200,
+          "turnstile.duration_ms": 1500,
           "turnstile.chars_played": 22,
           "turnstile.audio_seconds_played": 1.5,
           "turnstile.truncated_by": null
@@ -408,8 +460,10 @@
   ],
   "telephony": {
     "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 32000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 16
+    "turnstile.billable_seconds": 32
   }
 }

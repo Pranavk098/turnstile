@@ -6,14 +6,14 @@
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
     "end_reason": "caller_hangup",
-    "turnstile.schema_version": "1.0"
+    "turnstile.schema_version": "1.1"
   },
   "turns": [
     {
       "turn_index": 0,
       "speaker_first": "agent",
       "wall_start_ms": 0,
-      "wall_end_ms": 3000,
+      "wall_end_ms": 4300,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -21,6 +21,8 @@
       "llm": [
         {
           "span_id": "l0",
+          "turnstile.start_offset_ms": 0,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -42,6 +44,8 @@
       "tts": [
         {
           "span_id": "t0",
+          "turnstile.start_offset_ms": 500,
+          "turnstile.duration_ms": 1900,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 29,
           "turnstile.audio_seconds_generated": 1.9,
@@ -51,6 +55,8 @@
       "playback": [
         {
           "span_id": "p0",
+          "turnstile.start_offset_ms": 2400,
+          "turnstile.duration_ms": 1900,
           "turnstile.chars_played": 29,
           "turnstile.audio_seconds_played": 1.9,
           "turnstile.truncated_by": null
@@ -60,8 +66,10 @@
   ],
   "telephony": {
     "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 5000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 3
+    "turnstile.billable_seconds": 5
   }
 }

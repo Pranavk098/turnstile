@@ -6,14 +6,14 @@
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
     "end_reason": "caller_hangup",
-    "turnstile.schema_version": "1.0"
+    "turnstile.schema_version": "1.1"
   },
   "turns": [
     {
       "turn_index": 0,
       "speaker_first": "caller",
       "wall_start_ms": 0,
-      "wall_end_ms": 4000,
+      "wall_end_ms": 3100,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -21,6 +21,8 @@
       "llm": [
         {
           "span_id": "l0",
+          "turnstile.start_offset_ms": 0,
+          "turnstile.duration_ms": 600,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 600,
@@ -35,7 +37,7 @@
             "billing"
           ],
           "turnstile.output_text": "Let me check that.",
-          "turnstile.latency_ms": 500,
+          "turnstile.latency_ms": 600,
           "turnstile.retry_of": null
         }
       ],
@@ -43,6 +45,8 @@
       "tts": [
         {
           "span_id": "t0",
+          "turnstile.start_offset_ms": 300,
+          "turnstile.duration_ms": 1400,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 18,
           "turnstile.audio_seconds_generated": 1.4,
@@ -52,6 +56,8 @@
       "playback": [
         {
           "span_id": "p0",
+          "turnstile.start_offset_ms": 1700,
+          "turnstile.duration_ms": 1400,
           "turnstile.chars_played": 18,
           "turnstile.audio_seconds_played": 1.4,
           "turnstile.truncated_by": null
@@ -61,8 +67,8 @@
     {
       "turn_index": 1,
       "speaker_first": "agent",
-      "wall_start_ms": 4000,
-      "wall_end_ms": 8000,
+      "wall_start_ms": 3100,
+      "wall_end_ms": 8300,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -70,6 +76,8 @@
       "llm": [
         {
           "span_id": "l1",
+          "turnstile.start_offset_ms": 3400,
+          "turnstile.duration_ms": 900,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 900,
@@ -83,25 +91,31 @@
             "report_status"
           ],
           "turnstile.output_text": "Your order ships tomorrow.",
-          "turnstile.latency_ms": 500,
+          "turnstile.latency_ms": 900,
           "turnstile.retry_of": null
         }
       ],
       "tools": [
         {
           "span_id": "tool1",
+          "turnstile.start_offset_ms": 3100,
+          "turnstile.duration_ms": 300,
           "turnstile.tool_name": "lookup_order",
           "turnstile.args_hash": "sha256:a1",
           "turnstile.args_json": "{}",
           "turnstile.result_hash": "sha256:r",
           "turnstile.latency_ms": 300,
           "turnstile.cost_usd": 0.0,
-          "turnstile.tool_kind": "lookup"
+          "turnstile.tool_kind": "lookup",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "none"
         }
       ],
       "tts": [
         {
           "span_id": "t1",
+          "turnstile.start_offset_ms": 4300,
+          "turnstile.duration_ms": 2000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 26,
           "turnstile.audio_seconds_generated": 2.0,
@@ -111,6 +125,8 @@
       "playback": [
         {
           "span_id": "p1",
+          "turnstile.start_offset_ms": 6300,
+          "turnstile.duration_ms": 2000,
           "turnstile.chars_played": 26,
           "turnstile.audio_seconds_played": 2.0,
           "turnstile.truncated_by": null
@@ -120,8 +136,8 @@
     {
       "turn_index": 2,
       "speaker_first": "caller",
-      "wall_start_ms": 8000,
-      "wall_end_ms": 10000,
+      "wall_start_ms": 8300,
+      "wall_end_ms": 12000,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -129,6 +145,8 @@
       "llm": [
         {
           "span_id": "l2",
+          "turnstile.start_offset_ms": 8300,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 700,
@@ -150,6 +168,8 @@
       "tts": [
         {
           "span_id": "t2",
+          "turnstile.start_offset_ms": 8800,
+          "turnstile.duration_ms": 1600,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 23,
           "turnstile.audio_seconds_generated": 1.6,
@@ -159,6 +179,8 @@
       "playback": [
         {
           "span_id": "p2",
+          "turnstile.start_offset_ms": 10400,
+          "turnstile.duration_ms": 1600,
           "turnstile.chars_played": 23,
           "turnstile.audio_seconds_played": 1.6,
           "turnstile.truncated_by": null
@@ -168,8 +190,10 @@
   ],
   "telephony": {
     "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 12000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 10
+    "turnstile.billable_seconds": 12
   }
 }

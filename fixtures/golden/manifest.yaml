@@ -1,22 +1,28 @@
-# The 20 golden fixtures. category drives the contract-test distribution check.
+# The 23 golden fixtures (v1.1). category drives the contract-test distribution
+# check. expected_verdict is test metadata for the verdict layer (Wave 1) --
+# it lives here, never in the Trace schema, so ground truth can't leak into
+# the data a verdict engine consumes.
 fixtures:
-  - { id: "00_baseline_clean",    category: baseline,     target_detector: none, description: "Clean RESOLVED order-status call; all detectors silent." }
-  - { id: "01_over_model",        category: detector,     target_detector: 1,    description: "Frontier gpt-5 used for a route decision, output_tokens<32." }
-  - { id: "02_context_bloat",     category: detector,     target_detector: 2,    description: "input_tokens grow >400/turn, cache_read/input<0.5." }
-  - { id: "03_redundant_retrieval", category: detector,   target_detector: 3,    description: "retrieval tool returns a doc already in prior context." }
-  - { id: "04_turn_inflation",    category: detector,     target_detector: 4,    description: "14 turns for an intent whose baseline p50 is 8." }
-  - { id: "05_reprompt_loop",     category: detector,     target_detector: 5,    description: "Same slot_fill decision_kind twice, no fill between." }
-  - { id: "06_dead_tokens",       category: detector,     target_detector: 6,    description: "llm output_text with no matching tts.synthesize." }
-  - { id: "07_barge_in_waste",    category: detector,     target_detector: 7,    description: "chars_synthesized > chars_played; caller interrupted." }
-  - { id: "08_silence_tax",       category: detector,     target_detector: 8,    description: "Inter-span gaps >200ms with meter running." }
-  - { id: "09_escalation_debt",   category: detector,     target_detector: 9,    description: "Escalated; predictable at turn 3, ran 9 more turns." }
-  - { id: "10_tool_thrash",       category: detector,     target_detector: 10,   description: "Duplicate args_hash for same tool within conversation." }
-  - { id: "11_multi_waste_a",     category: multi_waste,  target_detector: "1,2,8", description: "over_model + context_bloat + silence_tax." }
-  - { id: "12_multi_waste_b",     category: multi_waste,  target_detector: "6,7,10", description: "dead_tokens + barge_in + tool_thrash." }
-  - { id: "13_multi_waste_c",     category: multi_waste,  target_detector: "3,4,5", description: "redundant_retrieval + turn_inflation + reprompt_loop." }
-  - { id: "14_escalation_early",  category: escalation,   target_detector: 9,    description: "Escalated; turn_of_no_return at turn 3." }
-  - { id: "15_escalation_late",   category: escalation,   target_detector: 9,    description: "Escalated near end; low escalation debt (control)." }
-  - { id: "16_abandoned",         category: abandoned,    target_detector: none, description: "caller_hangup mid-flow; verdict ABANDONED." }
-  - { id: "17_false_resolve",     category: false_resolve, target_detector: none, description: "Agent asserts done; terminal mutation tool contradicts." }
-  - { id: "18_edge_single_turn",  category: edge,         target_detector: none, description: "Single-turn RESOLVED call." }
-  - { id: "19_edge_40_turn",      category: edge,         target_detector: none, description: "40-turn call; scaling/perf edge." }
+  - { id: "00_baseline_clean",    category: baseline,     target_detector: none, expected_verdict: RESOLVED, description: "Clean RESOLVED order-status call; all detectors silent." }
+  - { id: "01_over_model",        category: detector,     target_detector: 1,    expected_verdict: RESOLVED, description: "Frontier gpt-5 used for a route decision, output_tokens<32." }
+  - { id: "02_context_bloat",     category: detector,     target_detector: 2,    expected_verdict: RESOLVED, description: "input_tokens grow >400/turn, cache_read/input<0.5." }
+  - { id: "03_redundant_retrieval", category: detector,   target_detector: 3,    expected_verdict: RESOLVED, description: "retrieval tool returns a doc already in prior context." }
+  - { id: "04_turn_inflation",    category: detector,     target_detector: 4,    expected_verdict: RESOLVED, description: "14 turns for an intent whose baseline p50 is 8." }
+  - { id: "05_reprompt_loop",     category: detector,     target_detector: 5,    expected_verdict: RESOLVED, description: "Same slot_fill decision_kind twice, no fill between." }
+  - { id: "06_dead_tokens",       category: detector,     target_detector: 6,    expected_verdict: PARTIALLY_RESOLVED, description: "llm output_text with no matching tts.synthesize." }
+  - { id: "07_barge_in_waste",    category: detector,     target_detector: 7,    expected_verdict: PARTIALLY_RESOLVED, description: "chars_synthesized > chars_played; caller interrupted." }
+  - { id: "08_silence_tax",       category: detector,     target_detector: 8,    expected_verdict: PARTIALLY_RESOLVED, description: "Active-span union << billed wall; telephony meter runs through dead air." }
+  - { id: "09_escalation_debt",   category: detector,     target_detector: 9,    expected_verdict: ESCALATED, description: "Escalated; predictable at turn 3, ran 9 more turns. handoff.effect=committed." }
+  - { id: "10_tool_thrash",       category: detector,     target_detector: 10,   expected_verdict: PARTIALLY_RESOLVED, description: "Duplicate args_hash for same tool within conversation; both calls effect=committed." }
+  - { id: "11_multi_waste_a",     category: multi_waste,  target_detector: "1,2,8", expected_verdict: PARTIALLY_RESOLVED, description: "over_model + context_bloat + silence_tax." }
+  - { id: "12_multi_waste_b",     category: multi_waste,  target_detector: "6,7,10", expected_verdict: PARTIALLY_RESOLVED, description: "dead_tokens + barge_in + tool_thrash." }
+  - { id: "13_multi_waste_c",     category: multi_waste,  target_detector: "3,4,5", expected_verdict: PARTIALLY_RESOLVED, description: "redundant_retrieval + turn_inflation + reprompt_loop." }
+  - { id: "14_escalation_early",  category: escalation,   target_detector: 9,    expected_verdict: ESCALATED, description: "Escalated; turn_of_no_return at turn 3. handoff.effect=committed, debt=0." }
+  - { id: "15_escalation_late",   category: escalation,   target_detector: 9,    expected_verdict: ESCALATED, description: "Escalated near end; low escalation debt (control). handoff.effect=committed." }
+  - { id: "16_abandoned",         category: abandoned,    target_detector: none, expected_verdict: ABANDONED, description: "caller_hangup mid-flow; verdict ABANDONED." }
+  - { id: "17_false_resolve",     category: false_resolve, target_detector: none, expected_verdict: FALSE_RESOLVE, description: "Agent asserts done; process_refund effect=rejected contradicts (tool_status=ok)." }
+  - { id: "18_edge_single_turn",  category: edge,         target_detector: none, expected_verdict: RESOLVED, description: "Single-turn RESOLVED call." }
+  - { id: "19_edge_40_turn",      category: edge,         target_detector: none, expected_verdict: RESOLVED, description: "40-turn call; scaling/perf edge. Turn 6 llm.decide overlaps turn 5 audio.playback (D8 union shape B)." }
+  - { id: "20_unknown_mutation",  category: effect_edge,  target_detector: none, expected_verdict: UNRESOLVED, description: "Required mutation times out: tool_status=error, effect=unknown. Confidence capped at 0.6; not RESOLVED/FALSE_RESOLVE." }
+  - { id: "21_handoff_rejected",  category: effect_edge,  target_detector: 9,    expected_verdict: UNRESOLVED, description: "handoff effect=rejected (no agents available). Detector 9 tier 2: spend before a handoff that then fails. Never ESCALATED." }
+  - { id: "22_handoff_pending",   category: effect_edge,  target_detector: none, expected_verdict: UNRESOLVED, description: "handoff effect=pending (caller queued/on hold). Not yet ESCALATED." }

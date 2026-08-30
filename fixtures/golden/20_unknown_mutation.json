@@ -1,8 +1,8 @@
 {
   "conversation": {
-    "conversation_id": "00000000-0000-0000-0000-000000000005",
+    "conversation_id": "00000000-0000-0000-0000-000000000020",
     "agent_version": "agent@abc123",
-    "scenario_id": "account_update",
+    "scenario_id": "cancel_subscription",
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
     "end_reason": "caller_hangup",
@@ -11,7 +11,7 @@
   "turns": [
     {
       "turn_index": 0,
-      "speaker_first": "agent",
+      "speaker_first": "caller",
       "wall_start_ms": 0,
       "wall_end_ms": 3900,
       "barge_in": false,
@@ -25,17 +25,18 @@
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 600,
+          "gen_ai.usage.input_tokens": 650,
           "gen_ai.usage.output_tokens": 16,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
           "turnstile.reasoning_tokens": 0,
-          "turnstile.decision_kind": "slot_fill",
-          "turnstile.decision_chosen": "phone_number",
+          "turnstile.decision_kind": "route",
+          "turnstile.decision_chosen": "cancel_subscription",
           "turnstile.decision_candidates": [
-            "phone_number"
+            "cancel_subscription",
+            "retain_customer"
           ],
-          "turnstile.output_text": "What's your phone number?",
+          "turnstile.output_text": "Let me cancel that for you.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
@@ -49,7 +50,7 @@
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 27,
           "turnstile.audio_seconds_generated": 1.7,
-          "turnstile.text": "What's your phone number?"
+          "turnstile.text": "Let me cancel that for you."
         }
       ],
       "playback": [
@@ -67,64 +68,67 @@
       "turn_index": 1,
       "speaker_first": "agent",
       "wall_start_ms": 3900,
-      "wall_end_ms": 10600,
+      "wall_end_ms": 20800,
       "barge_in": false,
       "vad": [],
-      "asr": [
-        {
-          "span_id": "a1",
-          "turnstile.start_offset_ms": 3900,
-          "turnstile.duration_ms": 1200,
-          "gen_ai.system": "deepgram",
-          "gen_ai.request.model": "nova-2",
-          "turnstile.audio_seconds": 1.2,
-          "turnstile.is_streaming": false,
-          "turnstile.transcript": "uhh sorry what",
-          "turnstile.confidence": 0.95
-        }
-      ],
+      "asr": [],
       "context": null,
       "llm": [
         {
           "span_id": "l1",
-          "turnstile.start_offset_ms": 5100,
+          "turnstile.start_offset_ms": 11900,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
-          "gen_ai.usage.input_tokens": 650,
-          "gen_ai.usage.output_tokens": 17,
+          "gen_ai.usage.input_tokens": 680,
+          "gen_ai.usage.output_tokens": 24,
           "turnstile.cache_read_tokens": 0,
           "turnstile.cache_write_tokens": 0,
           "turnstile.reasoning_tokens": 0,
-          "turnstile.decision_kind": "slot_fill",
-          "turnstile.decision_chosen": "phone_number",
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "hedge_uncertain",
           "turnstile.decision_candidates": [
-            "phone_number"
+            "hedge_uncertain"
           ],
-          "turnstile.output_text": "Sorry, could you repeat your phone number?",
+          "turnstile.output_text": "I'm having trouble confirming that went through -- I'll flag it for a specialist to verify.",
           "turnstile.latency_ms": 500,
           "turnstile.retry_of": null
         }
       ],
-      "tools": [],
+      "tools": [
+        {
+          "span_id": "tool1",
+          "turnstile.start_offset_ms": 3900,
+          "turnstile.duration_ms": 8000,
+          "turnstile.tool_name": "cancel_subscription",
+          "turnstile.args_hash": "sha256:cancelargs1",
+          "turnstile.args_json": "{}",
+          "turnstile.result_hash": "sha256:timeout_no_response",
+          "turnstile.latency_ms": 8000,
+          "turnstile.cost_usd": 0.0,
+          "turnstile.tool_kind": "mutation",
+          "turnstile.tool_status": "error",
+          "turnstile.effect": "unknown"
+        }
+      ],
       "tts": [
         {
           "span_id": "t1",
-          "turnstile.start_offset_ms": 5600,
-          "turnstile.duration_ms": 2500,
+          "turnstile.start_offset_ms": 12400,
+          "turnstile.duration_ms": 4200,
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 44,
-          "turnstile.audio_seconds_generated": 2.5,
-          "turnstile.text": "Sorry, could you repeat your phone number?"
+          "turnstile.chars_synthesized": 88,
+          "turnstile.audio_seconds_generated": 4.2,
+          "turnstile.text": "I'm having trouble confirming that went through -- I'll flag it for a specialist to verify."
         }
       ],
       "playback": [
         {
           "span_id": "p1",
-          "turnstile.start_offset_ms": 8100,
-          "turnstile.duration_ms": 2500,
-          "turnstile.chars_played": 44,
-          "turnstile.audio_seconds_played": 2.5,
+          "turnstile.start_offset_ms": 16600,
+          "turnstile.duration_ms": 4200,
+          "turnstile.chars_played": 88,
+          "turnstile.audio_seconds_played": 4.2,
           "turnstile.truncated_by": null
         }
       ]
@@ -133,9 +137,9 @@
   "telephony": {
     "span_id": "leg",
     "turnstile.start_offset_ms": 0,
-    "turnstile.duration_ms": 11000,
+    "turnstile.duration_ms": 21000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 11
+    "turnstile.billable_seconds": 21
   }
 }

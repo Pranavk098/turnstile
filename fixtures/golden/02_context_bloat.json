@@ -6,14 +6,14 @@
     "started_at": "2026-08-30T00:00:00Z",
     "ended_at": "2026-08-30T00:02:00Z",
     "end_reason": "caller_hangup",
-    "turnstile.schema_version": "1.0"
+    "turnstile.schema_version": "1.1"
   },
   "turns": [
     {
       "turn_index": 0,
       "speaker_first": "caller",
       "wall_start_ms": 0,
-      "wall_end_ms": 3000,
+      "wall_end_ms": 2500,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -21,6 +21,8 @@
       "llm": [
         {
           "span_id": "l0",
+          "turnstile.start_offset_ms": 0,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 800,
@@ -42,6 +44,8 @@
       "tts": [
         {
           "span_id": "t0",
+          "turnstile.start_offset_ms": 500,
+          "turnstile.duration_ms": 1000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 12,
           "turnstile.audio_seconds_generated": 1.0,
@@ -51,6 +55,8 @@
       "playback": [
         {
           "span_id": "p0",
+          "turnstile.start_offset_ms": 1500,
+          "turnstile.duration_ms": 1000,
           "turnstile.chars_played": 12,
           "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
@@ -60,8 +66,8 @@
     {
       "turn_index": 1,
       "speaker_first": "agent",
-      "wall_start_ms": 3000,
-      "wall_end_ms": 6000,
+      "wall_start_ms": 2500,
+      "wall_end_ms": 5000,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -69,6 +75,8 @@
       "llm": [
         {
           "span_id": "l1",
+          "turnstile.start_offset_ms": 2500,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 1300,
@@ -90,6 +98,8 @@
       "tts": [
         {
           "span_id": "t1",
+          "turnstile.start_offset_ms": 3000,
+          "turnstile.duration_ms": 1000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 12,
           "turnstile.audio_seconds_generated": 1.0,
@@ -99,6 +109,8 @@
       "playback": [
         {
           "span_id": "p1",
+          "turnstile.start_offset_ms": 4000,
+          "turnstile.duration_ms": 1000,
           "turnstile.chars_played": 12,
           "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
@@ -108,8 +120,8 @@
     {
       "turn_index": 2,
       "speaker_first": "caller",
-      "wall_start_ms": 6000,
-      "wall_end_ms": 9000,
+      "wall_start_ms": 5000,
+      "wall_end_ms": 7500,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -117,6 +129,8 @@
       "llm": [
         {
           "span_id": "l2",
+          "turnstile.start_offset_ms": 5000,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 1900,
@@ -138,6 +152,8 @@
       "tts": [
         {
           "span_id": "t2",
+          "turnstile.start_offset_ms": 5500,
+          "turnstile.duration_ms": 1000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 12,
           "turnstile.audio_seconds_generated": 1.0,
@@ -147,6 +163,8 @@
       "playback": [
         {
           "span_id": "p2",
+          "turnstile.start_offset_ms": 6500,
+          "turnstile.duration_ms": 1000,
           "turnstile.chars_played": 12,
           "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
@@ -156,8 +174,8 @@
     {
       "turn_index": 3,
       "speaker_first": "agent",
-      "wall_start_ms": 9000,
-      "wall_end_ms": 12000,
+      "wall_start_ms": 7500,
+      "wall_end_ms": 10000,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -165,6 +183,8 @@
       "llm": [
         {
           "span_id": "l3",
+          "turnstile.start_offset_ms": 7500,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 2600,
@@ -186,6 +206,8 @@
       "tts": [
         {
           "span_id": "t3",
+          "turnstile.start_offset_ms": 8000,
+          "turnstile.duration_ms": 1000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 12,
           "turnstile.audio_seconds_generated": 1.0,
@@ -195,6 +217,8 @@
       "playback": [
         {
           "span_id": "p3",
+          "turnstile.start_offset_ms": 9000,
+          "turnstile.duration_ms": 1000,
           "turnstile.chars_played": 12,
           "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
@@ -204,8 +228,8 @@
     {
       "turn_index": 4,
       "speaker_first": "caller",
-      "wall_start_ms": 12000,
-      "wall_end_ms": 15000,
+      "wall_start_ms": 10000,
+      "wall_end_ms": 12500,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -213,6 +237,8 @@
       "llm": [
         {
           "span_id": "l4",
+          "turnstile.start_offset_ms": 10000,
+          "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "openai/gpt-5-mini",
           "gen_ai.usage.input_tokens": 3400,
@@ -234,6 +260,8 @@
       "tts": [
         {
           "span_id": "t4",
+          "turnstile.start_offset_ms": 10500,
+          "turnstile.duration_ms": 1000,
           "gen_ai.system": "piper",
           "turnstile.chars_synthesized": 12,
           "turnstile.audio_seconds_generated": 1.0,
@@ -243,6 +271,8 @@
       "playback": [
         {
           "span_id": "p4",
+          "turnstile.start_offset_ms": 11500,
+          "turnstile.duration_ms": 1000,
           "turnstile.chars_played": 12,
           "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
@@ -252,8 +282,10 @@
   ],
   "telephony": {
     "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 13000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 15
+    "turnstile.billable_seconds": 13
   }
 }
