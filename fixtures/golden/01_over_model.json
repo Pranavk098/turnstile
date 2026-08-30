@@ -44,16 +44,16 @@
         {
           "span_id": "t0",
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 11,
-          "turnstile.audio_seconds_generated": 0.9,
-          "turnstile.text": "One moment."
+          "turnstile.chars_synthesized": 13,
+          "turnstile.audio_seconds_generated": 1.0,
+          "turnstile.text": "Order status."
         }
       ],
       "playback": [
         {
           "span_id": "p0",
-          "turnstile.chars_played": 11,
-          "turnstile.audio_seconds_played": 0.9,
+          "turnstile.chars_played": 13,
+          "turnstile.audio_seconds_played": 1.0,
           "turnstile.truncated_by": null
         }
       ]

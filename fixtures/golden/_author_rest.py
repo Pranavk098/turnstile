@@ -14,8 +14,8 @@ def cid(n: int) -> str:
 t0 = Turn(turn_index=0, speaker_first="caller", wall_start_ms=0, wall_end_ms=3000,
           llm=[llm("l0", "openai/gpt-5", "route", "order_status",
                    ["order_status", "billing"], "Order status.", 500, 15)],
-          tts=[tts("t0", "One moment.", 11, 0.9)],
-          playback=[playback("p0", 11, 0.9)])
+          tts=[tts("t0", "Order status.", 13, 1.0)],
+          playback=[playback("p0", 13, 1.0)])
 dump(Trace(conversation=conv(cid(1), "order_status", "caller_hangup"),
            turns=[t0], telephony=leg(3)), HERE / "01_over_model.json")
 
@@ -127,8 +127,8 @@ def escalation_turns(no_return_idx, total_turns, escalate_kind="escalate_check")
                 wall_end_ms=start + 2000,
                 llm=[llm(f"l{i}", "openai/gpt-5-mini", escalate_kind, "escalate",
                          ["resolve", "escalate"], "This needs a human.", 700, 20)],
-                tts=[tts(f"t{i}", "Let me see what I can do.", 26, 1.7)],
-                playback=[playback(f"p{i}", 26, 1.7)]))
+                tts=[tts(f"t{i}", "This needs a human.", 19, 1.3)],
+                playback=[playback(f"p{i}", 19, 1.3)]))
         elif i == total_turns - 1:
             ts.append(Turn(
                 turn_index=i, speaker_first="agent", wall_start_ms=start,
@@ -176,14 +176,21 @@ for i, tok in enumerate(in_toks_11):
     kind = "route" if i == 0 else "compose"
     model = "openai/gpt-5" if i == 0 else "openai/gpt-5-mini"
     out_tok = 15 if i == 0 else 20  # <32 on the frontier turn, satisfying 01
-    turns11.append(Turn(
-        turn_index=i, speaker_first="caller" if i % 2 == 0 else "agent",
-        wall_start_ms=start, wall_end_ms=end,
-        llm=[llm(f"l{i}", model, kind, "handle_billing", ["handle_billing"],
-                 f"Response {i}.", tok, out_tok, latency=500, cache_read=0)],
-        tts=[tts(f"t{i}", f"Response {i}.", 12, 1.0)],
-        playback=[playback(f"p{i}", 12, 1.0)]))
-# turn 0: wall span 5000ms, llm latency only 500ms -> 4500ms unaccounted gap (>200ms, 08)
+    llm_span = llm(f"l{i}", model, kind, "handle_billing", ["handle_billing"],
+                   f"Response {i}.", tok, out_tok, latency=500, cache_read=0)
+    if i == 0:
+        # turn 0: zero tts/playback spans despite a 5000ms billed wall span --
+        # identical in kind to 08_silence_tax's clean D8 encoding (total audio
+        # silence for a billed turn), not a wall-minus-latency arithmetic gap.
+        turns11.append(Turn(
+            turn_index=i, speaker_first="caller" if i % 2 == 0 else "agent",
+            wall_start_ms=start, wall_end_ms=end, llm=[llm_span]))
+    else:
+        turns11.append(Turn(
+            turn_index=i, speaker_first="caller" if i % 2 == 0 else "agent",
+            wall_start_ms=start, wall_end_ms=end, llm=[llm_span],
+            tts=[tts(f"t{i}", f"Response {i}.", 12, 1.0)],
+            playback=[playback(f"p{i}", 12, 1.0)]))
 dump(Trace(conversation=conv(cid(11), "billing_dispute", "caller_hangup"),
            turns=turns11, telephony=leg(20)), HERE / "11_multi_waste_a.json")
 
@@ -332,7 +339,7 @@ for i in range(40):
                  [f"step_{i}"], f"Okay, step {i} done.", 500, 15)],
         tts=[tts(f"t{i}", f"Okay, step {i} done.", 18, 1.2)],
         playback=[playback(f"p{i}", 18, 1.2)]))
-dump(Trace(conversation=conv(cid(19), "order_status", "caller_hangup"),
+dump(Trace(conversation=conv(cid(19), "long_technical_support", "caller_hangup"),
            turns=turns19, telephony=leg(80)), HERE / "19_edge_40_turn.json")
 
 print("wrote fixtures 01-06, 08-19")

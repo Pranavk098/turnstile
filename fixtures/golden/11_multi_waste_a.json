@@ -39,23 +39,8 @@
         }
       ],
       "tools": [],
-      "tts": [
-        {
-          "span_id": "t0",
-          "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 12,
-          "turnstile.audio_seconds_generated": 1.0,
-          "turnstile.text": "Response 0."
-        }
-      ],
-      "playback": [
-        {
-          "span_id": "p0",
-          "turnstile.chars_played": 12,
-          "turnstile.audio_seconds_played": 1.0,
-          "turnstile.truncated_by": null
-        }
-      ]
+      "tts": [],
+      "playback": []
     },
     {
       "turn_index": 1,

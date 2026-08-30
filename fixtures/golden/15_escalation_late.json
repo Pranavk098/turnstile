@@ -332,16 +332,16 @@
         {
           "span_id": "t6",
           "gen_ai.system": "piper",
-          "turnstile.chars_synthesized": 26,
-          "turnstile.audio_seconds_generated": 1.7,
-          "turnstile.text": "Let me see what I can do."
+          "turnstile.chars_synthesized": 19,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "This needs a human."
         }
       ],
       "playback": [
         {
           "span_id": "p6",
-          "turnstile.chars_played": 26,
-          "turnstile.audio_seconds_played": 1.7,
+          "turnstile.chars_played": 19,
+          "turnstile.audio_seconds_played": 1.3,
           "turnstile.truncated_by": null
         }
       ]
