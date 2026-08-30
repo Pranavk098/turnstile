@@ -8,6 +8,7 @@ package = false
 
 [tool.uv.workspace]
 members = ["packages/*"]
+exclude = ["packages/agent"]   # spike-only until Wave 1 builds it into a real package
 
 [dependency-groups]
 dev = ["pytest>=8.0", "turnstile-schema"]
