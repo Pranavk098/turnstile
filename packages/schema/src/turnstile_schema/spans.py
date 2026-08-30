@@ -1,6 +1,7 @@
 from __future__ import annotations
+from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
-from turnstile_schema.enums import PruningStrategy, DecisionKind, ToolKind
+from turnstile_schema.enums import PruningStrategy, DecisionKind, ToolKind, Direction
 
 _STRICT = ConfigDict(populate_by_name=True, extra="forbid")
 
@@ -52,6 +53,19 @@ class ToolCall(Span):
     cost_usd: float = Field(0.0, alias="turnstile.cost_usd")
     tool_kind: ToolKind = Field(alias="turnstile.tool_kind")
 
-# Placeholders kept so trace.py imports still resolve until Task 5 replaces them.
-class TtsSynthesize(Span): ...
-class AudioPlayback(Span): ...
+class TtsSynthesize(Span):
+    gen_ai_system: str = Field(alias="gen_ai.system")
+    chars_synthesized: int = Field(alias="turnstile.chars_synthesized")
+    audio_seconds_generated: float = Field(alias="turnstile.audio_seconds_generated")
+    text: str = Field(alias="turnstile.text")
+
+class AudioPlayback(Span):
+    chars_played: int = Field(alias="turnstile.chars_played")
+    audio_seconds_played: float = Field(alias="turnstile.audio_seconds_played")
+    truncated_by: Literal["barge_in", "hangup"] | None = Field(
+        None, alias="turnstile.truncated_by")
+
+class TelephonyLeg(Span):
+    provider: str = Field(alias="turnstile.provider")
+    direction: Direction = Field(alias="turnstile.direction")
+    billable_seconds: int = Field(alias="turnstile.billable_seconds")

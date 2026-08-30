@@ -65,3 +65,28 @@ def test_tool_call_parse_and_default_cost():
         "turnstile.result_hash": "sha256:bb", "turnstile.latency_ms": 340,
         "turnstile.tool_kind": "lookup"})
     assert t.cost_usd == 0.0 and t.tool_kind.value == "lookup"
+
+from turnstile_schema.spans import TtsSynthesize, AudioPlayback, TelephonyLeg
+
+def test_tts_and_playback_gap_is_representable():
+    tts = TtsSynthesize.model_validate({
+        "span_id": "t1", "gen_ai.system": "piper",
+        "turnstile.chars_synthesized": 184,
+        "turnstile.audio_seconds_generated": 11.2, "turnstile.text": "hi"})
+    pb = AudioPlayback.model_validate({
+        "span_id": "p1", "turnstile.chars_played": 61,
+        "turnstile.audio_seconds_played": 3.8, "turnstile.truncated_by": "barge_in"})
+    assert tts.chars_synthesized > pb.chars_played          # Detector 7 precondition
+    assert pb.truncated_by == "barge_in"
+
+def test_playback_truncated_by_defaults_none():
+    pb = AudioPlayback.model_validate({
+        "span_id": "p1", "turnstile.chars_played": 61,
+        "turnstile.audio_seconds_played": 3.8})
+    assert pb.truncated_by is None
+
+def test_telephony_leg_parse():
+    leg = TelephonyLeg.model_validate({
+        "span_id": "leg1", "turnstile.provider": "twilio",
+        "turnstile.direction": "inbound", "turnstile.billable_seconds": 184})
+    assert leg.billable_seconds == 184
