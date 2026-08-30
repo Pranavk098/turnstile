@@ -1,4 +1,4 @@
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 from turnstile_schema.enums import (
     EndReason, SpeakerFirst, PruningStrategy, DecisionKind, ToolKind,

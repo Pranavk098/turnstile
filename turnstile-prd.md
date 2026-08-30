@@ -59,7 +59,7 @@ telephony.leg                       (spans whole conversation, sibling of root)
   "started_at":        "rfc3339",
   "ended_at":          "rfc3339",
   "end_reason":        "caller_hangup | agent_hangup | escalated | timeout | error",
-  "turnstile.schema_version": "1.0"
+  "turnstile.schema_version": "1.1"
 }
 ```
 
@@ -74,9 +74,20 @@ telephony.leg                       (spans whole conversation, sibling of root)
 }
 ```
 
+Every span type below (all children of `turn`, plus `telephony.leg`) also carries two base fields, natively produced by OTel span start/end times:
+
+```jsonc
+{
+  "turnstile.start_offset_ms": 0,   // milliseconds from conversation start
+  "turnstile.duration_ms":     0    // the span's wall extent (for audio.playback truncated by barge-in, the actual played extent)
+}
+```
+
 **`asr.transcribe`**
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "gen_ai.system":            "deepgram",
   "gen_ai.request.model":     "nova-3",
   "turnstile.audio_seconds":  4.82,
@@ -89,6 +100,8 @@ telephony.leg                       (spans whole conversation, sibling of root)
 **`context.assemble`**
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "turnstile.context_tokens":        3840,
   "turnstile.history_tokens":        2900,
   "turnstile.system_tokens":         620,
@@ -101,6 +114,8 @@ telephony.leg                       (spans whole conversation, sibling of root)
 **`llm.decide`** — the most important span. Every field is load-bearing for a detector.
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "gen_ai.system":                    "anthropic",
   "gen_ai.request.model":             "claude-sonnet-4-6",
   "gen_ai.usage.input_tokens":        3840,
@@ -112,7 +127,7 @@ telephony.leg                       (spans whole conversation, sibling of root)
   "turnstile.decision_chosen":        "lookup_order",
   "turnstile.decision_candidates":    ["lookup_order","verify_identity","escalate"],
   "turnstile.output_text":            "string",
-  "turnstile.latency_ms":             820,
+  "turnstile.latency_ms":             820,      // model latency; typically equal to duration_ms for compute spans
   "turnstile.retry_of":               null      // span_id if this is a retry
 }
 ```
@@ -122,19 +137,27 @@ telephony.leg                       (spans whole conversation, sibling of root)
 **`tool.call`**
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "turnstile.tool_name":       "lookup_order",
   "turnstile.args_hash":       "sha256:...",   // normalized: sorted keys, lowercased values
   "turnstile.args_json":       "{...}",
-  "turnstile.result_hash":     "sha256:...",
-  "turnstile.latency_ms":      340,
+  "turnstile.result_hash":     "sha256:...",   // retained for Detector 10 dedup only; no longer verdict-load-bearing
+  "turnstile.latency_ms":      340,            // tool latency; typically equal to duration_ms
   "turnstile.cost_usd":        0.0,            // external API cost if any
-  "turnstile.tool_kind":       "retrieval | mutation | lookup | handoff"
+  "turnstile.tool_kind":       "retrieval | mutation | lookup | handoff",
+  "turnstile.tool_status":     "ok | error",                                  // CALL level: did the invocation complete
+  "turnstile.effect":          "committed | pending | rejected | none | unknown"  // EFFECT level: did the intended mutation take
 }
 ```
+
+`tool_status` and `effect` are orthogonal: a call can complete (`ok`) while the business mutation it triggered did not (`pending`/`rejected`). `mutation`/`handoff` calls must resolve `effect` to `committed | pending | rejected | unknown`; `lookup`/`retrieval` calls must have `effect = none`; `tool_status = error` forbids `effect ∈ {committed, pending}`. `handoff` uses the full mutation-like enum deliberately — `pending` means the caller is queued and on hold, `rejected` means the handoff failed and the caller is stranded after paying full conversation cost. See §7 for verdict consequences.
 
 **`tts.synthesize`**
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "gen_ai.system":                  "cartesia",
   "turnstile.chars_synthesized":    184,
   "turnstile.audio_seconds_generated": 11.2,
@@ -145,6 +168,8 @@ telephony.leg                       (spans whole conversation, sibling of root)
 **`audio.playback`** — required for Detector 7. Most stacks do not emit this. Instrumenting it is a Layer 0 deliverable.
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,   // actual played extent when truncated by barge-in
   "turnstile.chars_played":         61,
   "turnstile.audio_seconds_played": 3.8,
   "turnstile.truncated_by":         "barge_in | hangup | null"
@@ -154,6 +179,8 @@ telephony.leg                       (spans whole conversation, sibling of root)
 **`telephony.leg`**
 ```jsonc
 {
+  "turnstile.start_offset_ms": 0,
+  "turnstile.duration_ms":     0,
   "turnstile.provider":       "twilio",
   "turnstile.direction":      "inbound | outbound",
   "turnstile.billable_seconds": 184
@@ -264,8 +291,8 @@ Ten classes. Classes 6, 7, and 8 do not exist in text-agent observability and ar
 | 5 | **Reprompt loop** | ≥2 `llm.decide` with same `decision_kind` targeting same slot, no fill between | cost of all turns after the first reprompt |
 | 6 | **Dead tokens** | `output_text` with no matching `tts.synthesize`, or synthesized text is a strict substring | unmatched `output_tokens × rate_out` |
 | 7 | **Barge-in waste** | `chars_synthesized > chars_played` | `(chars_synth − chars_played)/1000 × rate_tts` + attributable LLM output tokens |
-| 8 | **Silence tax** | Inter-span gaps > 200ms with no audio flowing | `Σ gap_seconds × telephony_rate_per_second`, split by cause: model / tool / ASR endpointing |
-| 9 | **Escalation debt** | `verdict = ESCALATED` AND escalation classifier ≥ 0.9 at turn `t < escalation_turn` | full cost of turns `t..end` |
+| 8 | **Silence tax** | `active_ms(turn) = |union of active [start_offset, start_offset+duration) intervals across asr, llm.decide, tool.call, tts, audio.playback|` (union, not sum — overlap is free); `silence_ms = billed_wall_ms − active_ms` | `silence_ms / 1000 × telephony_rate_per_second`, attributed by the span that starts next: model \| tool \| asr_endpoint \| tts_ttfb |
+| 9 | **Escalation debt** | Tier 1: `verdict = ESCALATED` AND escalation classifier ≥ 0.9 at turn `t < escalation_turn`. Tier 2: spend before a handoff that then FAILED (`handoff.effect = rejected`) | Tier 1: full cost of turns `t..end`. Tier 2: full conversation cost plus a lost customer — justifies the `escalation_policy` replay variant (fail over to callback when rejection is predictable, e.g. after-hours/queue depth) |
 | 10 | **Tool thrash** | Duplicate `args_hash` for same `tool_name` within conversation | cost of duplicate calls + their turns |
 
 **Detector 7 is the demo moment.** You are billed for speech the caller interrupted and never heard. It is trivially detectable, entirely voice-specific, and no product on the market reports it.
@@ -283,11 +310,15 @@ Every cost claim is conditional on "same outcome." If the judge is untrustworthy
 `FALSE_RESOLVE` — agent asserts completion but the terminal tool state contradicts it — is the most expensive failure in the taxonomy and the one LLM judges miss most often. It gets its own detector in the report.
 
 **Evidence sources, in precedence order:**
-1. Terminal tool state (deterministic; a refund either executed or did not)
+1. Terminal tool state — deterministic; reads `tool.call.effect`, not `result_hash` (a refund either `committed`, `pending`, or was `rejected`). `RESOLVED` requires `effect = committed` on the intent's terminal required mutation. Agent-asserts-completion while the bound mutation has `effect ∈ {pending, rejected}` (or `tool_status = error`) is deterministic `FALSE_RESOLVE` — no hash-parsing, no LLM judgment for this case.
 2. Required-slot completion against scenario definition
 3. Caller confirmation utterance in final two turns
 4. Absence of escalation span
 5. LLM judgment (lowest weight, used only to break ties)
+
+If any *required* mutation resolves to `effect = unknown`, `verdict.confidence` is capped at **0.6**, the label may not be `RESOLVED` or `FALSE_RESOLVE`, and `evidence` records the ambiguity explicitly — the judge declines to fabricate a verdict when the underlying evidence is genuinely ambiguous.
+
+`ESCALATED` requires `handoff.effect = committed`. A `rejected` handoff (no agents available / after-hours / queue at capacity) is `UNRESOLVED`, not `ESCALATED` — the AI tried to hand off and couldn't, and the caller is stranded after paying the full conversation cost. A `pending` handoff (caller queued, still on hold) is not yet `ESCALATED` either.
 
 **Calibration is mandatory.** Hand-label 60 conversations *before* writing the judge. Report agreement (Cohen's κ) and expected calibration error. Ship the confusion matrix in the README. An uncalibrated judge invalidates every dollar figure downstream, and this is the first thing a CTO will probe.
 
@@ -410,7 +441,7 @@ Every spawn gets exactly this, filled in. Vague briefs are the leading cause of 
 MISSION:      one sentence
 PACKAGE:      packages/<name>/  — you may edit nothing outside this
 CONTRACT:     paste the exact function signature from §5
-INPUTS:       fixtures/golden/*.json (schema v1.0, see packages/schema/)
+INPUTS:       fixtures/golden/*.json (schema v1.1, see packages/schema/)
 OUTPUT:       exact JSON shape, with a worked example
 ACCEPTANCE:   specific, runnable — "make test-<pkg> passes and
               detector fires on fixture 07, silent on fixture 00"
