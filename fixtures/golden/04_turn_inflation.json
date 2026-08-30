@@ -1,0 +1,691 @@
+{
+  "conversation": {
+    "conversation_id": "00000000-0000-0000-0000-000000000004",
+    "agent_version": "agent@abc123",
+    "scenario_id": "order_status",
+    "started_at": "2026-08-30T00:00:00Z",
+    "ended_at": "2026-08-30T00:02:00Z",
+    "end_reason": "caller_hangup",
+    "turnstile.schema_version": "1.0"
+  },
+  "turns": [
+    {
+      "turn_index": 0,
+      "speaker_first": "caller",
+      "wall_start_ms": 0,
+      "wall_end_ms": 2000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l0",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 500,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_0",
+          "turnstile.decision_candidates": [
+            "step_0"
+          ],
+          "turnstile.output_text": "Okay, checking step 0.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t0",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 0."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p0",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 1,
+      "speaker_first": "agent",
+      "wall_start_ms": 2000,
+      "wall_end_ms": 4000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l1",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 505,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_1",
+          "turnstile.decision_candidates": [
+            "step_1"
+          ],
+          "turnstile.output_text": "Okay, checking step 1.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t1",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 1."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p1",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 2,
+      "speaker_first": "caller",
+      "wall_start_ms": 4000,
+      "wall_end_ms": 6000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l2",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 510,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_2",
+          "turnstile.decision_candidates": [
+            "step_2"
+          ],
+          "turnstile.output_text": "Okay, checking step 2.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t2",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 2."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p2",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 3,
+      "speaker_first": "agent",
+      "wall_start_ms": 6000,
+      "wall_end_ms": 8000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l3",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 515,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_3",
+          "turnstile.decision_candidates": [
+            "step_3"
+          ],
+          "turnstile.output_text": "Okay, checking step 3.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t3",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 3."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p3",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 4,
+      "speaker_first": "caller",
+      "wall_start_ms": 8000,
+      "wall_end_ms": 10000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l4",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 520,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_4",
+          "turnstile.decision_candidates": [
+            "step_4"
+          ],
+          "turnstile.output_text": "Okay, checking step 4.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t4",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 4."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p4",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 5,
+      "speaker_first": "agent",
+      "wall_start_ms": 10000,
+      "wall_end_ms": 12000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l5",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 525,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_5",
+          "turnstile.decision_candidates": [
+            "step_5"
+          ],
+          "turnstile.output_text": "Okay, checking step 5.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t5",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 5."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p5",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 6,
+      "speaker_first": "caller",
+      "wall_start_ms": 12000,
+      "wall_end_ms": 14000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l6",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 530,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_6",
+          "turnstile.decision_candidates": [
+            "step_6"
+          ],
+          "turnstile.output_text": "Okay, checking step 6.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t6",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 6."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p6",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 7,
+      "speaker_first": "agent",
+      "wall_start_ms": 14000,
+      "wall_end_ms": 16000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l7",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 535,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_7",
+          "turnstile.decision_candidates": [
+            "step_7"
+          ],
+          "turnstile.output_text": "Okay, checking step 7.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t7",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 7."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p7",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 8,
+      "speaker_first": "caller",
+      "wall_start_ms": 16000,
+      "wall_end_ms": 18000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l8",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 540,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_8",
+          "turnstile.decision_candidates": [
+            "step_8"
+          ],
+          "turnstile.output_text": "Okay, checking step 8.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t8",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 8."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p8",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 9,
+      "speaker_first": "agent",
+      "wall_start_ms": 18000,
+      "wall_end_ms": 20000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l9",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 545,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_9",
+          "turnstile.decision_candidates": [
+            "step_9"
+          ],
+          "turnstile.output_text": "Okay, checking step 9.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t9",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 9."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p9",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 10,
+      "speaker_first": "caller",
+      "wall_start_ms": 20000,
+      "wall_end_ms": 22000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l10",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 550,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_10",
+          "turnstile.decision_candidates": [
+            "step_10"
+          ],
+          "turnstile.output_text": "Okay, checking step 10.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t10",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 10."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p10",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 11,
+      "speaker_first": "agent",
+      "wall_start_ms": 22000,
+      "wall_end_ms": 24000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l11",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 555,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_11",
+          "turnstile.decision_candidates": [
+            "step_11"
+          ],
+          "turnstile.output_text": "Okay, checking step 11.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t11",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 11."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p11",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 12,
+      "speaker_first": "caller",
+      "wall_start_ms": 24000,
+      "wall_end_ms": 26000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l12",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 560,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_12",
+          "turnstile.decision_candidates": [
+            "step_12"
+          ],
+          "turnstile.output_text": "Okay, checking step 12.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t12",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 12."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p12",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 13,
+      "speaker_first": "agent",
+      "wall_start_ms": 26000,
+      "wall_end_ms": 28000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l13",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5-mini",
+          "gen_ai.usage.input_tokens": 565,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "step_13",
+          "turnstile.decision_candidates": [
+            "step_13"
+          ],
+          "turnstile.output_text": "Okay, checking step 13.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t13",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 20,
+          "turnstile.audio_seconds_generated": 1.3,
+          "turnstile.text": "Okay, checking step 13."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p13",
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.3,
+          "turnstile.truncated_by": null
+        }
+      ]
+    }
+  ],
+  "telephony": {
+    "span_id": "leg",
+    "turnstile.provider": "twilio",
+    "turnstile.direction": "inbound",
+    "turnstile.billable_seconds": 28
+  }
+}

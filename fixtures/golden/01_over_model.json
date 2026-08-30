@@ -1,0 +1,68 @@
+{
+  "conversation": {
+    "conversation_id": "00000000-0000-0000-0000-000000000001",
+    "agent_version": "agent@abc123",
+    "scenario_id": "order_status",
+    "started_at": "2026-08-30T00:00:00Z",
+    "ended_at": "2026-08-30T00:02:00Z",
+    "end_reason": "caller_hangup",
+    "turnstile.schema_version": "1.0"
+  },
+  "turns": [
+    {
+      "turn_index": 0,
+      "speaker_first": "caller",
+      "wall_start_ms": 0,
+      "wall_end_ms": 3000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l0",
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "openai/gpt-5",
+          "gen_ai.usage.input_tokens": 500,
+          "gen_ai.usage.output_tokens": 15,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "route",
+          "turnstile.decision_chosen": "order_status",
+          "turnstile.decision_candidates": [
+            "order_status",
+            "billing"
+          ],
+          "turnstile.output_text": "Order status.",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t0",
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 11,
+          "turnstile.audio_seconds_generated": 0.9,
+          "turnstile.text": "One moment."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p0",
+          "turnstile.chars_played": 11,
+          "turnstile.audio_seconds_played": 0.9,
+          "turnstile.truncated_by": null
+        }
+      ]
+    }
+  ],
+  "telephony": {
+    "span_id": "leg",
+    "turnstile.provider": "twilio",
+    "turnstile.direction": "inbound",
+    "turnstile.billable_seconds": 3
+  }
+}
