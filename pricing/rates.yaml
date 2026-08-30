@@ -17,8 +17,8 @@ telephony:
   twilio/pstn_inbound:        # https://www.twilio.com/en-us/voice/pricing  (retrieved 2026-08-30)
     { unit: minute, rate: 0.0085 }
 
-# Note: cache_read for OpenAI is 0.1 x input — OpenAI's published cached-input
-# multiplier (confirmed for GPT-5.4 $0.25/$2.50 and GPT-5.5 $0.50/$5.00 tiers).
-# These are real rates, not placeholders. cache_write is not separately billed
-# by OpenAI (prompt caching is automatic), hence 0.0. Re-verify against the
+# Note: cache_read for OpenAI is 0.1 x input for the gpt-5 / gpt-5-mini /
+# gpt-5-nano tiers above (see the pricing source URL on each llm row). These
+# are real rates, not placeholders. cache_write is not separately billed by
+# OpenAI (prompt caching is automatic), hence 0.0. Re-verify against the
 # pricing page above if re-pulling this file.
