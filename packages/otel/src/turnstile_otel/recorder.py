@@ -228,6 +228,8 @@ class TurnRecorder:
         self._emit(
             "asr.transcribe",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "gen_ai.system": gen_ai_system,
                 "gen_ai.request.model": gen_ai_request_model,
                 "turnstile.audio_seconds": audio_seconds,
@@ -265,6 +267,8 @@ class TurnRecorder:
         self._emit(
             "context.assemble",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "turnstile.context_tokens": context_tokens,
                 "turnstile.history_tokens": history_tokens,
                 "turnstile.system_tokens": system_tokens,
@@ -316,6 +320,8 @@ class TurnRecorder:
         self._emit(
             "llm.decide",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "gen_ai.system": gen_ai_system,
                 "gen_ai.request.model": gen_ai_request_model,
                 "gen_ai.usage.input_tokens": input_tokens,
@@ -378,6 +384,8 @@ class TurnRecorder:
         self._emit(
             "tool.call",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "turnstile.tool_name": tool_name,
                 "turnstile.args_hash": args_hash,
                 "turnstile.result_hash": result_hash_val,
@@ -413,6 +421,8 @@ class TurnRecorder:
         self._emit(
             "tts.synthesize",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "gen_ai.system": gen_ai_system,
                 "turnstile.chars_synthesized": chars,
                 "turnstile.audio_seconds_generated": audio_seconds_generated,
@@ -441,6 +451,8 @@ class TurnRecorder:
         self._emit(
             "audio.playback",
             {
+                "turnstile.start_offset_ms": start,
+                "turnstile.duration_ms": duration,
                 "turnstile.chars_played": chars_played,
                 "turnstile.audio_seconds_played": audio_seconds_played,
                 "turnstile.truncated_by": truncated_by,
@@ -555,6 +567,8 @@ class TraceRecorder:
             self._emit_span(
                 "telephony.leg",
                 {
+                    "turnstile.start_offset_ms": telephony.start_offset_ms,
+                    "turnstile.duration_ms": telephony.duration_ms,
                     "turnstile.provider": telephony.provider,
                     "turnstile.direction": telephony.direction,
                     "turnstile.billable_seconds": telephony.billable_seconds,

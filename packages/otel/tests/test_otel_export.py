@@ -70,6 +70,16 @@ def test_llm_span_carries_gen_ai_attributes():
     assert attrs["turnstile.decision_chosen"] == "lookup_order"
     assert tuple(attrs["turnstile.decision_candidates"]) == ("lookup_order", "escalate")
 
+    # turnstile.start_offset_ms/duration_ms must be present on the OTel span
+    # too (PRD Sec.3.2 lists them as literal turnstile.* keys on every span
+    # type), not just on the Pydantic Trace span -- and must agree exactly
+    # with the fake-clock ticks: __init__ consumes tick 1 (t0=1.0s), turn
+    # __enter__ consumes tick 2 (wall_start=(2.0-1.0)*1000=1000ms, which
+    # seeds the cursor), record_llm consumes tick 3
+    # (now=(3.0-1.0)*1000=2000ms) -> start_offset_ms=1000, duration_ms=1000.
+    assert attrs["turnstile.start_offset_ms"] == 1000
+    assert attrs["turnstile.duration_ms"] == 1000
+
 
 def test_asr_and_tts_spans_carry_gen_ai_system():
     rec, exporter = _recorder_with_exporter()
@@ -121,6 +131,13 @@ def test_telephony_leg_span_is_emitted_as_sibling_of_conversation():
     assert leg_span.attributes["turnstile.provider"] == "twilio"
     assert leg_span.attributes["turnstile.direction"] == "inbound"
     assert leg_span.attributes["turnstile.billable_seconds"] == 12
+
+    # telephony.leg spans the whole conversation, so its start_offset_ms is
+    # always 0 and duration_ms is the clock reading finalize() took: tick 1
+    # -> t0=1.0s (__init__), tick 2 -> turn __enter__, tick 3 -> turn
+    # __exit__, tick 4 -> finalize()'s total_ms=(4.0-1.0)*1000=3000ms.
+    assert leg_span.attributes["turnstile.start_offset_ms"] == 0
+    assert leg_span.attributes["turnstile.duration_ms"] == 3000
 
     conv_span = _span_by_name(exporter, "conversation")
     # telephony.leg is a sibling of the conversation root (PRD Sec.3.1), not
