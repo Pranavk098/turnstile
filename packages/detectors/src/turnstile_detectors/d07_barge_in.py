@@ -29,36 +29,42 @@ def detect_barge_in_waste(trace: PricedTrace, verdict: Verdict, baselines: Basel
     rates = get_rates()
     findings: list[Finding] = []
     for turn in trace.trace.turns:
-        for tts in turn.tts:
-            for playback in turn.playback:
-                wasted_chars = tts.chars_synthesized - playback.chars_played
-                if wasted_chars <= 0:
-                    continue
-                wasted_fraction = wasted_chars / tts.chars_synthesized
-                tts_cost = trace.span_costs.get(tts.span_id, 0.0)
-                tts_waste = tts_cost * wasted_fraction
+        # Index-matched pairing (CR-01): a tts span pairs with the playback of
+        # the same utterance by position, not with every playback in the
+        # turn -- a naive nested loop cross-multiplies findings when a turn
+        # has multiple tts/playback spans.
+        for tts, playback in zip(turn.tts, turn.playback):
+            wasted_chars = tts.chars_synthesized - playback.chars_played
+            if wasted_chars <= 0:
+                # Also covers chars_synthesized == 0 (CR-03): wasted_chars is
+                # then 0 - played <= 0, so we continue before ever dividing by
+                # chars_synthesized below.
+                continue
+            wasted_fraction = wasted_chars / tts.chars_synthesized
+            tts_cost = trace.span_costs.get(tts.span_id, 0.0)
+            tts_waste = tts_cost * wasted_fraction
 
-                llm_waste = 0.0
-                for llm_span in turn.llm:
-                    rate = rates.llm[llm_key(llm_span)]
-                    attributable_tokens = llm_span.output_tokens * wasted_fraction
-                    llm_waste += attributable_tokens / 1e6 * rate.output
+            llm_waste = 0.0
+            for llm_span in turn.llm:
+                rate = rates.llm[llm_key(llm_span)]
+                attributable_tokens = llm_span.output_tokens * wasted_fraction
+                llm_waste += attributable_tokens / 1e6 * rate.output
 
-                findings.append(
-                    Finding(
-                        class_id=7,
-                        turn_index=turn.turn_index,
-                        span_id=tts.span_id,
-                        waste_usd=tts_waste + llm_waste,
-                        confidence=BARGE_IN_CONFIDENCE,
-                        proposed_variant=VariantSpec(tts_chunking="sentence"),
-                        evidence={
-                            "chars_synthesized": tts.chars_synthesized,
-                            "chars_played": playback.chars_played,
-                            "wasted_chars": wasted_chars,
-                            "tts_waste_usd": tts_waste,
-                            "llm_waste_usd": llm_waste,
-                        },
-                    )
+            findings.append(
+                Finding(
+                    class_id=7,
+                    turn_index=turn.turn_index,
+                    span_id=tts.span_id,
+                    waste_usd=tts_waste + llm_waste,
+                    confidence=BARGE_IN_CONFIDENCE,
+                    proposed_variant=VariantSpec(tts_chunking="sentence"),
+                    evidence={
+                        "chars_synthesized": tts.chars_synthesized,
+                        "chars_played": playback.chars_played,
+                        "wasted_chars": wasted_chars,
+                        "tts_waste_usd": tts_waste,
+                        "llm_waste_usd": llm_waste,
+                    },
                 )
+            )
     return findings

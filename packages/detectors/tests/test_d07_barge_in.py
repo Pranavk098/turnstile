@@ -53,6 +53,36 @@ def test_silent_when_played_exceeds_synthesized():
     assert detect_barge_in_waste(pt, DUMMY_VERDICT, EMPTY_BASELINES) == []
 
 
+def test_multiple_tts_and_playback_spans_are_index_matched_not_cross_multiplied():
+    # CR-01 regression: a naive nested-loop `for tts in turn.tts: for
+    # playback in turn.playback` cross-multiplies findings when a turn has
+    # 2 tts and 2 playback spans -- here only the FIRST pair (t0/p0) wastes
+    # chars; the second pair (t1/p1) plays out fully. Index-matched pairing
+    # must produce exactly one finding, for the t0/p0 pair.
+    pt = priced(turn(0, 0, 4000,
+        tts_spans=[tts("t0", start=0, chars=1000), tts("t1", start=1000, chars=500)],
+        playback_spans=[playback("p0", start=1000, chars=250), playback("p1", start=2000, chars=500)],
+    ))
+    findings = detect_barge_in_waste(pt, DUMMY_VERDICT, EMPTY_BASELINES)
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.span_id == "t0"
+    assert f.evidence["chars_synthesized"] == 1000
+    assert f.evidence["chars_played"] == 250
+    assert f.evidence["wasted_chars"] == 750
+
+
+def test_chars_synthesized_zero_produces_no_finding_and_does_not_raise():
+    # CR-03 regression: chars_synthesized == 0 must not divide-by-zero when
+    # computing wasted_fraction -- wasted_chars = 0 - played <= 0, so the
+    # `continue` guard fires before that division is ever reached.
+    pt = priced(turn(0, 0, 2000,
+        tts_spans=[tts("t0", start=0, chars=0)],
+        playback_spans=[playback("p0", start=1000, chars=0)],
+    ))
+    assert detect_barge_in_waste(pt, DUMMY_VERDICT, EMPTY_BASELINES) == []
+
+
 def test_golden_fixture_07_fires_with_expected_waste():
     pt = price_trace(load_trace(GOLDEN / "07_barge_in_waste.json"), load_rates(RATES))
     findings = detect_barge_in_waste(pt, DUMMY_VERDICT, EMPTY_BASELINES)

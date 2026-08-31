@@ -49,7 +49,7 @@ def _record_baseline_shaped_trace() -> "Trace":
         )
         turn.record_tts(
             gen_ai_system="piper", text="Let me check that.",
-            audio_seconds_generated=1.4,
+            audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
         )
         turn.record_playback(chars_played=18, audio_seconds_played=1.4)
 
@@ -66,7 +66,7 @@ def _record_baseline_shaped_trace() -> "Trace":
         )
         turn.record_tts(
             gen_ai_system="piper", text="Your order ships tomorrow.",
-            audio_seconds_generated=2.0,
+            audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
         )
         turn.record_playback(chars_played=26, audio_seconds_played=2.0)
 
@@ -79,7 +79,7 @@ def _record_baseline_shaped_trace() -> "Trace":
         )
         turn.record_tts(
             gen_ai_system="piper", text="Anything else? Goodbye.",
-            audio_seconds_generated=1.6,
+            audio_seconds_generated=1.6, chars_synthesized=len("Anything else? Goodbye."),
         )
         turn.record_playback(chars_played=23, audio_seconds_played=1.6)
 
@@ -122,7 +122,7 @@ def test_recorded_handoff_tool_carries_tool_status_and_effect():
         )
         turn.record_tts(
             gen_ai_system="piper", text="Transferring you now.",
-            audio_seconds_generated=1.5,
+            audio_seconds_generated=1.5, chars_synthesized=len("Transferring you now."),
         )
         turn.record_playback(chars_played=22, audio_seconds_played=1.5)
 

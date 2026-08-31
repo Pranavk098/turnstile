@@ -91,7 +91,7 @@ def test_asr_and_tts_spans_carry_gen_ai_system():
         )
         turn.record_tts(
             gen_ai_system="cartesia", text="Sure thing.",
-            audio_seconds_generated=0.8,
+            audio_seconds_generated=0.8, chars_synthesized=len("Sure thing."),
         )
     rec.finalize("caller_hangup")
 

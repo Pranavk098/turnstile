@@ -244,6 +244,40 @@ def test_cost_tel_pro_rata_across_multiple_turns():
     assert sum(pt.turn_costs) == pytest.approx(tel_cost)
 
 
+def test_cost_tel_split_evenly_across_zero_wall_turns():
+    # CR-05/10 regression: every turn has wall_start_ms == wall_end_ms (zero
+    # wall duration), so pro-rata (wall_ms / total_wall_ms) is a 0/0 divide
+    # and the old code silently dropped telephony from turn_costs/conv_cost
+    # entirely. It must instead split evenly across the turns so the
+    # decomposition invariant (sum(stage_costs) == conv_cost) still holds.
+    pt = price_trace(
+        _trace(
+            _turn(0, 0, 0),
+            _turn(1, 1000, 1000),
+            leg=_leg(billable_seconds=60),
+        ),
+        _rates(),
+    )
+    tel_cost = 60.0 / 60.0 * RATE_TEL
+    assert pt.stage_costs["telephony"] == pytest.approx(tel_cost)
+    assert pt.turn_costs[0] == pytest.approx(tel_cost / 2)
+    assert pt.turn_costs[1] == pytest.approx(tel_cost / 2)
+    assert pt.conv_cost == pytest.approx(tel_cost)
+    assert sum(pt.stage_costs.values()) == pytest.approx(pt.conv_cost)
+
+
+def test_cost_tel_lands_in_conv_cost_for_zero_turn_trace():
+    # CR-05/10 regression: a trace with zero turns has no turn_costs slot to
+    # attribute telephony into at all, so conv_cost (== sum(turn_costs))
+    # used to silently drop it. It must still land in conv_cost.
+    pt = price_trace(_trace(leg=_leg(billable_seconds=60)), _rates())
+    tel_cost = 60.0 / 60.0 * RATE_TEL
+    assert pt.turn_costs == []
+    assert pt.stage_costs["telephony"] == pytest.approx(tel_cost)
+    assert pt.conv_cost == pytest.approx(tel_cost)
+    assert sum(pt.stage_costs.values()) == pytest.approx(pt.conv_cost)
+
+
 def test_no_telephony_leg_prices_zero_telephony():
     pt = price_trace(_trace(_turn(0, 0, 1000, llm=[_llm_span(output_tokens=0, input_tokens=0)])), _rates())
     assert pt.stage_costs["telephony"] == 0.0

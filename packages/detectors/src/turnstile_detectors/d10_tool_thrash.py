@@ -24,12 +24,17 @@ TOOL_THRASH_CONFIDENCE = 0.95  # exact structural match, not statistical
 
 def detect_tool_thrash(trace: PricedTrace, verdict: Verdict, baselines: Baselines) -> list[Finding]:
     seen: set[tuple[str, str]] = set()
+    # Turn indices whose turn_cost has already been attributed to a finding
+    # (CR-08): a turn with two+ duplicate calls must only add its turn_cost
+    # once, not once per duplicate.
+    turn_cost_attributed: set[int] = set()
     findings: list[Finding] = []
     for i, turn in enumerate(trace.trace.turns):
         for tool in turn.tools:
             key = (tool.tool_name, tool.args_hash)
             if key in seen:
-                turn_cost = trace.turn_costs[i]
+                turn_cost = trace.turn_costs[i] if i not in turn_cost_attributed else 0.0
+                turn_cost_attributed.add(i)
                 findings.append(
                     Finding(
                         class_id=10,

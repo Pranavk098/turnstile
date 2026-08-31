@@ -74,7 +74,7 @@ def test_two_turn_conversation_produces_valid_trace_with_clock_derived_offsets()
         )
         tts = turn.record_tts(
             gen_ai_system="cartesia", text="Let me check that.",
-            audio_seconds_generated=1.4,
+            audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
         )
         playback = turn.record_playback(chars_played=18, audio_seconds_played=1.4)
 
@@ -87,7 +87,7 @@ def test_two_turn_conversation_produces_valid_trace_with_clock_derived_offsets()
         )
         tts1 = turn1.record_tts(
             gen_ai_system="cartesia", text="Your order ships tomorrow.",
-            audio_seconds_generated=2.0,
+            audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
         )
         playback1 = turn1.record_playback(chars_played=26, audio_seconds_played=2.0)
 
@@ -160,6 +160,22 @@ def test_finalize_twice_raises():
     rec.finalize("agent_hangup")
     with pytest.raises(RuntimeError):
         rec.finalize("agent_hangup")
+
+
+def test_record_tts_requires_chars_synthesized():
+    # CR-04 regression: chars_synthesized has no default and no len(text)
+    # fallback -- it must be the GENERATED/billed character count, never the
+    # intended text length (GATES.md G2). Omitting it is a caller bug, so it
+    # must raise TypeError (missing required keyword-only argument), not
+    # silently fall back to len(text).
+    ticks = [0.0, 0.0, 1.0]
+    rec, _ = _make_recorder(ticks)
+    with pytest.raises(TypeError):
+        with rec.start_turn(0, "caller") as turn:
+            turn.record_tts(
+                gen_ai_system="cartesia", text="Let me check that.",
+                audio_seconds_generated=1.4,
+            )
 
 
 def test_record_tool_respects_schema_effect_validator():

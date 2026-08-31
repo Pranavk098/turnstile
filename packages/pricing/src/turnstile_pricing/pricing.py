@@ -28,6 +28,8 @@ rate table.
 """
 from __future__ import annotations
 
+import math
+
 from turnstile_schema import PricedTrace, RateTable, Trace
 from turnstile_schema.spans import AsrTranscribe, LlmDecide, TelephonyLeg, TtsSynthesize
 
@@ -104,20 +106,39 @@ def price_trace(trace: Trace, rates: RateTable) -> PricedTrace:
             stage_costs["tts"] += cost
             turn_costs[i] += cost
 
+    # Telephony cost outside turn_costs would break sum(stage_costs) ==
+    # conv_cost (CR-05/10) whenever it can't be attributed pro-rata: a trace
+    # where every turn has zero wall duration, or a trace with zero turns.
+    # unattributed_telephony carries the leftover into conv_cost directly for
+    # the zero-turn case, where there is no turn_costs slot to put it in.
+    unattributed_telephony = 0.0
     if trace.telephony is not None:
         leg = trace.telephony
         tel_cost = _cost_telephony(leg, rates.telephony[_telephony_key(leg)])
         stage_costs["telephony"] = tel_cost
-        total_wall_ms = sum(t.wall_end_ms - t.wall_start_ms for t in trace.turns)
-        if total_wall_ms > 0:
-            for i, turn in enumerate(trace.turns):
-                wall_ms = turn.wall_end_ms - turn.wall_start_ms
-                turn_costs[i] += tel_cost * (wall_ms / total_wall_ms)
+        if trace.turns:
+            total_wall_ms = sum(t.wall_end_ms - t.wall_start_ms for t in trace.turns)
+            if total_wall_ms > 0:
+                for i, turn in enumerate(trace.turns):
+                    wall_ms = turn.wall_end_ms - turn.wall_start_ms
+                    turn_costs[i] += tel_cost * (wall_ms / total_wall_ms)
+            else:
+                # Every turn has zero wall duration -- pro-rata is undefined,
+                # so split the telephony cost evenly across the turns.
+                share = tel_cost / len(trace.turns)
+                for i in range(len(trace.turns)):
+                    turn_costs[i] += share
+        else:
+            unattributed_telephony = tel_cost
 
-    return PricedTrace(
+    conv_cost = sum(turn_costs) + unattributed_telephony
+
+    priced = PricedTrace(
         trace=trace,
         span_costs=span_costs,
         turn_costs=turn_costs,
-        conv_cost=sum(turn_costs),
+        conv_cost=conv_cost,
         stage_costs=stage_costs,
     )
+    assert math.isclose(sum(stage_costs.values()), conv_cost, rel_tol=1e-9, abs_tol=1e-12)
+    return priced

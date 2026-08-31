@@ -404,10 +404,14 @@ class TurnRecorder:
         gen_ai_system: str,
         text: str,
         audio_seconds_generated: float,
-        chars_synthesized: int | None = None,
+        chars_synthesized: int,
     ) -> TtsSynthesize:
+        # chars_synthesized is required, not derived from len(text): it must
+        # be the GENERATED/billed character count, never the intended text
+        # length (GATES.md G2) -- a len(text) fallback here would silently
+        # bill intended text instead of what was actually synthesized.
         start, duration = self._advance()
-        chars = chars_synthesized if chars_synthesized is not None else len(text)
+        chars = chars_synthesized
         span = TtsSynthesize(
             span_id=self._parent._next_span_id("tts"),
             start_offset_ms=start,
