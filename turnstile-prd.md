@@ -247,6 +247,23 @@ Recoverable Margin % = Σ proven_savings / CPRC_loaded
 ```
 where `proven_savings` counts only interventions where replay achieved outcome-preservation ≥ 0.95 with the lower bound of the bootstrap CI still positive.
 
+> **ERRATA (2026-08-31, corrected by implementation).** The formula above is
+> dimensionally incoherent: `Σ proven_savings` is a total dollar amount and
+> `CPRC_loaded` is dollars-per-resolved-conversation, so their quotient is a
+> conversation count, not a percentage. Corrected definition:
+> ```
+> Recoverable Margin % = Σ proven_savings / Σ total_cost × 100
+>   proven_savings sums only interventions with
+>     outcome_preservation ≥ 0.95  AND  CI_lower(savings) > 0   (§8.3 gating)
+>   REPORTED as [CI_lower, CI_upper] with a point estimate — the §8.3 statistical
+>   gating survives into the aggregate, so the headline carries a range, not a
+>   bare point. Present ALONGSIDE the absolutes: Σ total_cost, Σ proven_savings
+>   (dollars), and an annualized projection with assumptions stated aloud.
+> ```
+> This is the fraction of total spend that replay *proved* removable — no
+> per-unit normalization anywhere. Surfaced by the fixture-driven build: the
+> contract is being audited by implementation, as intended.
+
 ## 5. Module interfaces
 
 Every package exposes exactly one entry point. Agents implement behind these signatures and may not change them.
