@@ -24,6 +24,7 @@ dev = [
     "turnstile-stats",
     "turnstile-replay",
     "turnstile-corpus",
+    "turnstile-experiments",
 ]
 
 [tool.uv.sources]
@@ -35,6 +36,7 @@ turnstile-detectors = { workspace = true }
 turnstile-stats = { workspace = true }
 turnstile-replay = { workspace = true }
 turnstile-corpus = { workspace = true }
+turnstile-experiments = { workspace = true }
 
 [tool.pytest.ini_options]
 pythonpath = []
