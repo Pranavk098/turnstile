@@ -37,7 +37,7 @@ class Finding(BaseModel):
     turn_index: int
     span_id: str
     waste_usd: float
-    confidence: float
+    confidence: float = Field(ge=0, le=1)
     proposed_variant: VariantSpec
     evidence: dict
 
@@ -46,7 +46,7 @@ class Verdict(BaseModel):
     """packages/verdict:adjudicate(trace) -> Verdict (PRD §5/§7)."""
     model_config = _STRICT
     label: VerdictLabel
-    confidence: float
+    confidence: float = Field(ge=0, le=1)
     evidence: list[dict]
     turn_of_no_return: int | None
 

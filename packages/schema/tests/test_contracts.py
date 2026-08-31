@@ -94,6 +94,24 @@ def test_finding_class_id_out_of_range_rejected():
         )
 
 
+def test_finding_confidence_out_of_range_rejected():
+    with pytest.raises(ValidationError):
+        Finding(
+            class_id=1, turn_index=0, span_id="l0",
+            waste_usd=0.01, confidence=5.0,
+            proposed_variant=VariantSpec(), evidence={},
+        )
+
+
+def test_finding_confidence_in_range_constructs():
+    f = Finding(
+        class_id=1, turn_index=0, span_id="l0",
+        waste_usd=0.01, confidence=0.5,
+        proposed_variant=VariantSpec(), evidence={},
+    )
+    assert f.confidence == 0.5
+
+
 def test_verdict_valid_instance():
     v = Verdict(
         label="RESOLVED", confidence=0.95,
@@ -102,6 +120,22 @@ def test_verdict_valid_instance():
     )
     assert v.label.value == "RESOLVED"
     assert v.turn_of_no_return == 2
+
+
+def test_verdict_confidence_out_of_range_rejected():
+    with pytest.raises(ValidationError):
+        Verdict(
+            label="RESOLVED", confidence=-1,
+            evidence=[], turn_of_no_return=None,
+        )
+
+
+def test_verdict_confidence_in_range_constructs():
+    v = Verdict(
+        label="UNRESOLVED", confidence=0.6,
+        evidence=[], turn_of_no_return=None,
+    )
+    assert v.confidence == 0.6
 
 
 def test_baselines_valid_instance():
