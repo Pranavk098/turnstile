@@ -1,0 +1,745 @@
+{
+  "conversation": {
+    "conversation_id": "corpus-7-00001",
+    "agent_version": "agent@corpus-v1",
+    "scenario_id": "cancel_subscription",
+    "started_at": "2026-01-01T00:01:00Z",
+    "ended_at": "2026-01-01T00:02:23.428000Z",
+    "end_reason": "caller_hangup",
+    "turnstile.schema_version": "1.1"
+  },
+  "turns": [
+    {
+      "turn_index": 0,
+      "speaker_first": "caller",
+      "wall_start_ms": 0,
+      "wall_end_ms": 9736,
+      "barge_in": true,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a1",
+          "turnstile.start_offset_ms": 192,
+          "turnstile.duration_ms": 4000,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 4.0,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 0.",
+          "turnstile.confidence": 0.913
+        }
+      ],
+      "context": {
+        "span_id": "c2",
+        "turnstile.start_offset_ms": 5342,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 233,
+        "turnstile.history_tokens": 13,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l3",
+          "turnstile.start_offset_ms": 5422,
+          "turnstile.duration_ms": 541,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 233,
+          "gen_ai.usage.output_tokens": 9,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "route",
+          "turnstile.decision_chosen": "cancel_subscription",
+          "turnstile.decision_candidates": [
+            "cancel_subscription",
+            "other"
+          ],
+          "turnstile.output_text": "Let me look into that for you.",
+          "turnstile.latency_ms": 541,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t4",
+          "turnstile.start_offset_ms": 5963,
+          "turnstile.duration_ms": 2264,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 30,
+          "turnstile.audio_seconds_generated": 2.264,
+          "turnstile.text": "Let me look into that for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p5",
+          "turnstile.start_offset_ms": 8227,
+          "turnstile.duration_ms": 1509,
+          "turnstile.chars_played": 20,
+          "turnstile.audio_seconds_played": 1.509,
+          "turnstile.truncated_by": "barge_in"
+        }
+      ]
+    },
+    {
+      "turn_index": 1,
+      "speaker_first": "caller",
+      "wall_start_ms": 9736,
+      "wall_end_ms": 17057,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a6",
+          "turnstile.start_offset_ms": 10031,
+          "turnstile.duration_ms": 1200,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 1.2,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 1.",
+          "turnstile.confidence": 0.713
+        }
+      ],
+      "context": {
+        "span_id": "c7",
+        "turnstile.start_offset_ms": 12212,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 246,
+        "turnstile.history_tokens": 26,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l8",
+          "turnstile.start_offset_ms": 12292,
+          "turnstile.duration_ms": 387,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 246,
+          "gen_ai.usage.output_tokens": 32,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "inform",
+          "turnstile.decision_candidates": [
+            "inform"
+          ],
+          "turnstile.output_text": "Here is what I found for you.",
+          "turnstile.latency_ms": 387,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t9",
+          "turnstile.start_offset_ms": 12679,
+          "turnstile.duration_ms": 2189,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 29,
+          "turnstile.audio_seconds_generated": 2.189,
+          "turnstile.text": "Here is what I found for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p10",
+          "turnstile.start_offset_ms": 14868,
+          "turnstile.duration_ms": 2189,
+          "turnstile.chars_played": 29,
+          "turnstile.audio_seconds_played": 2.189,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 2,
+      "speaker_first": "caller",
+      "wall_start_ms": 17057,
+      "wall_end_ms": 23687,
+      "barge_in": true,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a11",
+          "turnstile.start_offset_ms": 17235,
+          "turnstile.duration_ms": 1600,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 1.6,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 2.",
+          "turnstile.confidence": 0.756
+        }
+      ],
+      "context": {
+        "span_id": "c14",
+        "turnstile.start_offset_ms": 20216,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 511,
+        "turnstile.history_tokens": 63,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 228,
+        "turnstile.retrieved_doc_ids": [
+          "doc_cancel_subscription_3"
+        ],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l15",
+          "turnstile.start_offset_ms": 20296,
+          "turnstile.duration_ms": 523,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 511,
+          "gen_ai.usage.output_tokens": 18,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "tool_select",
+          "turnstile.decision_chosen": "retrieve_kb_article",
+          "turnstile.decision_candidates": [
+            "retrieve_kb_article"
+          ],
+          "turnstile.output_text": "One moment while I check on that.",
+          "turnstile.latency_ms": 523,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [
+        {
+          "span_id": "tool13",
+          "turnstile.start_offset_ms": 19926,
+          "turnstile.duration_ms": 290,
+          "turnstile.tool_name": "retrieve_kb_article",
+          "turnstile.args_hash": "sha256:args_retrieve_kb_article_doc_cancel_subscription_3",
+          "turnstile.args_json": "{\"query\": \"retrieve_kb_article\", \"doc_id\": \"doc_cancel_subscription_3\"}",
+          "turnstile.result_hash": "sha256:r12",
+          "turnstile.latency_ms": 290,
+          "turnstile.cost_usd": 0.0,
+          "turnstile.tool_kind": "retrieval",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "none"
+        }
+      ],
+      "tts": [
+        {
+          "span_id": "t16",
+          "turnstile.start_offset_ms": 20819,
+          "turnstile.duration_ms": 2491,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 33,
+          "turnstile.audio_seconds_generated": 2.491,
+          "turnstile.text": "One moment while I check on that."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p17",
+          "turnstile.start_offset_ms": 23310,
+          "turnstile.duration_ms": 377,
+          "turnstile.chars_played": 5,
+          "turnstile.audio_seconds_played": 0.377,
+          "turnstile.truncated_by": "barge_in"
+        }
+      ]
+    },
+    {
+      "turn_index": 3,
+      "speaker_first": "agent",
+      "wall_start_ms": 23687,
+      "wall_end_ms": 30081,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": {
+        "span_id": "c18",
+        "turnstile.start_offset_ms": 24969,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 301,
+        "turnstile.history_tokens": 81,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l19",
+          "turnstile.start_offset_ms": 25049,
+          "turnstile.duration_ms": 654,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5",
+          "gen_ai.usage.input_tokens": 301,
+          "gen_ai.usage.output_tokens": 339,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "inform",
+          "turnstile.decision_candidates": [
+            "inform"
+          ],
+          "turnstile.output_text": "Here is what I found for you.",
+          "turnstile.latency_ms": 654,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t20",
+          "turnstile.start_offset_ms": 25703,
+          "turnstile.duration_ms": 2189,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 29,
+          "turnstile.audio_seconds_generated": 2.189,
+          "turnstile.text": "Here is what I found for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p21",
+          "turnstile.start_offset_ms": 27892,
+          "turnstile.duration_ms": 2189,
+          "turnstile.chars_played": 29,
+          "turnstile.audio_seconds_played": 2.189,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 4,
+      "speaker_first": "caller",
+      "wall_start_ms": 30081,
+      "wall_end_ms": 38765,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a22",
+          "turnstile.start_offset_ms": 30261,
+          "turnstile.duration_ms": 2400,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 2.4,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 4.",
+          "turnstile.confidence": 0.972
+        }
+      ],
+      "context": {
+        "span_id": "c23",
+        "turnstile.start_offset_ms": 33775,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 648,
+        "turnstile.history_tokens": 428,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l24",
+          "turnstile.start_offset_ms": 33855,
+          "turnstile.duration_ms": 382,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 648,
+          "gen_ai.usage.output_tokens": 13,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "escalate_check",
+          "turnstile.decision_chosen": "continue",
+          "turnstile.decision_candidates": [
+            "continue",
+            "escalate"
+          ],
+          "turnstile.output_text": "Let me keep looking into this.",
+          "turnstile.latency_ms": 382,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t25",
+          "turnstile.start_offset_ms": 34237,
+          "turnstile.duration_ms": 2264,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 30,
+          "turnstile.audio_seconds_generated": 2.264,
+          "turnstile.text": "Let me keep looking into this."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p26",
+          "turnstile.start_offset_ms": 36501,
+          "turnstile.duration_ms": 2264,
+          "turnstile.chars_played": 30,
+          "turnstile.audio_seconds_played": 2.264,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 5,
+      "speaker_first": "caller",
+      "wall_start_ms": 38765,
+      "wall_end_ms": 48575,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a27",
+          "turnstile.start_offset_ms": 38976,
+          "turnstile.duration_ms": 2000,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 2.0,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 5.",
+          "turnstile.confidence": 0.968
+        }
+      ],
+      "context": {
+        "span_id": "c28",
+        "turnstile.start_offset_ms": 41498,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 668,
+        "turnstile.history_tokens": 448,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l29",
+          "turnstile.start_offset_ms": 41578,
+          "turnstile.duration_ms": 507,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 668,
+          "gen_ai.usage.output_tokens": 32,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "slot_fill",
+          "turnstile.decision_chosen": "request_slot",
+          "turnstile.decision_candidates": [
+            "request_slot"
+          ],
+          "turnstile.output_text": "Can you confirm the account details for me?",
+          "turnstile.latency_ms": 507,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t30",
+          "turnstile.start_offset_ms": 42085,
+          "turnstile.duration_ms": 3245,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 43,
+          "turnstile.audio_seconds_generated": 3.245,
+          "turnstile.text": "Can you confirm the account details for me?"
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p31",
+          "turnstile.start_offset_ms": 45330,
+          "turnstile.duration_ms": 3245,
+          "turnstile.chars_played": 43,
+          "turnstile.audio_seconds_played": 3.245,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 6,
+      "speaker_first": "caller",
+      "wall_start_ms": 48575,
+      "wall_end_ms": 61894,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a32",
+          "turnstile.start_offset_ms": 48998,
+          "turnstile.duration_ms": 5600,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 5.6,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 6.",
+          "turnstile.confidence": 0.903
+        }
+      ],
+      "context": {
+        "span_id": "c35",
+        "turnstile.start_offset_ms": 56491,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 866,
+        "turnstile.history_tokens": 499,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 147,
+        "turnstile.retrieved_doc_ids": [
+          "doc_cancel_subscription_2"
+        ],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l36",
+          "turnstile.start_offset_ms": 56571,
+          "turnstile.duration_ms": 341,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-nano",
+          "gen_ai.usage.input_tokens": 866,
+          "gen_ai.usage.output_tokens": 14,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "tool_select",
+          "turnstile.decision_chosen": "retrieve_kb_article",
+          "turnstile.decision_candidates": [
+            "retrieve_kb_article"
+          ],
+          "turnstile.output_text": "One moment while I check on that.",
+          "turnstile.latency_ms": 341,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [
+        {
+          "span_id": "tool34",
+          "turnstile.start_offset_ms": 56214,
+          "turnstile.duration_ms": 277,
+          "turnstile.tool_name": "retrieve_kb_article",
+          "turnstile.args_hash": "sha256:args_retrieve_kb_article_doc_cancel_subscription_2",
+          "turnstile.args_json": "{\"query\": \"retrieve_kb_article\", \"doc_id\": \"doc_cancel_subscription_2\"}",
+          "turnstile.result_hash": "sha256:r33",
+          "turnstile.latency_ms": 277,
+          "turnstile.cost_usd": 0.0,
+          "turnstile.tool_kind": "retrieval",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "none"
+        }
+      ],
+      "tts": [
+        {
+          "span_id": "t37",
+          "turnstile.start_offset_ms": 56912,
+          "turnstile.duration_ms": 2491,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 33,
+          "turnstile.audio_seconds_generated": 2.491,
+          "turnstile.text": "One moment while I check on that."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p38",
+          "turnstile.start_offset_ms": 59403,
+          "turnstile.duration_ms": 2491,
+          "turnstile.chars_played": 33,
+          "turnstile.audio_seconds_played": 2.491,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 7,
+      "speaker_first": "caller",
+      "wall_start_ms": 61894,
+      "wall_end_ms": 69874,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a39",
+          "turnstile.start_offset_ms": 62096,
+          "turnstile.duration_ms": 2000,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 2.0,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 7.",
+          "turnstile.confidence": 0.878
+        }
+      ],
+      "context": {
+        "span_id": "c40",
+        "turnstile.start_offset_ms": 65086,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 740,
+        "turnstile.history_tokens": 520,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l41",
+          "turnstile.start_offset_ms": 65166,
+          "turnstile.duration_ms": 330,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 740,
+          "gen_ai.usage.output_tokens": 13,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "inform",
+          "turnstile.decision_candidates": [
+            "inform"
+          ],
+          "turnstile.output_text": "Here is what I found for you.",
+          "turnstile.latency_ms": 330,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t42",
+          "turnstile.start_offset_ms": 65496,
+          "turnstile.duration_ms": 2189,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 29,
+          "turnstile.audio_seconds_generated": 2.189,
+          "turnstile.text": "Here is what I found for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p43",
+          "turnstile.start_offset_ms": 67685,
+          "turnstile.duration_ms": 2189,
+          "turnstile.chars_played": 29,
+          "turnstile.audio_seconds_played": 2.189,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 8,
+      "speaker_first": "caller",
+      "wall_start_ms": 69874,
+      "wall_end_ms": 83428,
+      "barge_in": false,
+      "vad": [],
+      "asr": [
+        {
+          "span_id": "a44",
+          "turnstile.start_offset_ms": 69980,
+          "turnstile.duration_ms": 3200,
+          "gen_ai.system": "deepgram",
+          "gen_ai.request.model": "nova-3",
+          "turnstile.audio_seconds": 3.2,
+          "turnstile.is_streaming": true,
+          "turnstile.transcript": "Caller utterance for turn 8.",
+          "turnstile.confidence": 0.94
+        }
+      ],
+      "context": {
+        "span_id": "c47",
+        "turnstile.start_offset_ms": 74063,
+        "turnstile.duration_ms": 80,
+        "turnstile.context_tokens": 764,
+        "turnstile.history_tokens": 544,
+        "turnstile.system_tokens": 220,
+        "turnstile.retrieved_tokens": 0,
+        "turnstile.retrieved_doc_ids": [],
+        "turnstile.pruning_strategy": "none"
+      },
+      "llm": [
+        {
+          "span_id": "l48",
+          "turnstile.start_offset_ms": 74143,
+          "turnstile.duration_ms": 681,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 764,
+          "gen_ai.usage.output_tokens": 20,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "escalate_check",
+          "turnstile.decision_chosen": "escalate",
+          "turnstile.decision_candidates": [
+            "resolve",
+            "escalate"
+          ],
+          "turnstile.output_text": "I'm sorry, all our specialists are unavailable right now.",
+          "turnstile.latency_ms": 681,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [
+        {
+          "span_id": "tool46",
+          "turnstile.start_offset_ms": 73774,
+          "turnstile.duration_ms": 289,
+          "turnstile.tool_name": "transfer_to_agent",
+          "turnstile.args_hash": "sha256:args_transfer_to_agent",
+          "turnstile.args_json": "{}",
+          "turnstile.result_hash": "sha256:r45",
+          "turnstile.latency_ms": 289,
+          "turnstile.cost_usd": 0.0,
+          "turnstile.tool_kind": "handoff",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "rejected"
+        }
+      ],
+      "tts": [
+        {
+          "span_id": "t49",
+          "turnstile.start_offset_ms": 74824,
+          "turnstile.duration_ms": 4302,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 57,
+          "turnstile.audio_seconds_generated": 4.302,
+          "turnstile.text": "I'm sorry, all our specialists are unavailable right now."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p50",
+          "turnstile.start_offset_ms": 79126,
+          "turnstile.duration_ms": 4302,
+          "turnstile.chars_played": 57,
+          "turnstile.audio_seconds_played": 4.302,
+          "turnstile.truncated_by": null
+        }
+      ]
+    }
+  ],
+  "telephony": {
+    "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 83428,
+    "turnstile.provider": "twilio",
+    "turnstile.direction": "inbound",
+    "turnstile.billable_seconds": 83
+  }
+}

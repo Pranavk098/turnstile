@@ -4,5 +4,5 @@ __pycache__/
 .uv/
 .pytest_cache/
 *.wav
-corpus/
+/corpus/
 experiments/*.json

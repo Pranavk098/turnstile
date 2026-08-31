@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "turnstile",
+    "turnstile-corpus",
     "turnstile-dashboard",
     "turnstile-detectors",
     "turnstile-otel",
@@ -341,6 +342,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "turnstile-corpus" },
     { name = "turnstile-detectors" },
     { name = "turnstile-otel" },
     { name = "turnstile-pricing" },
@@ -355,6 +357,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=8.0" },
+    { name = "turnstile-corpus", editable = "packages/corpus" },
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-otel", editable = "packages/otel" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
@@ -362,6 +365,21 @@ dev = [
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "turnstile-stats", editable = "packages/stats" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
+]
+
+[[package]]
+name = "turnstile-corpus"
+version = "0.0.0"
+source = { editable = "packages/corpus" }
+dependencies = [
+    { name = "numpy" },
+    { name = "turnstile-schema" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "numpy" },
+    { name = "turnstile-schema", editable = "packages/schema" },
 ]
 
 [[package]]
