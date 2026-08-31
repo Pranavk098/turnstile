@@ -36,25 +36,28 @@ needed later for the Pipecat `agent/`, not for this probe. Do NOT run it inside
 Docker Desktop's `docker-desktop` WSL VM — that's a minimal utility VM with no
 Python.)
 
-**Windows PowerShell:**
+Only `piper-tts` is needed — **no audio device / sounddevice**. The probe drives
+the playback timeline off the real audio *durations* Piper produces, so it
+measures the character accounting without touching speakers (v3).
+
+**Windows PowerShell** (run from a writable dir, never `C:\Windows\System32`):
 ```powershell
 py -m venv $env:USERPROFILE\.turnstile-probe
 & $env:USERPROFILE\.turnstile-probe\Scripts\Activate.ps1
-pip install piper-tts sounddevice numpy
-# Download a Piper voice (.onnx + .onnx.json), e.g. en_US-lessac-medium, from
-# https://github.com/rhasspy/piper  (or: python -m piper.download_voices en_US-lessac-medium)
-$env:PIPER_MODEL = "C:\path\to\en_US-lessac-medium.onnx"
+pip install piper-tts
+cd $env:USERPROFILE
+python -m piper.download_voices en_US-lessac-medium
+$env:PIPER_MODEL = "$env:USERPROFILE\en_US-lessac-medium.onnx"
+cd "$env:USERPROFILE\OneDrive\Desktop\Turnstile"
 python packages\agent\spikes\playback_probe.py
 ```
 
 **Linux / WSL2 Ubuntu (alternative):**
 ```bash
 python3 -m venv ~/.turnstile-probe && source ~/.turnstile-probe/bin/activate
-pip install piper-tts sounddevice numpy
-# needs libportaudio2 for sounddevice: sudo apt install -y libportaudio2
+pip install piper-tts
 PIPER_MODEL=/path/to/en_US-lessac-medium.onnx python packages/agent/spikes/playback_probe.py
 ```
-Piper needs an audio output device; on WSL2, WSLg (Win11) provides one.
 
 ## Run
 
