@@ -1,0 +1,49 @@
+[
+  {
+    "class_id": 1,
+    "turn_index": 0,
+    "span_id": "l0",
+    "waste_usd": 0.0142,
+    "confidence": 0.91,
+    "proposed_variant": {
+      "model_routing": { "route": "haiku" }
+    },
+    "evidence": {
+      "decision_kind": "route",
+      "output_tokens": 18,
+      "model_tier": "frontier",
+      "cheapest_tier_cost_usd": 0.0008
+    }
+  },
+  {
+    "class_id": 9,
+    "turn_index": 3,
+    "span_id": "l4",
+    "waste_usd": 0.41,
+    "confidence": 0.94,
+    "proposed_variant": {
+      "escalation_policy": "threshold:0.85"
+    },
+    "evidence": {
+      "escalation_classifier_score": 0.94,
+      "escalation_turn": 3,
+      "actual_handoff_turn": 12,
+      "tier": 1
+    }
+  },
+  {
+    "class_id": 7,
+    "turn_index": 5,
+    "span_id": "t7",
+    "waste_usd": 0.0067,
+    "confidence": 0.99,
+    "proposed_variant": {
+      "tts_chunking": "sentence"
+    },
+    "evidence": {
+      "chars_synthesized": 420,
+      "chars_played": 260,
+      "truncated_by": "barge_in"
+    }
+  }
+]

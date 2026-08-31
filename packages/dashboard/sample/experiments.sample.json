@@ -1,0 +1,20 @@
+[
+  {
+    "n": 214,
+    "outcome_preservation_rate": 0.972,
+    "delta_cost_mean": -0.0138,
+    "delta_cost_ci95": [-0.0161, -0.0115],
+    "delta_latency_p50": -95.0,
+    "delta_latency_p95": -310.0,
+    "divergent_exemplars": ["conv_00412", "conv_00988", "conv_01207"]
+  },
+  {
+    "n": 203,
+    "outcome_preservation_rate": 0.951,
+    "delta_cost_mean": -0.0021,
+    "delta_cost_ci95": [-0.0035, -0.0007],
+    "delta_latency_p50": -40.0,
+    "delta_latency_p95": -60.0,
+    "divergent_exemplars": ["conv_00061"]
+  }
+]

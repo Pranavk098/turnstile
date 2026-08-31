@@ -1,0 +1,221 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000000",
+      "agent_version": "agent@abc123",
+      "scenario_id": "order_status",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 3100,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 600,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 12,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status",
+              "billing"
+            ],
+            "output_text": "Let me check that.",
+            "latency_ms": 600,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 300,
+            "duration_ms": 1400,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.4,
+            "text": "Let me check that."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 1700,
+            "duration_ms": 1400,
+            "chars_played": 18,
+            "audio_seconds_played": 1.4,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 3100,
+        "wall_end_ms": 8300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 3400,
+            "duration_ms": 900,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 900,
+            "output_tokens": 20,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "report_status",
+            "decision_candidates": [
+              "report_status"
+            ],
+            "output_text": "Your order ships tomorrow.",
+            "latency_ms": 900,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool1",
+            "start_offset_ms": 3100,
+            "duration_ms": 300,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:a1",
+            "args_json": "{}",
+            "result_hash": "sha256:r",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 4300,
+            "duration_ms": 2000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 26,
+            "audio_seconds_generated": 2.0,
+            "text": "Your order ships tomorrow."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p1",
+            "start_offset_ms": 6300,
+            "duration_ms": 2000,
+            "chars_played": 26,
+            "audio_seconds_played": 2.0,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "caller",
+        "wall_start_ms": 8300,
+        "wall_end_ms": 12000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l2",
+            "start_offset_ms": 8300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 700,
+            "output_tokens": 10,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "farewell",
+            "decision_candidates": [
+              "farewell"
+            ],
+            "output_text": "Anything else? Goodbye.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t2",
+            "start_offset_ms": 8800,
+            "duration_ms": 1600,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 23,
+            "audio_seconds_generated": 1.6,
+            "text": "Anything else? Goodbye."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p2",
+            "start_offset_ms": 10400,
+            "duration_ms": 1600,
+            "chars_played": 23,
+            "audio_seconds_played": 1.6,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 12000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 12
+    }
+  },
+  "span_costs": {
+    "l0": 0.000174,
+    "t0": 0.00045,
+    "l1": 0.000265,
+    "t1": 0.00065,
+    "l2": 0.000195,
+    "t2": 0.000575
+  },
+  "turn_costs": [
+    0.0010631666666666667,
+    0.0016516666666666667,
+    0.0012941666666666666
+  ],
+  "conv_cost": 0.004009,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.000634,
+    "tts": 0.0016749999999999998,
+    "telephony": 0.0017000000000000001
+  }
+}

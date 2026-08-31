@@ -1,0 +1,11 @@
+{
+  "label": "Wave-1 sample fleet",
+  "note": "Plausible sample aggregate for the static demo. The page presents these pre-computed numbers only (PRD Sec.4.3).",
+  "n_conversations": 214,
+  "n_resolved": 187,
+  "total_cost_usd": 11.42,
+  "resolved_cost_usd": 9.87,
+  "cprc_loaded": 0.0611,
+  "cprc_naive": 0.0528,
+  "recoverable_margin_pct": 22.4
+}
