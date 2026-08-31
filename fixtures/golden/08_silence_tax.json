@@ -13,7 +13,7 @@
       "turn_index": 0,
       "speaker_first": "agent",
       "wall_start_ms": 0,
-      "wall_end_ms": 6000,
+      "wall_end_ms": 7000,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -56,16 +56,26 @@
           "turnstile.effect": "none"
         }
       ],
-      "tts": [],
+      "tts": [
+        {
+          "span_id": "t0",
+          "turnstile.start_offset_ms": 800,
+          "turnstile.duration_ms": 1000,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 13,
+          "turnstile.audio_seconds_generated": 1.0,
+          "turnstile.text": "Checking now."
+        }
+      ],
       "playback": []
     }
   ],
   "telephony": {
     "span_id": "leg",
     "turnstile.start_offset_ms": 0,
-    "turnstile.duration_ms": 6000,
+    "turnstile.duration_ms": 7000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 6
+    "turnstile.billable_seconds": 7
   }
 }

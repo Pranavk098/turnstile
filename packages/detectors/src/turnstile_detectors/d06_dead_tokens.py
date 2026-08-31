@@ -5,24 +5,23 @@ Detection rule (verbatim): an `llm.decide` `output_text` with no matching
 substring of `output_text` (only part of the composed text was ever voiced).
 
 Scope narrowing (beyond the literal rule, to hold the false-positive gate):
+restricted to `decision_kind == compose`. Route / slot_fill / tool_select /
+escalate_check decisions produce `output_text` as an internal routing
+artifact, never intended for `tts.synthesize` in the first place -- see
+fixture 11_multi_waste_a turn 0 (decision_kind=route, no tts, but that turn's
+waste is Detector 8's silence tax, not dead composition).
 
-1. Restricted to `decision_kind == compose`. Route / slot_fill / tool_select /
-   escalate_check decisions produce `output_text` as an internal routing
-   artifact, never intended for `tts.synthesize` in the first place -- see
-   fixture 11_multi_waste_a turn 0 (decision_kind=route, no tts, but that
-   turn's waste is Detector 8's silence tax, not dead composition).
-
-2. Restricted to turns with an empty `tools` list. Fixtures 08_silence_tax and
-   10_tool_thrash (reused verbatim in 12_multi_waste_b turns 2-3) build the
-   identical shape on purpose -- a compose decision confirming a tool call,
-   with no tts span in the same turn -- but that confirmation text going
-   unvoiced is Detector 8 (08: the turn stalls in dead air after composing)
-   or Detector 10 (10/12: the call already resolved through the tool's
-   effect, and the waste is the redundant duplicate tool call) territory, not
-   genuinely dead tokens. Requiring no tool call in the turn is what lets
-   Detector 6 fire on its true targets (06, 12 turn 0) without also firing on
-   08 and 10, which are structurally indistinguishable from 06 on the literal
-   rule alone.
+No `tools`-emptiness guard: an earlier revision restricted this detector to
+turns with no `tool.call` spans, because 08_silence_tax and 10_tool_thrash
+(reused in 12_multi_waste_b turns 2-3) build a compose-confirming-a-tool-call
+shape that, with no tts span, was literally indistinguishable from 06's
+genuine dead tokens. Ruling R13 (controller-directed, 2026-08-30): that was
+the wrong fix -- those are real caller-facing compose turns (the agent
+confirms "Checking now." / "Updating your address." to the caller), so
+letting them go unvoiced was an unrealistic fixture, not a detector-scope
+question. Fixed by voicing them in the fixtures instead (see
+fixtures/golden/_author_rest.py's `# R13:` comments on 08/10/12); this
+detector now implements the literal PRD rule with no tool-call exception.
 
 Waste calculation (verbatim): unmatched `output_tokens x rate_out`. When a
 tts span's text is a strict prefix of `output_text` (partial voicing), the
@@ -68,8 +67,6 @@ def detect_dead_tokens(trace: PricedTrace, verdict: Verdict, baselines: Baseline
     rates = get_rates()
     findings: list[Finding] = []
     for turn in trace.trace.turns:
-        if turn.tools:
-            continue
         tts_texts = [s.text for s in turn.tts]
         for span in turn.llm:
             if span.decision_kind != DecisionKind.compose:

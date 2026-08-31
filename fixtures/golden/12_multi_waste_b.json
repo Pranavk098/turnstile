@@ -102,7 +102,7 @@
       "turn_index": 2,
       "speaker_first": "agent",
       "wall_start_ms": 16000,
-      "wall_end_ms": 16800,
+      "wall_end_ms": 17800,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -145,14 +145,24 @@
           "turnstile.effect": "committed"
         }
       ],
-      "tts": [],
+      "tts": [
+        {
+          "span_id": "t2",
+          "turnstile.start_offset_ms": 16800,
+          "turnstile.duration_ms": 1000,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 22,
+          "turnstile.audio_seconds_generated": 1.0,
+          "turnstile.text": "Updating your address."
+        }
+      ],
       "playback": []
     },
     {
       "turn_index": 3,
       "speaker_first": "agent",
-      "wall_start_ms": 16800,
-      "wall_end_ms": 17600,
+      "wall_start_ms": 17800,
+      "wall_end_ms": 19600,
       "barge_in": false,
       "vad": [],
       "asr": [],
@@ -160,7 +170,7 @@
       "llm": [
         {
           "span_id": "l3",
-          "turnstile.start_offset_ms": 17100,
+          "turnstile.start_offset_ms": 18100,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
           "gen_ai.request.model": "gpt-5-mini",
@@ -182,7 +192,7 @@
       "tools": [
         {
           "span_id": "tool3",
-          "turnstile.start_offset_ms": 16800,
+          "turnstile.start_offset_ms": 17800,
           "turnstile.duration_ms": 300,
           "turnstile.tool_name": "update_address",
           "turnstile.args_hash": "sha256:dupAddr9",
@@ -195,16 +205,26 @@
           "turnstile.effect": "committed"
         }
       ],
-      "tts": [],
+      "tts": [
+        {
+          "span_id": "t3",
+          "turnstile.start_offset_ms": 18600,
+          "turnstile.duration_ms": 1000,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 25,
+          "turnstile.audio_seconds_generated": 1.0,
+          "turnstile.text": "Trying that update again."
+        }
+      ],
       "playback": []
     }
   ],
   "telephony": {
     "span_id": "leg",
     "turnstile.start_offset_ms": 0,
-    "turnstile.duration_ms": 18000,
+    "turnstile.duration_ms": 20000,
     "turnstile.provider": "twilio",
     "turnstile.direction": "inbound",
-    "turnstile.billable_seconds": 18
+    "turnstile.billable_seconds": 20
   }
 }

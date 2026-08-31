@@ -99,12 +99,20 @@ def test_silent_without_a_telephony_leg():
 
 
 def test_golden_fixture_08_fires_with_expected_waste_and_attribution():
+    """R13: 08's llm reply ("Checking now.") is now voiced (a tts span was
+    added right after it, per fixtures/golden/_author_rest.py's `# R13:`
+    comment) so D6 no longer collides with this fixture -- but the same
+    5200ms of trailing dead air after the tts is preserved so D8 still fires.
+    The last active span before the gap is now the tts, not the llm, so the
+    trailing-gap attribution is "asr_endpoint" (waiting on the caller to
+    speak again after being spoken to), not "tts_ttfb"."""
     pt = price_trace(load_trace(GOLDEN / "08_silence_tax.json"), load_rates(RATES))
     findings = detect_silence_tax(pt, DUMMY_VERDICT, EMPTY_BASELINES)
     assert len(findings) == 1
     f = findings[0]
+    assert f.span_id == "t0"
     assert f.evidence["silence_ms"] == 5200
-    assert f.evidence["attributed_to"] == "tts_ttfb"
+    assert f.evidence["attributed_to"] == "asr_endpoint"
     assert f.waste_usd == pytest.approx(5200 / 1000.0 * TEL_RATE_PER_SEC)
 
 

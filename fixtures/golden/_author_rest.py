@@ -205,11 +205,17 @@ tool0, cursor = stack(0, tool, span_id="tool0", name="lookup_order", args_hash="
 l0, cursor = stack(cursor, llm, span_id="l0", model="gpt-5-mini", kind="compose",
                     chosen="report_status", candidates=["report_status"],
                     out_text="Checking now.", in_tok=600, out_tok=14, latency=500)
-# active span extent = 300 + 500 = 800ms; turn wall is held open to 6000ms -- 5200ms of
-# dead air (>200ms) with the telephony meter still running.
-WALL_END_08 = 6000
+# R13: voice the composed reply -- a real agent speaks "Checking now." (this is a
+# genuine caller-facing compose, not an internal_note; D6 must not fire on it, so it
+# must actually be voiced, unlike 06_dead_tokens' deliberately-unvoiced turn).
+text08 = "Checking now."
+t0_tts, cursor = stack(cursor, tts, span_id="t0", text=text08, chars=len(text08), secs=1.0)
+# active span extent = 300 + 500 + 1000 = 1800ms; turn wall is held open 5200ms past
+# that -- 5200ms of dead air (>200ms) with the telephony meter still running. D6 is
+# silent here (the reply is voiced verbatim); D8 still fires on the trailing silence.
+WALL_END_08 = cursor + 5200
 t0 = Turn(turn_index=0, speaker_first="agent", wall_start_ms=0, wall_end_ms=WALL_END_08,
-          tools=[tool0], llm=[l0])
+          tools=[tool0], llm=[l0], tts=[t0_tts])
 dump(Trace(conversation=conv(cid(8), "order_status", "caller_hangup"),
            turns=[t0], telephony=leg(billable(WALL_END_08))), HERE / "08_silence_tax.json")
 
@@ -229,8 +235,11 @@ tool0, cursor = stack(cursor, tool, span_id="tool0", name="update_address",
 l0, cursor = stack(cursor, llm, span_id="l0", model="gpt-5-mini", kind="compose",
                     chosen="confirm_update", candidates=["confirm_update"],
                     out_text="Updating your address.", in_tok=500, out_tok=14)
+# R13: voice the confirmation -- caller-facing compose, genuinely spoken.
+text10_0 = "Updating your address."
+t0_tts, cursor = stack(cursor, tts, span_id="t0", text=text10_0, chars=len(text10_0), secs=1.0)
 t0 = Turn(turn_index=0, speaker_first="agent", wall_start_ms=turn0_start, wall_end_ms=cursor,
-          tools=[tool0], llm=[l0])
+          tools=[tool0], llm=[l0], tts=[t0_tts])
 
 turn1_start = cursor
 tool1, cursor = stack(cursor, tool, span_id="tool1", name="update_address",
@@ -239,8 +248,10 @@ tool1, cursor = stack(cursor, tool, span_id="tool1", name="update_address",
 l1, cursor = stack(cursor, llm, span_id="l1", model="gpt-5-mini", kind="compose",
                     chosen="confirm_update_retry", candidates=["confirm_update_retry"],
                     out_text="Trying that update again.", in_tok=520, out_tok=15)
+text10_1 = "Trying that update again."
+t1_tts, cursor = stack(cursor, tts, span_id="t1", text=text10_1, chars=len(text10_1), secs=1.0)
 t1 = Turn(turn_index=1, speaker_first="agent", wall_start_ms=turn1_start, wall_end_ms=cursor,
-          tools=[tool1], llm=[l1])
+          tools=[tool1], llm=[l1], tts=[t1_tts])
 dump(Trace(conversation=conv(cid(10), "account_update", "caller_hangup"),
            turns=[t0, t1], telephony=leg(billable(cursor))), HERE / "10_tool_thrash.json")
 
@@ -301,8 +312,11 @@ tool2, cursor = stack(cursor, tool, span_id="tool2", name="update_address",
 l2, cursor = stack(cursor, llm, span_id="l2", model="gpt-5-mini", kind="compose",
                     chosen="confirm_update", candidates=["confirm_update"],
                     out_text="Updating your address.", in_tok=500, out_tok=14)
+# R13: voice the confirmation -- same shape as 10_tool_thrash's turn 0.
+text12_2 = "Updating your address."
+t2_tts, cursor = stack(cursor, tts, span_id="t2", text=text12_2, chars=len(text12_2), secs=1.0)
 t2 = Turn(turn_index=2, speaker_first="agent", wall_start_ms=turn2_start, wall_end_ms=cursor,
-          tools=[tool2], llm=[l2])
+          tools=[tool2], llm=[l2], tts=[t2_tts])
 
 turn3_start = cursor
 tool3, cursor = stack(cursor, tool, span_id="tool3", name="update_address",
@@ -311,8 +325,10 @@ tool3, cursor = stack(cursor, tool, span_id="tool3", name="update_address",
 l3, cursor = stack(cursor, llm, span_id="l3", model="gpt-5-mini", kind="compose",
                     chosen="confirm_update_retry", candidates=["confirm_update_retry"],
                     out_text="Trying that update again.", in_tok=520, out_tok=15)
+text12_3 = "Trying that update again."
+t3_tts, cursor = stack(cursor, tts, span_id="t3", text=text12_3, chars=len(text12_3), secs=1.0)
 t3 = Turn(turn_index=3, speaker_first="agent", wall_start_ms=turn3_start, wall_end_ms=cursor,
-          tools=[tool3], llm=[l3])
+          tools=[tool3], llm=[l3], tts=[t3_tts])
 dump(Trace(conversation=conv(cid(12), "refund", "caller_hangup"),
            turns=[t0, t1, t2, t3], telephony=leg(billable(cursor))),
      HERE / "12_multi_waste_b.json")
