@@ -2,34 +2,51 @@
 
 Fixtures are engineered so that a naive "fires on everything" detector would
 pass ordinary positive tests. The real gate is the false-positive rate: for
-each of the five deterministic classes {2, 6, 7, 8, 10}, this fires on every
-fixture manifest.yaml names as a target for that class, AND is silent on
-every one of the other fixtures -- the clean baseline included.
+each of the ten classes {1..10}, this fires on every fixture manifest.yaml
+names as a target for that class, AND is silent on every one of the other
+fixtures -- the clean baseline included.
 
 Multi-waste fixtures 11/12/13 legitimately combine several classes and are
 parsed straight from manifest.yaml's `target_detector: "1,2,8"` style field,
 so no class list is hand-duplicated here.
+
+Batch A's five deterministic classes {2, 6, 7, 8, 10} never read `verdict` or
+`baselines` (they were built against a dummy always-RESOLVED verdict and empty
+baselines and still passed this gate). Batch B's five judgment classes
+{1, 3, 4, 5, 9} do: Detector 4 needs real `Baselines.per_intent` entries
+(fixtures/sample/baselines.json, see its calibration note in the Wave report)
+or it can never fire, and Detector 9 needs a real `Verdict.label`/
+`turn_of_no_return` (a dummy always-RESOLVED verdict makes tier 1's
+`label == ESCALATED` guard permanently false) -- so this sweep now adjudicates
+every fixture for real via `turnstile_verdict.adjudicate` instead of reusing a
+dummy verdict, and loads the calibrated sample baselines instead of an empty
+table. This does not violate "use the verdict arg detect() already provides,
+don't re-adjudicate unless a test needs to" (packages/detectors/tests/
+_builders.py's DUMMY_VERDICT remains correct for the per-detector unit tests,
+which construct their own minimal traces and don't need real adjudication) --
+the full 10-class sweep against real fixtures is exactly the case that does.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 import yaml
 
-from turnstile_schema import Baselines, Verdict, load_rates, load_trace
-from turnstile_schema.enums import VerdictLabel
+from turnstile_schema import Baselines, load_rates, load_trace
 from turnstile_pricing import price_trace
+from turnstile_verdict import adjudicate
 from turnstile_detectors import detect
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 MANIFEST = GOLDEN / "manifest.yaml"
 RATES = Path(__file__).parents[3] / "pricing" / "rates.yaml"
+SAMPLE_BASELINES = Path(__file__).parents[3] / "fixtures" / "sample" / "baselines.json"
 
-DETECTOR_CLASSES = (2, 6, 7, 8, 10)
+DETECTOR_CLASSES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
-_DUMMY_VERDICT = Verdict(label=VerdictLabel.RESOLVED, confidence=1.0, evidence=[], turn_of_no_return=None)
-_EMPTY_BASELINES = Baselines(per_intent={})
+_BASELINES = Baselines.model_validate(json.loads(SAMPLE_BASELINES.read_text(encoding="utf-8")))
 
 
 def _manifest_fixtures() -> list[dict]:
@@ -49,7 +66,8 @@ def _targets_for_class(class_id: int) -> set[str]:
 def _fired_classes(fid: str) -> set[int]:
     trace = load_trace((GOLDEN / fid).with_suffix(".json"))
     priced = price_trace(trace, load_rates(RATES))
-    findings = detect(priced, _DUMMY_VERDICT, _EMPTY_BASELINES)
+    verdict = adjudicate(priced)
+    findings = detect(priced, verdict, _BASELINES)
     return {f.class_id for f in findings}
 
 

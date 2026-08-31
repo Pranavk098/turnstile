@@ -9,7 +9,9 @@ from datetime import datetime, timezone
 from turnstile_schema import Baselines, PricedTrace, RateTable, Verdict
 from turnstile_schema.enums import DecisionKind, Direction, EndReason, ToolKind, VerdictLabel
 from turnstile_schema.rates import AsrRate, LlmRate, TelephonyRate, TtsRate
-from turnstile_schema.spans import AudioPlayback, LlmDecide, TelephonyLeg, ToolCall, TtsSynthesize
+from turnstile_schema.spans import (
+    AudioPlayback, ContextAssemble, LlmDecide, TelephonyLeg, ToolCall, TtsSynthesize,
+)
 from turnstile_schema.trace import Conversation, Trace, Turn
 from turnstile_pricing import price_trace
 
@@ -39,12 +41,24 @@ def llm(sid, *, start, dur=500, input_tokens, output_tokens, decision_kind=Decis
 
 
 def tool(sid, *, start, dur=300, name="do_thing", args_hash="sha256:a",
-         kind=ToolKind.mutation, cost_usd=0.0) -> ToolCall:
+         kind=ToolKind.mutation, cost_usd=0.0, args_json="{}", effect=None) -> ToolCall:
     return ToolCall(
         span_id=sid, start_offset_ms=start, duration_ms=dur,
-        tool_name=name, args_hash=args_hash, args_json="{}", result_hash="sha256:r",
+        tool_name=name, args_hash=args_hash, args_json=args_json, result_hash="sha256:r",
         latency_ms=dur, cost_usd=cost_usd, tool_kind=kind,
-        effect="committed" if kind in (ToolKind.mutation, ToolKind.handoff) else "none",
+        effect=effect if effect is not None else (
+            "committed" if kind in (ToolKind.mutation, ToolKind.handoff) else "none"
+        ),
+    )
+
+
+def context(sid, *, start, dur=80, context_tokens=900, history_tokens=200, system_tokens=100,
+            retrieved_tokens=600, retrieved_doc_ids=None) -> ContextAssemble:
+    return ContextAssemble(
+        span_id=sid, start_offset_ms=start, duration_ms=dur,
+        context_tokens=context_tokens, history_tokens=history_tokens, system_tokens=system_tokens,
+        retrieved_tokens=retrieved_tokens, retrieved_doc_ids=list(retrieved_doc_ids or []),
+        pruning_strategy="none",
     )
 
 
@@ -72,11 +86,11 @@ def leg(*, billable_seconds=60, provider="twilio", direction=Direction.inbound,
 
 
 def turn(idx, wall_start, wall_end, *, asr=(), llm_spans=(), tools=(), tts_spans=(), playback_spans=(),
-         speaker_first="caller") -> Turn:
+         speaker_first="caller", context_span=None) -> Turn:
     return Turn(
         turn_index=idx, speaker_first=speaker_first, wall_start_ms=wall_start, wall_end_ms=wall_end,
         asr=list(asr), llm=list(llm_spans), tools=list(tools), tts=list(tts_spans),
-        playback=list(playback_spans),
+        playback=list(playback_spans), context=context_span,
     )
 
 

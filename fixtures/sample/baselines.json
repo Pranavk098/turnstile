@@ -1,0 +1,11 @@
+{
+  "per_intent": {
+    "order_status": { "p50_turns": 8.0, "p75_turns": 10.0, "mean_cost_per_turn": 0.0012 },
+    "billing_dispute": { "p50_turns": 10.0, "p75_turns": 20.0, "mean_cost_per_turn": 0.0015 },
+    "refund": { "p50_turns": 5.0, "p75_turns": 10.0, "mean_cost_per_turn": 0.0032 },
+    "account_update": { "p50_turns": 3.0, "p75_turns": 6.0, "mean_cost_per_turn": 0.0015 },
+    "balance_check": { "p50_turns": 3.0, "p75_turns": 5.0, "mean_cost_per_turn": 0.0012 },
+    "long_technical_support": { "p50_turns": 30.0, "p75_turns": 45.0, "mean_cost_per_turn": 0.001 },
+    "cancel_subscription": { "p50_turns": 3.0, "p75_turns": 6.0, "mean_cost_per_turn": 0.0031 }
+  }
+}
