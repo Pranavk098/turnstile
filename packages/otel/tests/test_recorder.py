@@ -39,57 +39,59 @@ def _make_recorder(ticks: list[float]) -> tuple[TraceRecorder, FakeClock]:
 
 def test_two_turn_conversation_produces_valid_trace_with_clock_derived_offsets():
     # Clock script (seconds): index 0 is TraceRecorder.__init__ (t0 = 0.0).
-    # Turn 0: enter @0.0s, asr ends @0.5s, llm ends @0.9s, tts ends @2.1s,
-    #         playback ends @3.5s, exit @3.5s.
-    # Turn 1: enter @3.5s, llm ends @4.2s, tts ends @5.4s, playback ends @6.8s,
-    #         exit @6.8s.
+    # Turn 0: open @0.0s, asr ends @0.5s, llm ends @0.9s, tts ends @2.1s,
+    #         playback ends @3.5s, close @3.5s.
+    # Turn 1: open @3.5s, llm ends @4.2s, tts ends @5.4s, playback ends @6.8s,
+    #         close @6.8s.
     ticks = [
         0.0,  # __init__ t0
-        0.0,  # turn0 __enter__ (wall_start)
+        0.0,  # turn0 open (wall_start)
         0.5,  # record_asr end
         0.9,  # record_llm end
         2.1,  # record_tts end
         3.5,  # record_playback end
-        3.5,  # turn0 __exit__ (wall_end)
-        3.5,  # turn1 __enter__ (wall_start)
+        3.5,  # turn0 close (wall_end)
+        3.5,  # turn1 open (wall_start)
         4.2,  # record_llm end
         5.4,  # record_tts end
         6.8,  # record_playback end
-        6.8,  # turn1 __exit__ (wall_end)
+        6.8,  # turn1 close (wall_end)
         6.8,  # finalize() total_ms
     ]
     rec, clock = _make_recorder(ticks)
 
-    with rec.start_turn(0, "caller") as turn:
-        asr = turn.record_asr(
-            gen_ai_system="deepgram", gen_ai_request_model="nova-3",
-            audio_seconds=2.0, is_streaming=True, transcript="hello",
-            confidence=0.95,
-        )
-        llm = turn.record_llm(
-            gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
-            input_tokens=500, output_tokens=15, decision_kind="route",
-            decision_chosen="order_status", decision_candidates=["order_status"],
-            output_text="Let me check that.",
-        )
-        tts = turn.record_tts(
-            gen_ai_system="cartesia", text="Let me check that.",
-            audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
-        )
-        playback = turn.record_playback(chars_played=18, audio_seconds_played=1.4)
+    turn = rec.start_turn(0, "caller")
+    asr = turn.record_asr(
+        gen_ai_system="deepgram", gen_ai_request_model="nova-3",
+        audio_seconds=2.0, is_streaming=True, transcript="hello",
+        confidence=0.95,
+    )
+    llm = turn.record_llm(
+        gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
+        input_tokens=500, output_tokens=15, decision_kind="route",
+        decision_chosen="order_status", decision_candidates=["order_status"],
+        output_text="Let me check that.",
+    )
+    tts = turn.record_tts(
+        gen_ai_system="cartesia", text="Let me check that.",
+        audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
+    )
+    playback = turn.record_playback(chars_played=18, audio_seconds_played=1.4)
+    turn.close()
 
-    with rec.start_turn(1, "agent") as turn1:
-        llm1 = turn1.record_llm(
-            gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
-            input_tokens=700, output_tokens=20, decision_kind="compose",
-            decision_chosen="report_status", decision_candidates=["report_status"],
-            output_text="Your order ships tomorrow.",
-        )
-        tts1 = turn1.record_tts(
-            gen_ai_system="cartesia", text="Your order ships tomorrow.",
-            audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
-        )
-        playback1 = turn1.record_playback(chars_played=26, audio_seconds_played=2.0)
+    turn1 = rec.start_turn(1, "agent")
+    llm1 = turn1.record_llm(
+        gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
+        input_tokens=700, output_tokens=20, decision_kind="compose",
+        decision_chosen="report_status", decision_candidates=["report_status"],
+        output_text="Your order ships tomorrow.",
+    )
+    tts1 = turn1.record_tts(
+        gen_ai_system="cartesia", text="Your order ships tomorrow.",
+        audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
+    )
+    playback1 = turn1.record_playback(chars_played=26, audio_seconds_played=2.0)
+    turn1.close()
 
     trace = rec.finalize("caller_hangup")
 
@@ -129,13 +131,14 @@ def test_two_turn_conversation_produces_valid_trace_with_clock_derived_offsets()
 
 
 def test_record_telephony_spans_whole_conversation_duration():
-    ticks = [0.0, 0.0, 1.0, 1.0, 4.0]  # init, enter, asr-end, exit, finalize
+    ticks = [0.0, 0.0, 1.0, 1.0, 4.0]  # init, open, asr-end, close, finalize
     rec, _ = _make_recorder(ticks)
-    with rec.start_turn(0, "caller") as turn:
-        turn.record_asr(
-            gen_ai_system="deepgram", gen_ai_request_model="nova-3",
-            audio_seconds=1.0, is_streaming=False, transcript="hi", confidence=0.9,
-        )
+    turn = rec.start_turn(0, "caller")
+    turn.record_asr(
+        gen_ai_system="deepgram", gen_ai_request_model="nova-3",
+        audio_seconds=1.0, is_streaming=False, transcript="hi", confidence=0.9,
+    )
+    turn.close()
     rec.record_telephony("twilio", "inbound", billable_seconds=4)
     trace = rec.finalize("caller_hangup")
 
@@ -170,12 +173,13 @@ def test_record_tts_requires_chars_synthesized():
     # silently fall back to len(text).
     ticks = [0.0, 0.0, 1.0]
     rec, _ = _make_recorder(ticks)
+    turn = rec.start_turn(0, "caller")
     with pytest.raises(TypeError):
-        with rec.start_turn(0, "caller") as turn:
-            turn.record_tts(
-                gen_ai_system="cartesia", text="Let me check that.",
-                audio_seconds_generated=1.4,
-            )
+        turn.record_tts(
+            gen_ai_system="cartesia", text="Let me check that.",
+            audio_seconds_generated=1.4,
+        )
+    turn.abandon()
 
 
 def test_record_tool_respects_schema_effect_validator():
@@ -184,23 +188,25 @@ def test_record_tool_respects_schema_effect_validator():
     effect=none."""
     ticks = [0.0, 0.0, 1.0]
     rec, _ = _make_recorder(ticks)
+    turn = rec.start_turn(0, "caller")
     with pytest.raises(ValidationError):
-        with rec.start_turn(0, "caller") as turn:
-            turn.record_tool(
-                tool_name="lookup_order", tool_kind="lookup",
-                effect="committed",  # illegal: lookup must be effect=none
-            )
+        turn.record_tool(
+            tool_name="lookup_order", tool_kind="lookup",
+            effect="committed",  # illegal: lookup must be effect=none
+        )
+    turn.abandon()
 
 
 def test_record_tool_captures_status_and_effect_for_mutation():
     ticks = [0.0, 0.0, 1.0, 1.0]
     rec, _ = _make_recorder(ticks)
-    with rec.start_turn(0, "agent") as turn:
-        tool = turn.record_tool(
-            tool_name="process_refund", tool_kind="mutation",
-            tool_status="ok", effect="committed",
-            args={"order_id": "A1"}, result={"status": "processed"},
-        )
+    turn = rec.start_turn(0, "agent")
+    tool = turn.record_tool(
+        tool_name="process_refund", tool_kind="mutation",
+        tool_status="ok", effect="committed",
+        args={"order_id": "A1"}, result={"status": "processed"},
+    )
+    turn.close()
     assert tool.tool_status.value == "ok"
     assert tool.effect.value == "committed"
     assert tool.args_hash.startswith("sha256:")
