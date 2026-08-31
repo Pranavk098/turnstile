@@ -1,11 +1,15 @@
 {
-  "label": "Wave-1 sample fleet",
-  "note": "Plausible sample aggregate for the static demo. The page presents these pre-computed numbers only (PRD Sec.4.3).",
-  "n_conversations": 214,
-  "n_resolved": 187,
-  "total_cost_usd": 11.42,
-  "resolved_cost_usd": 9.87,
-  "cprc_loaded": 0.0611,
-  "cprc_naive": 0.0528,
-  "recoverable_margin_pct": 22.4
+  "label": "Wave-1 real fleet (23 golden fixtures)",
+  "note": "Real computed aggregate over the 23 golden fixtures -- not a production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3.",
+  "n_conversations": 23,
+  "n_resolved": 14,
+  "total_cost_usd": 0.18754716666666665,
+  "resolved_cost_usd": 0.12353383333333336,
+  "cprc_loaded": 0.01339622619047619,
+  "cprc_naive": 0.00882384523809524,
+  "recoverable_margin_pct": 1.322547305877722,
+  "_provenance": {
+    "n": 23,
+    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/DEMO.md and docs/CORPUS.md for the two-tier split. Real Tier-1 replay numbers come later from the OpenAI backend on the full corpus."
+  }
 }

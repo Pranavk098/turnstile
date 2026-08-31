@@ -1,12 +1,12 @@
 {
   "trace": {
     "conversation": {
-      "conversation_id": "00000000-0000-0000-0000-000000000000",
+      "conversation_id": "00000000-0000-0000-0000-000000000009",
       "agent_version": "agent@abc123",
-      "scenario_id": "order_status",
+      "scenario_id": "billing_dispute",
       "started_at": "2026-08-30T00:00:00Z",
       "ended_at": "2026-08-30T00:02:00Z",
-      "end_reason": "caller_hangup",
+      "end_reason": "escalated",
       "schema_version": "1.1"
     },
     "turns": [
@@ -14,7 +14,7 @@
         "turn_index": 0,
         "speaker_first": "caller",
         "wall_start_ms": 0,
-        "wall_end_ms": 3100,
+        "wall_end_ms": 4100,
         "barge_in": false,
         "vad": [],
         "asr": [],
@@ -23,22 +23,21 @@
           {
             "span_id": "l0",
             "start_offset_ms": 0,
-            "duration_ms": 600,
+            "duration_ms": 500,
             "gen_ai_system": "openai",
             "gen_ai_request_model": "gpt-5-mini",
             "input_tokens": 600,
-            "output_tokens": 12,
+            "output_tokens": 16,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
-            "decision_kind": "route",
-            "decision_chosen": "order_status",
+            "decision_kind": "compose",
+            "decision_chosen": "stall_0",
             "decision_candidates": [
-              "order_status",
-              "billing"
+              "stall_0"
             ],
-            "output_text": "Let me check that.",
-            "latency_ms": 600,
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
             "retry_of": null
           }
         ],
@@ -46,21 +45,21 @@
         "tts": [
           {
             "span_id": "t0",
-            "start_offset_ms": 300,
-            "duration_ms": 1400,
+            "start_offset_ms": 500,
+            "duration_ms": 1800,
             "gen_ai_system": "piper",
-            "chars_synthesized": 18,
-            "audio_seconds_generated": 1.4,
-            "text": "Let me check that."
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
           }
         ],
         "playback": [
           {
             "span_id": "p0",
-            "start_offset_ms": 1700,
-            "duration_ms": 1400,
-            "chars_played": 18,
-            "audio_seconds_played": 1.4,
+            "start_offset_ms": 2300,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
             "truncated_by": null
           }
         ]
@@ -68,8 +67,8 @@
       {
         "turn_index": 1,
         "speaker_first": "agent",
-        "wall_start_ms": 3100,
-        "wall_end_ms": 8300,
+        "wall_start_ms": 4100,
+        "wall_end_ms": 8200,
         "barge_in": false,
         "vad": [],
         "asr": [],
@@ -77,59 +76,44 @@
         "llm": [
           {
             "span_id": "l1",
-            "start_offset_ms": 3400,
-            "duration_ms": 900,
+            "start_offset_ms": 4100,
+            "duration_ms": 500,
             "gen_ai_system": "openai",
             "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 900,
-            "output_tokens": 20,
+            "input_tokens": 600,
+            "output_tokens": 16,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "compose",
-            "decision_chosen": "report_status",
+            "decision_chosen": "stall_1",
             "decision_candidates": [
-              "report_status"
+              "stall_1"
             ],
-            "output_text": "Your order ships tomorrow.",
-            "latency_ms": 900,
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
             "retry_of": null
           }
         ],
-        "tools": [
-          {
-            "span_id": "tool1",
-            "start_offset_ms": 3100,
-            "duration_ms": 300,
-            "tool_name": "lookup_order",
-            "args_hash": "sha256:a1",
-            "args_json": "{}",
-            "result_hash": "sha256:r",
-            "latency_ms": 300,
-            "cost_usd": 0.0,
-            "tool_kind": "lookup",
-            "tool_status": "ok",
-            "effect": "none"
-          }
-        ],
+        "tools": [],
         "tts": [
           {
             "span_id": "t1",
-            "start_offset_ms": 4300,
-            "duration_ms": 2000,
+            "start_offset_ms": 4600,
+            "duration_ms": 1800,
             "gen_ai_system": "piper",
-            "chars_synthesized": 26,
-            "audio_seconds_generated": 2.0,
-            "text": "Your order ships tomorrow."
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
           }
         ],
         "playback": [
           {
             "span_id": "p1",
-            "start_offset_ms": 6300,
-            "duration_ms": 2000,
-            "chars_played": 26,
-            "audio_seconds_played": 2.0,
+            "start_offset_ms": 6400,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
             "truncated_by": null
           }
         ]
@@ -137,8 +121,8 @@
       {
         "turn_index": 2,
         "speaker_first": "caller",
-        "wall_start_ms": 8300,
-        "wall_end_ms": 12000,
+        "wall_start_ms": 8200,
+        "wall_end_ms": 12300,
         "barge_in": false,
         "vad": [],
         "asr": [],
@@ -146,21 +130,21 @@
         "llm": [
           {
             "span_id": "l2",
-            "start_offset_ms": 8300,
+            "start_offset_ms": 8200,
             "duration_ms": 500,
             "gen_ai_system": "openai",
             "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 700,
-            "output_tokens": 10,
+            "input_tokens": 600,
+            "output_tokens": 16,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "compose",
-            "decision_chosen": "farewell",
+            "decision_chosen": "stall_2",
             "decision_candidates": [
-              "farewell"
+              "stall_2"
             ],
-            "output_text": "Anything else? Goodbye.",
+            "output_text": "Let me keep looking into this.",
             "latency_ms": 500,
             "retry_of": null
           }
@@ -169,21 +153,577 @@
         "tts": [
           {
             "span_id": "t2",
-            "start_offset_ms": 8800,
-            "duration_ms": 1600,
+            "start_offset_ms": 8700,
+            "duration_ms": 1800,
             "gen_ai_system": "piper",
-            "chars_synthesized": 23,
-            "audio_seconds_generated": 1.6,
-            "text": "Anything else? Goodbye."
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
           }
         ],
         "playback": [
           {
             "span_id": "p2",
-            "start_offset_ms": 10400,
-            "duration_ms": 1600,
-            "chars_played": 23,
-            "audio_seconds_played": 1.6,
+            "start_offset_ms": 10500,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "caller",
+        "wall_start_ms": 12300,
+        "wall_end_ms": 15600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l3",
+            "start_offset_ms": 12300,
+            "duration_ms": 700,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 700,
+            "output_tokens": 20,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "escalate_check",
+            "decision_chosen": "escalate",
+            "decision_candidates": [
+              "resolve",
+              "escalate"
+            ],
+            "output_text": "This needs a human.",
+            "latency_ms": 700,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t3",
+            "start_offset_ms": 13000,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 19,
+            "audio_seconds_generated": 1.3,
+            "text": "This needs a human."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p3",
+            "start_offset_ms": 14300,
+            "duration_ms": 1300,
+            "chars_played": 19,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 4,
+        "speaker_first": "caller",
+        "wall_start_ms": 15600,
+        "wall_end_ms": 19700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l4",
+            "start_offset_ms": 15600,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_4",
+            "decision_candidates": [
+              "stall_4"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t4",
+            "start_offset_ms": 16100,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p4",
+            "start_offset_ms": 17900,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 5,
+        "speaker_first": "agent",
+        "wall_start_ms": 19700,
+        "wall_end_ms": 23800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l5",
+            "start_offset_ms": 19700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_5",
+            "decision_candidates": [
+              "stall_5"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t5",
+            "start_offset_ms": 20200,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p5",
+            "start_offset_ms": 22000,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 6,
+        "speaker_first": "caller",
+        "wall_start_ms": 23800,
+        "wall_end_ms": 27900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l6",
+            "start_offset_ms": 23800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_6",
+            "decision_candidates": [
+              "stall_6"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t6",
+            "start_offset_ms": 24300,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p6",
+            "start_offset_ms": 26100,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 7,
+        "speaker_first": "agent",
+        "wall_start_ms": 27900,
+        "wall_end_ms": 32000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l7",
+            "start_offset_ms": 27900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_7",
+            "decision_candidates": [
+              "stall_7"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t7",
+            "start_offset_ms": 28400,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p7",
+            "start_offset_ms": 30200,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 8,
+        "speaker_first": "caller",
+        "wall_start_ms": 32000,
+        "wall_end_ms": 36100,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l8",
+            "start_offset_ms": 32000,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_8",
+            "decision_candidates": [
+              "stall_8"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t8",
+            "start_offset_ms": 32500,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p8",
+            "start_offset_ms": 34300,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 9,
+        "speaker_first": "agent",
+        "wall_start_ms": 36100,
+        "wall_end_ms": 40200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l9",
+            "start_offset_ms": 36100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_9",
+            "decision_candidates": [
+              "stall_9"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t9",
+            "start_offset_ms": 36600,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p9",
+            "start_offset_ms": 38400,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 10,
+        "speaker_first": "caller",
+        "wall_start_ms": 40200,
+        "wall_end_ms": 44300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l10",
+            "start_offset_ms": 40200,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_10",
+            "decision_candidates": [
+              "stall_10"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t10",
+            "start_offset_ms": 40700,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p10",
+            "start_offset_ms": 42500,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 11,
+        "speaker_first": "agent",
+        "wall_start_ms": 44300,
+        "wall_end_ms": 48400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l11",
+            "start_offset_ms": 44300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 600,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "stall_11",
+            "decision_candidates": [
+              "stall_11"
+            ],
+            "output_text": "Let me keep looking into this.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t11",
+            "start_offset_ms": 44800,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 28,
+            "audio_seconds_generated": 1.8,
+            "text": "Let me keep looking into this."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p11",
+            "start_offset_ms": 46600,
+            "duration_ms": 1800,
+            "chars_played": 28,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 12,
+        "speaker_first": "agent",
+        "wall_start_ms": 48400,
+        "wall_end_ms": 52200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l12",
+            "start_offset_ms": 48700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 650,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "transfer",
+            "decision_candidates": [
+              "transfer"
+            ],
+            "output_text": "Transferring you now.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool12",
+            "start_offset_ms": 48400,
+            "duration_ms": 300,
+            "tool_name": "transfer_to_agent",
+            "args_hash": "sha256:xfer12",
+            "args_json": "{}",
+            "result_hash": "sha256:r",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "handoff",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t12",
+            "start_offset_ms": 49200,
+            "duration_ms": 1500,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 22,
+            "audio_seconds_generated": 1.5,
+            "text": "Transferring you now."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p12",
+            "start_offset_ms": 50700,
+            "duration_ms": 1500,
+            "chars_played": 22,
+            "audio_seconds_played": 1.5,
             "truncated_by": null
           }
         ]
@@ -192,30 +732,70 @@
     "telephony": {
       "span_id": "leg",
       "start_offset_ms": 0,
-      "duration_ms": 12000,
+      "duration_ms": 53000,
       "provider": "twilio",
       "direction": "inbound",
-      "billable_seconds": 12
+      "billable_seconds": 53
     }
   },
   "span_costs": {
-    "l0": 0.000174,
-    "t0": 0.00045,
-    "l1": 0.000265,
-    "t1": 0.00065,
-    "l2": 0.000195,
-    "t2": 0.000575
+    "l0": 0.00018199999999999998,
+    "t0": 0.0007000000000000001,
+    "l1": 0.00018199999999999998,
+    "t1": 0.0007000000000000001,
+    "l2": 0.00018199999999999998,
+    "t2": 0.0007000000000000001,
+    "l3": 0.000215,
+    "t3": 0.000475,
+    "l4": 0.00018199999999999998,
+    "t4": 0.0007000000000000001,
+    "l5": 0.00018199999999999998,
+    "t5": 0.0007000000000000001,
+    "l6": 0.00018199999999999998,
+    "t6": 0.0007000000000000001,
+    "l7": 0.00018199999999999998,
+    "t7": 0.0007000000000000001,
+    "l8": 0.00018199999999999998,
+    "t8": 0.0007000000000000001,
+    "l9": 0.00018199999999999998,
+    "t9": 0.0007000000000000001,
+    "l10": 0.00018199999999999998,
+    "t10": 0.0007000000000000001,
+    "l11": 0.00018199999999999998,
+    "t11": 0.0007000000000000001,
+    "l12": 0.0001985,
+    "t12": 0.00055
   },
   "turn_costs": [
-    0.0010631666666666667,
-    0.0016516666666666667,
-    0.0012941666666666666
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.0011646647509578544,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.001471734993614304,
+    0.0012950836526181356
   ],
-  "conv_cost": 0.004009,
+  "conv_cost": 0.018648833333333333,
   "stage_costs": {
     "asr": 0.0,
-    "llm": 0.000634,
-    "tts": 0.0016749999999999998,
-    "telephony": 0.0017000000000000001
+    "llm": 0.0024154999999999992,
+    "tts": 0.008725000000000002,
+    "telephony": 0.007508333333333334
+  },
+  "_provenance": {
+    "fixture": "09_escalation_debt",
+    "stage_tier": {
+      "llm": "tier1_measured",
+      "asr": "tier2_modeled_acoustics",
+      "tts": "tier2_modeled_acoustics",
+      "telephony": "tier2_modeled_acoustics"
+    },
+    "note": "LLM stage cost is computed from this fixture's real token counts (Tier 1, measured). ASR/TTS/telephony stage costs are computed with the same pricing formula but over the fixture generator's modeled acoustics, not a live audio pipeline (Tier 2, mechanism -- not a measured magnitude; see docs/DEMO.md)."
   }
 }

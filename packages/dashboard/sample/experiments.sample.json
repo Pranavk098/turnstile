@@ -1,20 +1,21 @@
 [
   {
-    "n": 214,
-    "outcome_preservation_rate": 0.972,
-    "delta_cost_mean": -0.0138,
-    "delta_cost_ci95": [-0.0161, -0.0115],
-    "delta_latency_p50": -95.0,
-    "delta_latency_p95": -310.0,
-    "divergent_exemplars": ["conv_00412", "conv_00988", "conv_01207"]
-  },
-  {
-    "n": 203,
-    "outcome_preservation_rate": 0.951,
-    "delta_cost_mean": -0.0021,
-    "delta_cost_ci95": [-0.0035, -0.0007],
-    "delta_latency_p50": -40.0,
-    "delta_latency_p95": -60.0,
-    "divergent_exemplars": ["conv_00061"]
+    "label": "D1 over-model reroute: route -> gpt-5-nano",
+    "variant": {
+      "model_routing": {
+        "route": "gpt-5-nano"
+      }
+    },
+    "n": 6,
+    "outcome_preservation_rate": 1.0,
+    "delta_cost_mean": -0.00041340000000000013,
+    "delta_cost_ci95": [
+      -0.0007300666666666668,
+      -0.00015453333333333356
+    ],
+    "delta_latency_p50": 0.0,
+    "delta_latency_p95": 0.0,
+    "divergent_exemplars": [],
+    "_provenance": "mechanism demo -- MockBackend, not measured. MockBackend's safe-reroute path returns the identical output_text/decision_chosen for a cheaper same-family model, so outcome_preservation_rate=1.0 here is a property of the mock (cheaper==same outcome by construction), not an observed production result. Real Tier-1 outcome-preservation/delta-cost numbers require a live backend (docs/CORPUS.md's planned OpenAI replay backend)."
   }
 ]
