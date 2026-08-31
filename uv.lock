@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "turnstile",
+    "turnstile-detectors",
     "turnstile-otel",
     "turnstile-pricing",
     "turnstile-schema",
@@ -274,6 +275,17 @@ dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "turnstile-schema", editable = "packages/schema" },
 ]
+
+[[package]]
+name = "turnstile-detectors"
+version = "0.0.0"
+source = { editable = "packages/detectors" }
+dependencies = [
+    { name = "turnstile-schema" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "turnstile-schema", editable = "packages/schema" }]
 
 [[package]]
 name = "turnstile-otel"
