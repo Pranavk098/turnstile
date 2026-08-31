@@ -28,14 +28,33 @@ intended − generated` is **excluded**. The schema follows this: the live
 agent's TTS wrapper MUST set `tts.synthesize.chars_synthesized = generated`
 (billed), never `intended`.
 
-## Setup (WSL2 / Ubuntu)
+## Setup — native Windows is the easy path (no WSL/Docker needed)
 
+This probe is plain Python + a TTS + an audio device. It runs fine on **native
+Windows**, where audio hardware works without the WSLg setup. (WSL2 is only
+needed later for the Pipecat `agent/`, not for this probe. Do NOT run it inside
+Docker Desktop's `docker-desktop` WSL VM — that's a minimal utility VM with no
+Python.)
+
+**Windows PowerShell:**
+```powershell
+py -m venv $env:USERPROFILE\.turnstile-probe
+& $env:USERPROFILE\.turnstile-probe\Scripts\Activate.ps1
+pip install piper-tts sounddevice numpy
+# Download a Piper voice (.onnx + .onnx.json), e.g. en_US-lessac-medium, from
+# https://github.com/rhasspy/piper  (or: python -m piper.download_voices en_US-lessac-medium)
+$env:PIPER_MODEL = "C:\path\to\en_US-lessac-medium.onnx"
+python packages\agent\spikes\playback_probe.py
+```
+
+**Linux / WSL2 Ubuntu (alternative):**
 ```bash
 python3 -m venv ~/.turnstile-probe && source ~/.turnstile-probe/bin/activate
 pip install piper-tts sounddevice numpy
-# Download a Piper voice, e.g. en_US-lessac-medium, per https://github.com/rhasspy/piper
+# needs libportaudio2 for sounddevice: sudo apt install -y libportaudio2
+PIPER_MODEL=/path/to/en_US-lessac-medium.onnx python packages/agent/spikes/playback_probe.py
 ```
-Piper needs an audio output device; WSLg on Windows 11 provides one by default.
+Piper needs an audio output device; on WSL2, WSLg (Win11) provides one.
 
 ## Run
 

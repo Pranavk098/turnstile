@@ -26,8 +26,21 @@ Run in WSL2 (see README.md):
 import os
 import subprocess
 import sys
+import tempfile
 import time
 import wave
+
+_TMP = tempfile.gettempdir()
+
+
+def _piper_cmd() -> list[str]:
+    """Return the piper invocation, preferring the `piper` script on PATH and
+    falling back to `python -m piper` (both are provided by the piper-tts pip
+    package). Works on Windows and Linux."""
+    from shutil import which
+    if which("piper"):
+        return ["piper"]
+    return [sys.executable, "-m", "piper"]
 
 # One "chunk" ~= one clause the streaming TTS emits as a unit.
 CHUNKS = [
@@ -44,9 +57,9 @@ BARGE_IN_AT_FRACTION = 0.33  # caller interrupts a third of the way through play
 def synth_chunk(text: str, idx: int) -> tuple[bytes, int, float]:
     """Synthesize ONE chunk with Piper. Returns (pcm, sample_rate, seconds).
     Calling this is what 'bills' the characters in `text`."""
-    wav_path = f"/tmp/probe_{idx}.wav"
+    wav_path = os.path.join(_TMP, f"probe_{idx}.wav")
     subprocess.run(
-        ["piper", "--model", os.environ["PIPER_MODEL"], "--output_file", wav_path],
+        [*_piper_cmd(), "--model", os.environ["PIPER_MODEL"], "--output_file", wav_path],
         input=text.encode(), check=True,
     )
     with wave.open(wav_path, "rb") as w:
