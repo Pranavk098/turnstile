@@ -27,6 +27,17 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
     the ambiguity in evidence.
   - ESCALATED requires ``handoff.effect == committed``; a rejected handoff ->
     UNRESOLVED, a pending handoff -> UNRESOLVED (not yet ESCALATED).
+
+``turn_of_no_return`` for ESCALATED (GAP-05, PRD Sec.6 D9): PRD Sec.7 defines
+it as "the earliest turn at which the final verdict was already determined."
+For an ESCALATED verdict this wave has no live escalation classifier (PRD
+Sec.6 D9's "escalation classifier >= 0.9 at turn t"), so
+``_earliest_escalate_check`` is used as a deterministic Wave-1 stand-in: the
+earliest turn containing an ``llm.decide`` span with
+``decision_kind == escalate_check``. If no such span exists, this falls back
+to the handoff's own turn (the pre-fix behavior). The real classifier is
+Wave-2/3 work. This only changes ``turn_of_no_return`` -- it never changes
+the verdict LABEL.
 """
 from __future__ import annotations
 
@@ -137,6 +148,22 @@ def _final_llm(trace: Trace) -> tuple[int, LlmDecide] | None:
     return found
 
 
+def _earliest_escalate_check(trace: Trace) -> int | None:
+    """Earliest turn containing an ``llm.decide`` span with
+    ``decision_kind == escalate_check``, if any.
+
+    Wave-1 deterministic stand-in for PRD Sec.6 D9's "escalation classifier
+    >= 0.9 at turn t" (GAP-05). The real classifier is Wave-2/3; this proxy
+    lets ESCALATED verdicts' ``turn_of_no_return`` reflect the turn escalation
+    became predictable rather than only the turn of the eventual handoff.
+    """
+    for turn in trace.turns:
+        for llm in turn.llm:
+            if llm.decision_kind is DecisionKind.escalate_check:
+                return turn.turn_index
+    return None
+
+
 def _asserts_completion(text: str) -> bool:
     """Does the agent's utterance claim the task is done? (FALSE_RESOLVE trigger)."""
     low = text.lower()
@@ -207,7 +234,7 @@ def adjudicate(trace: PricedTrace) -> Verdict:
 
         # -- Handoff branch: ESCALATED requires effect=committed ---------------
         if t_tool.tool_kind is ToolKind.handoff:
-            return _adjudicate_handoff(t_turn, t_tool)
+            return _adjudicate_handoff(conv, t_turn, t_tool)
 
         # -- Mutation branch ---------------------------------------------------
         return _adjudicate_mutation(conv, t_turn, t_tool)
@@ -217,7 +244,7 @@ def adjudicate(trace: PricedTrace) -> Verdict:
     return _adjudicate_informational(conv)
 
 
-def _adjudicate_handoff(turn_idx: int, tool: ToolCall) -> Verdict:
+def _adjudicate_handoff(trace: Trace, turn_idx: int, tool: ToolCall) -> Verdict:
     base = {
         "source": "terminal_tool_state",
         "tool_name": tool.tool_name,
@@ -227,11 +254,24 @@ def _adjudicate_handoff(turn_idx: int, tool: ToolCall) -> Verdict:
         "turn_index": turn_idx,
     }
     if tool.effect is Effect.committed:
+        # GAP-05 (PRD Sec.6 D9): turn_of_no_return is the earliest turn
+        # escalation became predictable, not merely the handoff's own turn.
+        # Wave-1 deterministic proxy: the earliest escalate_check decision, if
+        # any (see _earliest_escalate_check); otherwise fall back to the
+        # handoff turn (pre-fix behavior).
+        escalate_turn = _earliest_escalate_check(trace)
+        no_return = escalate_turn if escalate_turn is not None else turn_idx
+        evidence_entry = {**base, "rule": "escalated_requires_handoff_committed"}
+        if escalate_turn is not None:
+            evidence_entry["turn_of_no_return_source"] = "earliest_escalate_check"
+            evidence_entry["escalate_check_turn"] = escalate_turn
+        else:
+            evidence_entry["turn_of_no_return_source"] = "handoff_turn_fallback"
         return Verdict(
             label=VerdictLabel.ESCALATED,
             confidence=CONF_ESCALATED,
-            evidence=[{**base, "rule": "escalated_requires_handoff_committed"}],
-            turn_of_no_return=turn_idx,
+            evidence=[evidence_entry],
+            turn_of_no_return=no_return,
         )
     if tool.effect is Effect.rejected:
         return Verdict(

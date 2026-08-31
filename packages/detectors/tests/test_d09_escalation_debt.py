@@ -78,15 +78,49 @@ def test_silent_when_no_handoff_and_not_escalated():
     assert detect_escalation_debt(pt, DUMMY_VERDICT, EMPTY_BASELINES) == []
 
 
-@pytest.mark.parametrize("fid", ["09_escalation_debt", "14_escalation_early", "15_escalation_late"])
-def test_golden_escalated_fixtures_fire_tier1(fid):
+@pytest.mark.parametrize("fid,expected_turn_of_no_return", [
+    # GAP-05 fix: turn_of_no_return is the earliest escalate_check turn, not
+    # the terminal handoff's own turn. 09's escalate_check (turn 3) precedes
+    # its handoff (turn 12) by 9 turns, so tier-1 debt should now span most
+    # of the conversation rather than collapsing to the single handoff turn.
+    ("09_escalation_debt", 3),
+    ("14_escalation_early", 3),   # escalate_check and handoff both at turn 3
+    ("15_escalation_late", 6),    # escalate_check at turn 6, handoff at turn 7
+])
+def test_golden_escalated_fixtures_fire_tier1(fid, expected_turn_of_no_return):
     from turnstile_verdict import adjudicate
     pt = price_trace(load_trace(GOLDEN / f"{fid}.json"), load_rates(RATES))
     verdict = adjudicate(pt)
     assert verdict.label is VerdictLabel.ESCALATED
+    assert verdict.turn_of_no_return == expected_turn_of_no_return, fid
     findings = detect_escalation_debt(pt, verdict, EMPTY_BASELINES)
     tier1 = [f for f in findings if f.evidence["tier"] == 1]
     assert len(tier1) == 1, fid
+    f = tier1[0]
+    turns = pt.trace.turns
+    t_pos = next(i for i, turn in enumerate(turns) if turn.turn_index == expected_turn_of_no_return)
+    expected_waste = sum(pt.turn_costs[t_pos:])
+    assert expected_waste > 0
+    assert f.waste_usd == pytest.approx(expected_waste), fid
+    assert f.turn_index == expected_turn_of_no_return
+
+
+def test_golden_fixture_09_tier1_debt_spans_predictable_escalation_not_one_turn():
+    """GAP-05 fix regression: 09's narrative is "predictable at turn 3, ran 9
+    more turns" (escalate_check at turn 3, handoff at turn 12). Tier-1 debt
+    must now cover turns [3..12], not collapse to the single handoff turn."""
+    from turnstile_verdict import adjudicate
+    pt = price_trace(load_trace(GOLDEN / "09_escalation_debt.json"), load_rates(RATES))
+    verdict = adjudicate(pt)
+    assert verdict.turn_of_no_return == 3
+    findings = detect_escalation_debt(pt, verdict, EMPTY_BASELINES)
+    tier1 = [f for f in findings if f.evidence["tier"] == 1]
+    assert len(tier1) == 1
+    f = tier1[0]
+    single_turn_debt = pt.turn_costs[-1]  # what the pre-fix behavior would have yielded
+    assert f.waste_usd > single_turn_debt * 5  # materially larger, not ~one turn's cost
+    assert f.waste_usd == pytest.approx(sum(pt.turn_costs[3:]))
+    assert f.waste_usd == pytest.approx(0.014233628352490422)
 
 
 def test_golden_fixture_21_handoff_rejected_fires_tier2_full_conv_cost():

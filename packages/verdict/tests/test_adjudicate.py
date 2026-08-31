@@ -136,6 +136,17 @@ def test_pinned_fixtures_match_expected_label(fid, expected):
     assert adjudicate(_fixture(fid)).label is expected
 
 
+@pytest.mark.parametrize("fid,expected_turn", [
+    ("09_escalation_debt", 3),   # escalate_check at turn 3, handoff at turn 12
+    ("14_escalation_early", 3),  # escalate_check and handoff both at turn 3
+    ("15_escalation_late", 6),   # escalate_check at turn 6, handoff at turn 7
+])
+def test_escalated_golden_fixtures_turn_of_no_return_is_escalate_check_turn(fid, expected_turn):
+    v = adjudicate(_fixture(fid))
+    assert v.label is VerdictLabel.ESCALATED
+    assert v.turn_of_no_return == expected_turn
+
+
 def test_fixture_20_unknown_mutation_caps_confidence_and_restricts_label():
     v = adjudicate(_fixture("20_unknown_mutation"))
     assert v.label not in (VerdictLabel.RESOLVED, VerdictLabel.FALSE_RESOLVE)
@@ -194,6 +205,44 @@ def test_committed_handoff_is_escalated():
     v = adjudicate(_synthetic(tool=_tool(ToolKind.handoff, Effect.committed),
                               end_reason=EndReason.escalated))
     assert v.label is VerdictLabel.ESCALATED
+
+
+def test_committed_handoff_without_escalate_check_falls_back_to_handoff_turn():
+    """No escalate_check span anywhere -- turn_of_no_return stays the handoff's
+    own turn (the pre-fix behavior), per the documented fallback."""
+    v = adjudicate(_synthetic(tool=_tool(ToolKind.handoff, Effect.committed),
+                              end_reason=EndReason.escalated))
+    assert v.label is VerdictLabel.ESCALATED
+    assert v.turn_of_no_return == 0
+
+
+def test_escalated_turn_of_no_return_is_earliest_escalate_check_turn():
+    """GAP-05 fix: for ESCALATED, turn_of_no_return should be the earliest
+    escalate_check turn, not the (later) handoff turn -- the Wave-1
+    deterministic stand-in for the escalation classifier (PRD Sec.6 D9)."""
+    turns = [
+        Turn(turn_index=0, speaker_first="agent", wall_start_ms=0, wall_end_ms=500,
+             llm=[_llm("stalling", DecisionKind.compose)]),
+        Turn(turn_index=1, speaker_first="agent", wall_start_ms=500, wall_end_ms=1000,
+             llm=[_llm("escalation looks likely", DecisionKind.escalate_check)]),
+        Turn(turn_index=2, speaker_first="agent", wall_start_ms=1000, wall_end_ms=1500,
+             llm=[_llm("still stalling", DecisionKind.compose)]),
+        Turn(turn_index=3, speaker_first="agent", wall_start_ms=1500, wall_end_ms=2000,
+             llm=[_llm("transferring", DecisionKind.compose)],
+             tools=[_tool(ToolKind.handoff, Effect.committed)]),
+    ]
+    trace = Trace(
+        conversation=Conversation(
+            conversation_id="c1", agent_version="v1", scenario_id="s1",
+            started_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            ended_at=datetime(2026, 1, 1, 0, 2, tzinfo=timezone.utc),
+            end_reason=EndReason.escalated,
+        ),
+        turns=turns,
+    )
+    v = adjudicate(_priced(trace))
+    assert v.label is VerdictLabel.ESCALATED
+    assert v.turn_of_no_return == 1  # earliest escalate_check turn, not turn 3
 
 
 def test_rejected_handoff_is_unresolved_not_escalated():
