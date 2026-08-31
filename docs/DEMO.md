@@ -50,11 +50,28 @@ These are what make a CTO believe the number instead of the pitch.
 > The judge declining to answer when the evidence is ambiguous is the whole reason
 > you can trust the dollar figures above it."
 
+## Detector 8 as a hypothesis, not a claim (weave into ~1:00)
+
+On the synthetic corpus, **silence tax is 82% of all findings** — D8 dominates.
+Do NOT present that as a measurement. Present it as a question the CTO is
+uniquely positioned to answer:
+
+> "On modeled acoustics, silence dominates. I don't know if that holds on your
+> traffic — my dead-air distribution is an assumption, not a measurement. But if
+> it's even directionally right, the most expensive thing your voice agents do is
+> make callers *wait*, and nobody is line-iteming it. Do you know your number?"
+
+Then show the **sensitivity sweep**: D8's share as a function of the single
+named silence-gap parameter across a plausible range. That converts 82% from a
+claimed fact into a stated function of an input — the honest version of a tidy
+chart. (Same treatment as the barge-in rate for D7.)
+
 ## Limitations to state before you're asked (3:40)
 
 - **The tier split itself:** LLM-layer numbers are measured; ASR/TTS/telephony and D7/D8 magnitudes are modeled on synthetic acoustics. Stated up front, not extracted under questioning.
-- **D7's magnitude is a function of an input, not a fact:** the barge-in rate is a single named generator parameter; we show D7's cost across a plausible range of it rather than claiming one number.
-- **Detector 8** on fixture/synthetic data is a demo of the detector, not a measurement, until the recorder emits real concurrency (`docs/GATES.md` G1) — over-reports silence on non-overlapping traces.
+- **D7 and D8 magnitudes are functions of inputs, not facts:** barge-in rate (D7) and silence-gap distribution (D8) are single named generator parameters; we show each detector's cost across a plausible range rather than claiming one number.
+- **Detector 8** on synthetic data is a demo of the detector, not a measurement, until the recorder emits real concurrency (`docs/GATES.md` G1) — over-reports silence on non-overlapping traces. Its 82% corpus dominance is the correct consequence of a modeled silence distribution × a real telephony rate — not a bug, and deliberately *not* calibrated down to a nicer number.
+- **Corpus coverage gap (D2, D6):** two of ten classes have fixture-level mechanism demos but **no corpus incidence**, because the generator's context and output-routing behavior doesn't produce them. This is a limitation of the *corpus*, not the instrument. The generator was deliberately NOT re-tuned after seeing detector output (that ordering is tuning-for-detectors in disguise).
 - Synthetic traffic finds and quantifies these waste classes; it does not prove any specific fleet's number.
 - Verdict confidence priors are fixed, not yet calibrated against 60 hand labels (corpus stage).
 
