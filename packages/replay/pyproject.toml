@@ -1,0 +1,18 @@
+[project]
+name = "turnstile-replay"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = ["turnstile-schema", "turnstile-pricing", "turnstile-verdict", "turnstile-stats"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/turnstile_replay"]
+
+[tool.uv.sources]
+turnstile-schema = { workspace = true }
+turnstile-pricing = { workspace = true }
+turnstile-verdict = { workspace = true }
+turnstile-stats = { workspace = true }
