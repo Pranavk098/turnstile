@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-from turnstile_schema import Baselines, load_rates, load_trace
+from turnstile_schema import load_rates, load_trace
 from turnstile_pricing import price_trace
 from turnstile_verdict import adjudicate
 from turnstile_corpus import distributions as dist
@@ -64,7 +64,6 @@ def test_every_trace_round_trips_and_is_schema_valid(small_corpus, tmp_path):
 
 
 def test_pipeline_price_trace_and_adjudicate_run_without_error(small_corpus, rates):
-    baselines = Baselines(per_intent={})
     for trace in small_corpus:
         priced = price_trace(trace, rates)  # KeyError here == an unresolvable rate key
         verdict = adjudicate(priced)

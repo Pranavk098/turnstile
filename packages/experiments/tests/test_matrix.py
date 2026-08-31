@@ -4,7 +4,7 @@ from __future__ import annotations
 from turnstile_corpus import generate_corpus
 from turnstile_pricing import price_trace
 from turnstile_replay import MockBackend, get_backend, reset_backend, set_backend
-from turnstile_schema import ExperimentResult, VariantSpec, load_rates
+from turnstile_schema import ExperimentResult, load_rates
 
 from turnstile_experiments import VARIANTS, run_matrix
 

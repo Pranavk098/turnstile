@@ -19,7 +19,7 @@ from turnstile_schema import load_rates, load_trace
 from turnstile_pricing import price_trace
 from turnstile_detectors.d08_silence_tax import SILENCE_GAP_THRESHOLD_MS, detect_silence_tax
 
-from _builders import DUMMY_VERDICT, EMPTY_BASELINES, leg, llm, priced, tool, tts, turn
+from _builders import DUMMY_VERDICT, EMPTY_BASELINES, leg, llm, priced, tool, turn
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 RATES = Path(__file__).parents[3] / "pricing" / "rates.yaml"
