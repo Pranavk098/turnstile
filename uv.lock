@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 members = [
     "turnstile",
     "turnstile-otel",
+    "turnstile-pricing",
     "turnstile-schema",
     "turnstile-verdict",
 ]
@@ -290,6 +291,17 @@ requires-dist = [
     { name = "opentelemetry-sdk", specifier = ">=1.24" },
     { name = "turnstile-schema", editable = "packages/schema" },
 ]
+
+[[package]]
+name = "turnstile-pricing"
+version = "0.0.0"
+source = { editable = "packages/pricing" }
+dependencies = [
+    { name = "turnstile-schema" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "turnstile-schema", editable = "packages/schema" }]
 
 [[package]]
 name = "turnstile-schema"
