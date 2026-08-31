@@ -4,6 +4,7 @@ from turnstile_experiments.coverage import detector_coverage
 from turnstile_experiments.margin import GATE_MIN_PRESERVATION_RATE, recoverable_margin
 from turnstile_experiments.matrix import run_matrix
 from turnstile_experiments.openai_backend import OpenAIBackend
+from turnstile_experiments.sweeps import run_d7_barge_in_sweep, run_d8_silence_sweep, run_sweeps
 from turnstile_experiments.variants import VARIANTS
 
 __all__ = [
@@ -15,4 +16,7 @@ __all__ = [
     "OpenAIBackend",
     "estimate_cost",
     "detector_coverage",
+    "run_d7_barge_in_sweep",
+    "run_d8_silence_sweep",
+    "run_sweeps",
 ]
