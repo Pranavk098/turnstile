@@ -80,9 +80,7 @@ PIPER_MODEL=/path/to/en_US-lessac-medium.onnx \
 
 ## Result log
 
-_(fill in after running)_
-
-- Command:
-- intended / generated (billed) / played (heard):
-- D7 waste = generated − played:
-- Verdict:
+- Command: `python packages\agent\spikes\playback_probe.py` (native Windows, Piper en_US-lessac-medium), 2026-08-30
+- intended / generated (billed) / played (heard): **190 / 52 / 33**
+- D7 waste = generated − played: **19**  (never_generated = 138, correctly excluded)
+- Verdict: **KILL-CHECK PASS** — the pipeline reports the three quantities distinctly; Detector 7 is buildable on Path B.
