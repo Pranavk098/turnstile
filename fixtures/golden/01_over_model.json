@@ -24,7 +24,7 @@
           "turnstile.start_offset_ms": 0,
           "turnstile.duration_ms": 500,
           "gen_ai.system": "openai",
-          "gen_ai.request.model": "openai/gpt-5",
+          "gen_ai.request.model": "gpt-5",
           "gen_ai.usage.input_tokens": 500,
           "gen_ai.usage.output_tokens": 15,
           "turnstile.cache_read_tokens": 0,

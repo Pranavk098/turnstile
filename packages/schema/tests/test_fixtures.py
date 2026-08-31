@@ -1,11 +1,12 @@
 from pathlib import Path
 import collections, json, math, yaml, pytest
 from pydantic import ValidationError
-from turnstile_schema import load_trace
+from turnstile_schema import load_trace, load_rates
 from turnstile_schema.spans import ToolCall
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 MANIFEST = GOLDEN / "manifest.yaml"
+RATES = Path(__file__).parents[3] / "pricing" / "rates.yaml"
 
 REQUIRED_DISTRIBUTION = {
     "baseline": 1, "detector": 10, "multi_waste": 3,
@@ -108,3 +109,33 @@ def test_d8_residual_vs_union_silence_invariant(path):
     else:
         assert overlap_ms == 0, f"{path.stem} has unexpected span overlap"
         assert residual_silence == union_gap_silence
+
+
+# ---- rate-key resolution guard: every priced span in every fixture must resolve
+# to a real pricing/rates.yaml entry under the documented convention (see the
+# comment block at the top of rates.yaml) -- asr/llm: f"{system}/{model}" (bare
+# model, no provider prefix); tts: system alone (TtsSynthesize has no model
+# field); telephony.leg: f"{provider}/pstn_{direction}". This is the check that
+# would have caught fixtures authored with rate-key-incompatible strings. ----
+
+@pytest.mark.parametrize(
+    "path", sorted(GOLDEN.glob("*.json")), ids=lambda p: p.name)
+def test_every_priced_span_resolves_to_a_rate(path):
+    rt = load_rates(RATES)
+    data = json.loads(path.read_text(encoding="utf-8"))
+
+    for turn in data["turns"]:
+        for span in turn.get("asr", []):
+            key = f'{span["gen_ai.system"]}/{span["gen_ai.request.model"]}'
+            assert key in rt.asr, f"{path.name}: asr key {key!r} not in rates.yaml"
+        for span in turn.get("llm", []):
+            key = f'{span["gen_ai.system"]}/{span["gen_ai.request.model"]}'
+            assert key in rt.llm, f"{path.name}: llm key {key!r} not in rates.yaml"
+        for span in turn.get("tts", []):
+            key = span["gen_ai.system"]
+            assert key in rt.tts, f"{path.name}: tts key {key!r} not in rates.yaml"
+
+    telephony = data.get("telephony")
+    if telephony:
+        key = f'{telephony["turnstile.provider"]}/pstn_{telephony["turnstile.direction"]}'
+        assert key in rt.telephony, f"{path.name}: telephony key {key!r} not in rates.yaml"

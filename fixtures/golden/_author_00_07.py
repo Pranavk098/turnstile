@@ -15,7 +15,7 @@ def billable(final_ms):
 # shape A for the Detector 8 union proof: tts.synthesize starts streaming
 # 300ms into the still-running llm.decide span (pipelined synthesis, not
 # waste), and playback follows once buffered audio is ready. ----
-l0 = llm("l0", "openai/gpt-5-mini", "route", "order_status",
+l0 = llm("l0", "gpt-5-mini", "route", "order_status",
          ["order_status", "billing"], "Let me check that.", 600, 12,
          latency=600, start=0)
 t0_tts = tts("t0", "Let me check that.", 18, 1.4, start=300)  # 300ms into the 600ms llm span
@@ -28,7 +28,7 @@ cursor = t0.wall_end_ms
 turn1_start = cursor
 tool1, cursor = stack(cursor, tool, span_id="tool1", name="lookup_order",
                        args_hash="sha256:a1", kind="lookup")
-l1, cursor = stack(cursor, llm, span_id="l1", model="openai/gpt-5-mini",
+l1, cursor = stack(cursor, llm, span_id="l1", model="gpt-5-mini",
                     kind="compose", chosen="report_status",
                     candidates=["report_status"], out_text="Your order ships tomorrow.",
                     in_tok=900, out_tok=20, latency=900)
@@ -39,7 +39,7 @@ t1 = Turn(turn_index=1, speaker_first="agent", wall_start_ms=turn1_start,
           wall_end_ms=cursor, tools=[tool1], llm=[l1], tts=[t1_tts], playback=[p1])
 
 turn2_start = cursor
-l2, cursor = stack(cursor, llm, span_id="l2", model="openai/gpt-5-mini",
+l2, cursor = stack(cursor, llm, span_id="l2", model="gpt-5-mini",
                     kind="compose", chosen="farewell", candidates=["farewell"],
                     out_text="Anything else? Goodbye.", in_tok=700, out_tok=10)
 t2_tts, cursor = stack(cursor, tts, span_id="t2", text="Anything else? Goodbye.",
@@ -53,7 +53,7 @@ dump(Trace(conversation=conv("00000000-0000-0000-0000-000000000000",
            telephony=leg(billable(cursor))), HERE / "00_baseline_clean.json")
 
 # ---- 07 barge-in waste: synthesized >> played, caller interrupted ----
-b0_llm, cursor = stack(0, llm, span_id="l0", model="openai/gpt-5", kind="compose",
+b0_llm, cursor = stack(0, llm, span_id="l0", model="gpt-5", kind="compose",
                         chosen="long_explanation", candidates=["long_explanation"],
                         out_text="Here is a very long explanation of our refund policy ...",
                         in_tok=1200, out_tok=140)

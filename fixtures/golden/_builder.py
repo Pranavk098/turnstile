@@ -72,7 +72,7 @@ def tool(span_id, name, args_hash, kind, result_hash="sha256:r", latency=300,
         "turnstile.tool_status": tool_status, "turnstile.effect": effect})
 
 def asr(span_id, transcript, audio_seconds=2.0, is_streaming=False,
-        confidence=0.95, system="deepgram", model="nova-2", start=0, dur=None):
+        confidence=0.95, system="deepgram", model="nova-3", start=0, dur=None):
     return AsrTranscribe.model_validate({
         "span_id": span_id,
         "turnstile.start_offset_ms": start,

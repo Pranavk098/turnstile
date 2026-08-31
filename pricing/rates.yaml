@@ -1,5 +1,15 @@
 # Turnstile rate table — every rate dated with a source URL. Never hardcode a rate into logic.
 # Local audio providers are "priced-as" the named cloud vendor (Path B, spec §2 D2).
+#
+# Rate-key resolution convention (OTel-conformant; pricing/detectors resolve keys this way):
+#   asr / llm span:  f"{gen_ai.system}/{gen_ai.request.model}" -- gen_ai.request.model is
+#                     the BARE model name (no redundant provider prefix; gen_ai.system
+#                     already carries the provider). e.g. system="openai", model="gpt-5"
+#                     -> key "openai/gpt-5".
+#   tts span:         gen_ai.system alone -- TtsSynthesize carries no model field, so the
+#                     rate is keyed by provider only. e.g. system="cartesia" -> key "cartesia".
+#   telephony.leg:    f"{provider}/pstn_{direction}" -- e.g. provider="twilio",
+#                     direction="inbound" -> key "twilio/pstn_inbound".
 asr:
   deepgram/nova-3:            # https://deepgram.com/pricing  (retrieved 2026-08-30)
     { unit: audio_minute, rate: 0.0043 }
@@ -11,7 +21,9 @@ llm:
   openai/gpt-5-nano:          # https://openai.com/api/pricing  (retrieved 2026-08-30)
     { unit: mtok, input: 0.05, cache_read: 0.005, cache_write: 0.0, output: 0.40 }
 tts:
-  cartesia/sonic-2:           # https://cartesia.ai/pricing  (retrieved 2026-08-30)
+  cartesia:                   # https://cartesia.ai/pricing  (retrieved 2026-08-30)
+    { unit: char_1k, rate: 0.025 }
+  piper:                       # local, priced-as cartesia/sonic-2 (Path B)
     { unit: char_1k, rate: 0.025 }
 telephony:
   twilio/pstn_inbound:        # https://www.twilio.com/en-us/voice/pricing  (retrieved 2026-08-30)
