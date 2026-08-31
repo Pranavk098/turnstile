@@ -10,6 +10,10 @@ from turnstile_schema.spans import (
 )
 from turnstile_schema.trace import Conversation, Turn, Trace, load_trace
 from turnstile_schema.rates import RateTable, load_rates
+from turnstile_schema.contracts import (
+    PricedTrace, VariantSpec, Finding, Verdict, IntentBaseline, Baselines,
+    Trial, ExperimentResult,
+)
 
 __all__ = [
     "SCHEMA_VERSION", "EndReason", "SpeakerFirst", "PruningStrategy",
@@ -18,4 +22,6 @@ __all__ = [
     "VadSegment", "AsrTranscribe", "ContextAssemble", "LlmDecide", "ToolCall",
     "TtsSynthesize", "AudioPlayback", "TelephonyLeg", "Conversation", "Turn",
     "Trace", "load_trace", "RateTable", "load_rates",
+    "PricedTrace", "VariantSpec", "Finding", "Verdict", "IntentBaseline",
+    "Baselines", "Trial", "ExperimentResult",
 ]
