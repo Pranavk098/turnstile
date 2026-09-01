@@ -111,6 +111,8 @@ def test_forms_correct_request_and_parses_response(monkeypatch):
     assert len(fake_client.completions.calls) == 1
     call = fake_client.completions.calls[0]
     assert call["model"] == "gpt-5-nano"
+    # M-3: the generous completion cap is sent on every call.
+    assert call["max_tokens"] == 256
 
     # Pinned context is present in the formed request.
     messages_text = " ".join(m["content"] for m in call["messages"])
@@ -270,3 +272,50 @@ def test_progress_logged_every_n_calls(monkeypatch, capsys):
     err = capsys.readouterr().err
     # Cumulative call count is surfaced so a long run is observably progressing.
     assert "4" in err
+
+
+# --------------------------------------------------------------------------- #
+# M-3: the completion cap is configurable and reaching it is logged as a      #
+# suspected truncation (latency + cost lever).                                #
+# --------------------------------------------------------------------------- #
+
+def test_max_completion_tokens_cap_is_configurable(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client, max_completion_tokens=128)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    assert fake_client.completions.calls[0]["max_tokens"] == 128
+
+
+def test_completion_hitting_the_cap_is_logged(monkeypatch, capsys):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    # usage.completion_tokens == the cap -> suspected truncation, logged.
+    fake_client = _FakeClient(_FakeResponse("truncated reply", 10, 256))
+    backend = OpenAIBackend(client=fake_client)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    err = capsys.readouterr().err
+    assert "max_tokens" in err
+    assert "truncation" in err
+
+
+def test_completion_below_the_cap_is_not_logged(monkeypatch, capsys):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("a normal reply", 10, 180))
+    backend = OpenAIBackend(client=fake_client)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    assert "max_tokens" not in capsys.readouterr().err

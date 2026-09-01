@@ -28,6 +28,10 @@ from typing import Any
 
 from openai import OpenAI
 
+from turnstile_schema import VariantSpec
+from turnstile_schema.spans import LlmDecide
+from turnstile_replay.backend import ReplayContext, ReplayedDecision
+
 # A single stalled Chat Completions call must never hang the whole matrix
 # (observed on the first n=30 smoke: no timeout -> the run blocked ~38min on
 # one call). The OpenAI SDK applies BOTH a per-call ``timeout`` and bounded,
@@ -38,9 +42,11 @@ DEFAULT_REQUEST_TIMEOUT_S = 60.0
 DEFAULT_MAX_RETRIES = 5
 DEFAULT_PROGRESS_EVERY = 25
 
-from turnstile_schema import VariantSpec
-from turnstile_schema.spans import LlmDecide
-from turnstile_replay.backend import ReplayContext, ReplayedDecision
+# M-3: a generous completion cap. The corpus's real output p95 is < 200
+# tokens, so 256 never clips a normal reply while bounding a runaway
+# generation (latency + cost lever). A reply that reaches the cap is logged
+# as a suspected truncation.
+DEFAULT_MAX_COMPLETION_TOKENS = 256
 
 
 def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[dict[str, str]]:
@@ -79,6 +85,7 @@ class OpenAIBackend:
         request_timeout_s: float = DEFAULT_REQUEST_TIMEOUT_S,
         max_retries: int = DEFAULT_MAX_RETRIES,
         progress_every: int = DEFAULT_PROGRESS_EVERY,
+        max_completion_tokens: int = DEFAULT_MAX_COMPLETION_TOKENS,
     ) -> None:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise RuntimeError(
@@ -92,6 +99,7 @@ class OpenAIBackend:
             )
         self._request_timeout_s = request_timeout_s
         self._progress_every = progress_every
+        self._max_completion_tokens = max_completion_tokens
         self._calls = 0
         self._client = client if client is not None else OpenAI(
             api_key=api_key, timeout=request_timeout_s, max_retries=max_retries
@@ -107,7 +115,9 @@ class OpenAIBackend:
         messages = _render_messages(context, original_span)
         start = time.monotonic()
         response = self._client.chat.completions.create(
-            model=model, messages=messages, timeout=self._request_timeout_s
+            model=model, messages=messages,
+            max_tokens=self._max_completion_tokens,  # M-3: bound runaway generations
+            timeout=self._request_timeout_s,
         )
         latency_ms = int((time.monotonic() - start) * 1000)
 
@@ -123,7 +133,21 @@ class OpenAIBackend:
         choice = response.choices[0]
         text = choice.message.content or ""
         usage = response.usage
+        if usage.completion_tokens >= self._max_completion_tokens:
+            # M-3: a reply this long likely hit the cap and was truncated --
+            # log it so the trial can be audited rather than silently biased.
+            print(
+                f"[OpenAIBackend] WARNING: completion reached max_tokens "
+                f"cap ({usage.completion_tokens} >= {self._max_completion_tokens}); "
+                f"model={model} -- possible truncation",
+                file=sys.stderr,
+                flush=True,
+            )
 
+        # M-2 (documented at the ReplayedDecision boundary): `decision_chosen`
+        # here is the RAW completion utterance, not a parsed decision value.
+        # Wave-1 proxies it; per-decision_kind parsing (escalate_check ->
+        # escalate/continue, tool_select -> tool name) is queued for Wave-2.
         return ReplayedDecision(
             model=model,
             output_text=text,
