@@ -50,7 +50,7 @@ def test_context_assemble_parses():
         "turnstile.pruning_strategy": "none"})
     assert c.context_tokens == 3840
 
-from turnstile_schema.spans import LlmDecide, ToolCall
+from turnstile_schema.spans import LlmDecide, ToolCall  # noqa: E402 -- grouped with its section
 
 def test_llm_decide_full_parse_and_defaults():
     s = LlmDecide.model_validate({
@@ -140,7 +140,7 @@ def test_lookup_with_effect_none_is_accepted():
         **{"turnstile.tool_kind": "lookup", "turnstile.effect": "none"}))
     assert t.effect.value == "none"
 
-from turnstile_schema.spans import TtsSynthesize, AudioPlayback, TelephonyLeg
+from turnstile_schema.spans import TtsSynthesize, AudioPlayback, TelephonyLeg  # noqa: E402 -- grouped with its section
 
 def test_tts_and_playback_gap_is_representable():
     tts = TtsSynthesize.model_validate({

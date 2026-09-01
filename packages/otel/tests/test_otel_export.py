@@ -139,7 +139,7 @@ def test_telephony_leg_span_is_emitted_as_sibling_of_conversation():
     assert leg_span.attributes["turnstile.start_offset_ms"] == 0
     assert leg_span.attributes["turnstile.duration_ms"] == 3000
 
-    conv_span = _span_by_name(exporter, "conversation")
+    _span_by_name(exporter, "conversation")  # must exist (raises otherwise)
     # telephony.leg is a sibling of the conversation root (PRD Sec.3.1), not
     # nested under it -- neither has the other as parent.
     assert leg_span.context.trace_id != 0

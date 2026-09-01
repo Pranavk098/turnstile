@@ -15,7 +15,7 @@ import pytest
 import yaml
 
 from turnstile_schema import ExperimentResult, Trial, VariantSpec, load_rates, load_trace
-from turnstile_schema.enums import DecisionKind, EndReason, ToolKind
+from turnstile_schema.enums import DecisionKind, ToolKind
 from turnstile_pricing import price_trace
 from turnstile_replay import (
     DIVERGENCE_SIMILARITY_THRESHOLD,
