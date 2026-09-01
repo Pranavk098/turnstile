@@ -7,8 +7,15 @@ deterministic Wave-1 backend). ``--paid`` selects the real
 ``turnstile_experiments.OpenAIBackend`` -- but it REFUSES to run unless
 ``TURNSTILE_ALLOW_PAID=1`` is set in the environment: it prints the cost
 estimate and exits instead, exactly as docs/CORPUS.md's "gated, owner-
-approved paid run" requires. Even with the flag set, a paid run still
-requires an interactive ``yes`` confirmation after the estimate is shown.
+approved paid run" requires. Even with the flag set, a paid run normally
+requires an interactive ``yes`` confirmation after the estimate is shown;
+``--yes`` (H-2, for scripted runs) skips that prompt -- the env gate still
+applies -- so ``--paid --yes`` can run without a TTY.
+
+M-1: both output paths (``--out`` and ``--checkpoint``) are probe-written
+(parent created, file opened for append) BEFORE any backend is constructed,
+so an unwritable path aborts the run before a cent is spent -- never losing
+a paid run at the end.
 
 Usage::
 
@@ -41,6 +48,19 @@ ROOT = Path(__file__).resolve().parents[2]
 RATES_PATH = ROOT / "pricing" / "rates.yaml"
 
 
+def _ensure_writable(path: Path, flag: str) -> None:
+    """M-1: create the parent directory and probe-write `path` (open for
+    append -- never truncates an existing results file), so an unwritable
+    output path aborts the run BEFORE any backend construction / spend."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8"):
+            pass
+    except OSError as exc:
+        print(f"--{flag} path is not writable: {path} ({exc}). Aborting before any spend.")
+        sys.exit(1)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run the Turnstile experiment matrix.")
     parser.add_argument("--n", type=int, default=30, help="corpus size (default: 30)")
@@ -60,7 +80,23 @@ def main(argv: list[str] | None = None) -> None:
         help="use the real OpenAIBackend instead of the free MockBackend "
              "(REFUSES unless TURNSTILE_ALLOW_PAID=1 is set)",
     )
+    parser.add_argument(
+        "--yes", action="store_true",
+        help="skip the interactive paid-run confirmation (for scripted runs "
+             "without a TTY); the TURNSTILE_ALLOW_PAID=1 env gate still applies",
+    )
     args = parser.parse_args(argv)
+
+    out_path = Path(args.out)
+    checkpoint_path = (
+        Path(args.checkpoint) if args.checkpoint
+        else out_path.with_suffix(".checkpoint.jsonl")
+    )
+    # M-1: probe-write BOTH output paths before anything expensive (and
+    # before any backend construction), so an unwritable path can never
+    # abort a paid run at the end and lose it.
+    _ensure_writable(out_path, "out")
+    _ensure_writable(checkpoint_path, "checkpoint")
 
     rates = load_rates(RATES_PATH)
     traces = generate_corpus(args.n, args.seed)
@@ -79,18 +115,20 @@ def main(argv: list[str] | None = None) -> None:
                 "and OPENAI_API_KEY, and re-run, to proceed with the estimate above."
             )
             sys.exit(1)
-        confirm = input(
-            f"\nAbout to spend an estimated ${estimate['total_estimated_usd']:.4f} "
-            "on real OpenAI API calls. Type 'yes' to continue: "
-        )
-        if confirm.strip().lower() != "yes":
-            print("Not confirmed -- aborting paid run.")
-            sys.exit(1)
+        if args.yes:
+            # H-2: scripted runs have no TTY -- input() would raise EOFError.
+            # --yes skips the prompt; the env gate above still applies.
+            print("--yes given: skipping interactive paid-run confirmation.")
+        else:
+            confirm = input(
+                f"\nAbout to spend an estimated ${estimate['total_estimated_usd']:.4f} "
+                "on real OpenAI API calls. Type 'yes' to continue: "
+            )
+            if confirm.strip().lower() != "yes":
+                print("Not confirmed -- aborting paid run.")
+                sys.exit(1)
         from turnstile_experiments import OpenAIBackend
         backend = OpenAIBackend()
-
-    out_path = Path(args.out)
-    checkpoint_path = Path(args.checkpoint) if args.checkpoint else out_path.with_suffix(".checkpoint.jsonl")
 
     backend_name = "OpenAIBackend" if backend is not None else "MockBackend"
     manifest = build_manifest(
