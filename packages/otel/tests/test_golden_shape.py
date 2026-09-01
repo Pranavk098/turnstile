@@ -40,48 +40,51 @@ def _record_baseline_shaped_trace() -> "Trace":
 
     rec = TraceRecorder("conv-shape", "agent@test", "order_status", clock=clock)
 
-    with rec.start_turn(0, "caller") as turn:
-        turn.record_llm(
-            gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
-            input_tokens=600, output_tokens=12, decision_kind="route",
-            decision_chosen="order_status", decision_candidates=["order_status", "billing"],
-            output_text="Let me check that.",
-        )
-        turn.record_tts(
-            gen_ai_system="piper", text="Let me check that.",
-            audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
-        )
-        turn.record_playback(chars_played=18, audio_seconds_played=1.4)
+    turn = rec.start_turn(0, "caller")
+    turn.record_llm(
+        gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
+        input_tokens=600, output_tokens=12, decision_kind="route",
+        decision_chosen="order_status", decision_candidates=["order_status", "billing"],
+        output_text="Let me check that.",
+    )
+    turn.record_tts(
+        gen_ai_system="piper", text="Let me check that.",
+        audio_seconds_generated=1.4, chars_synthesized=len("Let me check that."),
+    )
+    turn.record_playback(chars_played=18, audio_seconds_played=1.4)
+    turn.close()
 
-    with rec.start_turn(1, "agent") as turn:
-        turn.record_llm(
-            gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
-            input_tokens=900, output_tokens=20, decision_kind="compose",
-            decision_chosen="report_status", decision_candidates=["report_status"],
-            output_text="Your order ships tomorrow.",
-        )
-        turn.record_tool(
-            tool_name="lookup_order", tool_kind="lookup",
-            tool_status="ok", effect="none", args={"order_id": "A1"},
-        )
-        turn.record_tts(
-            gen_ai_system="piper", text="Your order ships tomorrow.",
-            audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
-        )
-        turn.record_playback(chars_played=26, audio_seconds_played=2.0)
+    turn = rec.start_turn(1, "agent")
+    turn.record_llm(
+        gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
+        input_tokens=900, output_tokens=20, decision_kind="compose",
+        decision_chosen="report_status", decision_candidates=["report_status"],
+        output_text="Your order ships tomorrow.",
+    )
+    turn.record_tool(
+        tool_name="lookup_order", tool_kind="lookup",
+        tool_status="ok", effect="none", args={"order_id": "A1"},
+    )
+    turn.record_tts(
+        gen_ai_system="piper", text="Your order ships tomorrow.",
+        audio_seconds_generated=2.0, chars_synthesized=len("Your order ships tomorrow."),
+    )
+    turn.record_playback(chars_played=26, audio_seconds_played=2.0)
+    turn.close()
 
-    with rec.start_turn(2, "caller") as turn:
-        turn.record_llm(
-            gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
-            input_tokens=700, output_tokens=10, decision_kind="compose",
-            decision_chosen="farewell", decision_candidates=["farewell"],
-            output_text="Anything else? Goodbye.",
-        )
-        turn.record_tts(
-            gen_ai_system="piper", text="Anything else? Goodbye.",
-            audio_seconds_generated=1.6, chars_synthesized=len("Anything else? Goodbye."),
-        )
-        turn.record_playback(chars_played=23, audio_seconds_played=1.6)
+    turn = rec.start_turn(2, "caller")
+    turn.record_llm(
+        gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
+        input_tokens=700, output_tokens=10, decision_kind="compose",
+        decision_chosen="farewell", decision_candidates=["farewell"],
+        output_text="Anything else? Goodbye.",
+    )
+    turn.record_tts(
+        gen_ai_system="piper", text="Anything else? Goodbye.",
+        audio_seconds_generated=1.6, chars_synthesized=len("Anything else? Goodbye."),
+    )
+    turn.record_playback(chars_played=23, audio_seconds_played=1.6)
+    turn.close()
 
     rec.record_telephony("twilio", "inbound", billable_seconds=12)
     return rec.finalize("caller_hangup")
@@ -109,22 +112,23 @@ def test_recorded_handoff_tool_carries_tool_status_and_effect():
     clock = lambda: next(ticks)  # noqa: E731
 
     rec = TraceRecorder("conv-handoff", "agent@test", "billing_dispute", clock=clock)
-    with rec.start_turn(0, "agent") as turn:
-        turn.record_llm(
-            gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
-            input_tokens=650, output_tokens=18, decision_kind="compose",
-            decision_chosen="transfer", decision_candidates=["transfer"],
-            output_text="Transferring you now.",
-        )
-        tool = turn.record_tool(
-            tool_name="transfer_to_agent", tool_kind="handoff",
-            tool_status="ok", effect="committed",
-        )
-        turn.record_tts(
-            gen_ai_system="piper", text="Transferring you now.",
-            audio_seconds_generated=1.5, chars_synthesized=len("Transferring you now."),
-        )
-        turn.record_playback(chars_played=22, audio_seconds_played=1.5)
+    turn = rec.start_turn(0, "agent")
+    turn.record_llm(
+        gen_ai_system="openai", gen_ai_request_model="gpt-5-mini",
+        input_tokens=650, output_tokens=18, decision_kind="compose",
+        decision_chosen="transfer", decision_candidates=["transfer"],
+        output_text="Transferring you now.",
+    )
+    tool = turn.record_tool(
+        tool_name="transfer_to_agent", tool_kind="handoff",
+        tool_status="ok", effect="committed",
+    )
+    turn.record_tts(
+        gen_ai_system="piper", text="Transferring you now.",
+        audio_seconds_generated=1.5, chars_synthesized=len("Transferring you now."),
+    )
+    turn.record_playback(chars_played=22, audio_seconds_played=1.5)
+    turn.close()
 
     trace = rec.finalize("escalated")
 

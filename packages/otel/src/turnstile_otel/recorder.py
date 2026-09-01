@@ -9,23 +9,42 @@ recorded stage:
      ``Trace`` that ``finalize()`` returns and that validates against the
      frozen schema.
 
-Timing model
-------------
+Timing model (post-G1: concurrency-expressible)
+-----------------------------------------------
 ``start_offset_ms``/``duration_ms`` (PRD Sec.3.2, base ``Span``) are derived
 entirely from the injected ``clock`` callable (default ``time.monotonic``),
 never from wall-clock ``datetime``, so tests can drive a fake clock and get
-deterministic offsets. Two clock reads per stage would require every
-``record_*`` call to be used as a context manager; instead this recorder
-keeps a per-turn *cursor*: the first stage recorded in a turn starts where
-the turn itself started, each subsequent stage starts where the previous one
-ended, and every ``record_*`` call reads the clock once (the stage's end) to
-compute ``duration_ms = now - cursor`` and advance the cursor. This matches
-the common case of a synchronous per-turn pipeline (ASR -> context -> LLM ->
-tool -> TTS -> playback, in call order) and keeps the call surface a plain
-method call, matching the mission's sketch (no ``with`` block per stage).
-Genuinely overlapping stages are out of scope for this recorder -- the
-schema/fixtures may express overlap, but reproducing it is not part of this
-package's contract.
+deterministic offsets. Each ``record_*`` call reads the clock exactly once
+(the stage's end); its *start* is resolved from the timing arguments:
+
+  * no timing argument   -- the stage starts where the turn's cursor is
+    (the previous stage's end): contiguous, the common synchronous-pipeline
+    case, unchanged from the pre-G1 recorder;
+  * ``at_ms=X``          -- the stage starts at absolute offset X from the
+    conversation start. MAY overlap any previously recorded span;
+  * ``into_previous_ms=D`` -- the stage starts D ms into the start of the
+    last span recorded in this turn. ``D < prev.duration_ms`` expresses
+    overlap (e.g. TTS streaming during LLM decode); ``D == prev.duration_ms``
+    is exactly the contiguous default, made explicit.
+
+A negative resulting duration (claimed start after the clock read) raises
+``ValueError`` -- the recorder never clamps a caller bug into fake data.
+
+Turn lifetime model (post-G1: independent lifetimes)
+----------------------------------------------------
+Turns are objects with an explicit open/close lifetime, NOT strictly-nested
+``with`` blocks: ``turn = rec.start_turn(i, speaker_first)`` opens the turn
+(one clock read: its ``wall_start_ms``, which also seeds the cursor), and
+``turn.close()`` ends it (one clock read: ``wall_end_ms``). A later turn may
+therefore be OPENED -- and its spans recorded -- before an earlier turn is
+closed or even fully recorded, which is exactly the live flow when a caller
+barge-ins mid-playback (VAD fires while the previous turn's audio is still
+streaming). This is what makes cross-turn overlap ("shape B", golden fixture
+``19_edge_40_turn``) and TTS-during-LLM (``docs/GATES.md`` G1) expressible.
+``finalize()`` orders turns by ``turn_index`` regardless of close order and
+refuses to run while any turn is still open. A turn whose pipeline stage
+raised can be dropped with ``turn.abandon(exc)`` -- it contributes no Turn
+to the trace.
 
 ``conversation.started_at``/``ended_at`` are real wall-clock ``datetime``
 values (the monotonic clock has no calendar meaning); only the millisecond
@@ -98,14 +117,10 @@ def _clean_attrs(attrs: dict[str, Any]) -> dict[str, Any]:
 
 
 class TurnRecorder:
-    """Context manager scoping one turn. Returned by ``TraceRecorder.start_turn``.
-
-    Within the ``with`` block, call ``record_asr``, ``set_context``,
-    ``record_llm``, ``record_tool``, ``record_tts``, ``record_playback`` in
-    the order those pipeline stages actually run -- each call's
-    ``start_offset_ms`` picks up where the previous one's ``duration_ms``
-    left off (see module docstring).
-    """
+    """One turn's recording state. Opened by ``TraceRecorder.start_turn``,
+    ended by ``close()`` (kept) or dropped by ``abandon()`` (contributes
+    nothing to the trace). Turns are independent-lifetime objects: turn N+1
+    may be opened, and may record spans, before turn N is closed (G1)."""
 
     def __init__(
         self,
@@ -118,11 +133,11 @@ class TurnRecorder:
         self.turn_index = turn_index
         self.speaker_first = speaker_first
         self.barge_in = barge_in
-        self._wall_start_ms: int | None = None
-        self._wall_end_ms: int | None = None
-        self._cursor_ms: int | None = None
-        self._span = None
-        self._span_context = None
+        self._wall_start_ms: int = parent._now_ms()
+        self._cursor_ms: int = self._wall_start_ms
+        self._closed = False
+        self._abandoned = False
+        self._last_span: Any = None  # last span recorded in this turn (any kind)
 
         self.asr: list[AsrTranscribe] = []
         self.context: ContextAssemble | None = None
@@ -131,11 +146,6 @@ class TurnRecorder:
         self.tts: list[TtsSynthesize] = []
         self.playback: list[AudioPlayback] = []
 
-    # -- context manager ---------------------------------------------------
-
-    def __enter__(self) -> "TurnRecorder":
-        self._wall_start_ms = self._parent._now_ms()
-        self._cursor_ms = self._wall_start_ms
         self._span = self._parent._tracer.start_span(
             "turn",
             context=self._parent._conversation_context,
@@ -147,40 +157,51 @@ class TurnRecorder:
             ),
         )
         self._span_context = otel_trace.set_span_in_context(self._span)
-        return self
 
-    def __exit__(self, exc_type, exc, tb) -> bool:
-        if exc_type is not None:
-            # Something raised inside the `with` block (e.g. the schema's own
-            # ToolCall validator rejecting an illegal tool_kind/effect
-            # combination). Do not read the clock again or append a
-            # possibly-incomplete Turn to the trace -- just close the OTel
-            # span and propagate.
-            if self._span is not None:
-                self._span.record_exception(exc)
-                self._span.set_status(otel_trace.Status(otel_trace.StatusCode.ERROR))
-                self._span.end()
-            return False
+    # -- lifetime -----------------------------------------------------------
 
+    def _ensure_open(self, action: str) -> None:
+        if self._abandoned:
+            raise RuntimeError(f"turn {self.turn_index} is abandoned -- cannot {action}")
+        if self._closed:
+            raise RuntimeError(f"turn {self.turn_index} is closed -- cannot {action}")
+
+    def close(self) -> None:
+        """End the turn: one clock read for ``wall_end_ms``, close the OTel
+        span, and register the finished ``Turn`` with the recorder."""
+        self._ensure_open("close")
+        self._closed = True
         self._wall_end_ms = self._parent._now_ms()
-        if self._span is not None:
-            self._span.set_attribute("turnstile.barge_in", self.barge_in)
-            self._span.end()
-        turn = Turn(
-            turn_index=self.turn_index,
-            speaker_first=self.speaker_first,
-            wall_start_ms=self._wall_start_ms,
-            wall_end_ms=self._wall_end_ms,
-            barge_in=self.barge_in,
-            asr=self.asr,
-            context=self.context,
-            llm=self.llm,
-            tools=self.tools,
-            tts=self.tts,
-            playback=self.playback,
+        self._span.set_attribute("turnstile.barge_in", self.barge_in)
+        self._span.end()
+        self._parent._register_closed_turn(
+            Turn(
+                turn_index=self.turn_index,
+                speaker_first=self.speaker_first,
+                wall_start_ms=self._wall_start_ms,
+                wall_end_ms=self._wall_end_ms,
+                barge_in=self.barge_in,
+                asr=self.asr,
+                context=self.context,
+                llm=self.llm,
+                tools=self.tools,
+                tts=self.tts,
+                playback=self.playback,
+            )
         )
-        self._parent._turns.append(turn)
-        return False
+
+    def abandon(self, exc: BaseException | None = None) -> None:
+        """Drop the turn entirely (e.g. a pipeline stage raised and the turn
+        cannot be completed): it contributes no ``Turn`` to the trace. If
+        ``exc`` is given it is recorded on the OTel span, which is closed
+        with an ERROR status."""
+        self._ensure_open("abandon")
+        self._abandoned = True
+        if exc is not None:
+            self._span.record_exception(exc)
+            self._span.set_status(otel_trace.Status(otel_trace.StatusCode.ERROR))
+        self._span.end()
+        self._parent._register_abandoned_turn(self.turn_index)
 
     def mark_barge_in(self, value: bool = True) -> None:
         """Flip barge_in after the fact (e.g. detected mid-playback)."""
@@ -188,12 +209,37 @@ class TurnRecorder:
 
     # -- internal timing / emission -----------------------------------------
 
-    def _advance(self) -> tuple[int, int]:
-        """Read the clock once: returns (start_offset_ms, duration_ms) for the
-        stage ending now, and moves the cursor to now."""
+    def _resolve_start(self, at_ms: int | None, into_previous_ms: int | None) -> int:
+        if at_ms is not None and into_previous_ms is not None:
+            raise ValueError("at_ms and into_previous_ms are mutually exclusive")
+        if at_ms is not None:
+            if at_ms < 0:
+                raise ValueError(f"at_ms must be >= 0, got {at_ms}")
+            return at_ms
+        if into_previous_ms is not None:
+            if into_previous_ms < 0:
+                raise ValueError(f"into_previous_ms must be >= 0, got {into_previous_ms}")
+            if self._last_span is None:
+                raise ValueError(
+                    "into_previous_ms requires a previously recorded span in this turn; "
+                    "use at_ms for the turn's first span"
+                )
+            return self._last_span.start_offset_ms + into_previous_ms
+        return self._cursor_ms
+
+    def _advance(self, *, at_ms: int | None = None, into_previous_ms: int | None = None) -> tuple[int, int]:
+        """Resolve the stage's start (contiguous by default, overlappable via
+        ``at_ms``/``into_previous_ms``), read the clock once for its end, and
+        move the cursor to that end."""
+        self._ensure_open("record a span")
+        start = self._resolve_start(at_ms, into_previous_ms)
         now = self._parent._now_ms()
-        start = self._cursor_ms if self._cursor_ms is not None else now
         duration = now - start
+        if duration < 0:
+            raise ValueError(
+                f"stage end {now}ms precedes claimed start {start}ms "
+                f"(negative duration {duration}ms) -- caller bug, refusing to record"
+            )
         self._cursor_ms = now
         return start, duration
 
@@ -211,8 +257,10 @@ class TurnRecorder:
         is_streaming: bool,
         transcript: str,
         confidence: float,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> AsrTranscribe:
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         span = AsrTranscribe(
             span_id=self._parent._next_span_id("asr"),
             start_offset_ms=start,
@@ -225,6 +273,7 @@ class TurnRecorder:
             confidence=confidence,
         )
         self.asr.append(span)
+        self._last_span = span
         self._emit(
             "asr.transcribe",
             {
@@ -249,8 +298,10 @@ class TurnRecorder:
         retrieved_tokens: int,
         retrieved_doc_ids: list[str],
         pruning_strategy: PruningStrategy | str,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> ContextAssemble:
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         pruning_strategy = PruningStrategy(pruning_strategy)
         span = ContextAssemble(
             span_id=self._parent._next_span_id("ctx"),
@@ -264,6 +315,7 @@ class TurnRecorder:
             pruning_strategy=pruning_strategy,
         )
         self.context = span
+        self._last_span = span
         self._emit(
             "context.assemble",
             {
@@ -295,8 +347,10 @@ class TurnRecorder:
         reasoning_tokens: int = 0,
         retry_of: str | None = None,
         latency_ms: int | None = None,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> LlmDecide:
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         latency = duration if latency_ms is None else latency_ms
         span = LlmDecide(
             span_id=self._parent._next_span_id("llm"),
@@ -317,6 +371,7 @@ class TurnRecorder:
             retry_of=retry_of,
         )
         self.llm.append(span)
+        self._last_span = span
         self._emit(
             "llm.decide",
             {
@@ -352,8 +407,10 @@ class TurnRecorder:
         result_hash: str | None = None,
         cost_usd: float = 0.0,
         latency_ms: int | None = None,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> ToolCall:
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         args = args or {}
         latency = duration if latency_ms is None else latency_ms
         args_hash = _hash_json(args)
@@ -381,6 +438,7 @@ class TurnRecorder:
             effect=effect,
         )
         self.tools.append(span)
+        self._last_span = span
         self._emit(
             "tool.call",
             {
@@ -405,12 +463,14 @@ class TurnRecorder:
         text: str,
         audio_seconds_generated: float,
         chars_synthesized: int,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> TtsSynthesize:
         # chars_synthesized is required, not derived from len(text): it must
         # be the GENERATED/billed character count, never the intended text
         # length (GATES.md G2) -- a len(text) fallback here would silently
         # bill intended text instead of what was actually synthesized.
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         chars = chars_synthesized
         span = TtsSynthesize(
             span_id=self._parent._next_span_id("tts"),
@@ -422,6 +482,7 @@ class TurnRecorder:
             text=text,
         )
         self.tts.append(span)
+        self._last_span = span
         self._emit(
             "tts.synthesize",
             {
@@ -441,8 +502,10 @@ class TurnRecorder:
         chars_played: int,
         audio_seconds_played: float,
         truncated_by: str | None = None,
+        at_ms: int | None = None,
+        into_previous_ms: int | None = None,
     ) -> AudioPlayback:
-        start, duration = self._advance()
+        start, duration = self._advance(at_ms=at_ms, into_previous_ms=into_previous_ms)
         span = AudioPlayback(
             span_id=self._parent._next_span_id("playback"),
             start_offset_ms=start,
@@ -452,6 +515,7 @@ class TurnRecorder:
             truncated_by=truncated_by,
         )
         self.playback.append(span)
+        self._last_span = span
         self._emit(
             "audio.playback",
             {
@@ -473,11 +537,14 @@ class TraceRecorder:
     Usage::
 
         rec = TraceRecorder("conv-1", "agent@abc123", "order_status")
-        with rec.start_turn(0, "caller") as turn:
-            turn.record_asr(...)
-            turn.record_llm(...)
-            turn.record_tts(...)
-            turn.record_playback(...)
+        turn0 = rec.start_turn(0, "caller")
+        turn0.record_asr(...)
+        turn0.record_llm(...)                       # contiguous by default
+        tts = turn0.record_tts(..., into_previous_ms=llm.duration_ms // 2)
+        turn0.close()                               # or keep it open: turn
+        turn1 = rec.start_turn(1, "agent")          # lifetimes are independent
+        turn1.record_llm(...)                       # may overlap turn0's spans
+        turn0.close()
         rec.record_telephony("twilio", "inbound", billable_seconds=12)
         trace = rec.finalize("caller_hangup")
     """
@@ -497,7 +564,8 @@ class TraceRecorder:
         self._clock = clock
         self._t0 = clock()
         self._started_at = datetime.now(timezone.utc)
-        self._turns: list[Turn] = []
+        self._turns_by_index: dict[int, Turn] = {}
+        self._open_turns: dict[int, TurnRecorder] = {}
         self._span_counter = itertools.count()
         self._telephony_args: dict | None = None
         self._finalized = False
@@ -530,12 +598,29 @@ class TraceRecorder:
         span = self._tracer.start_span(name, context=context, attributes=_clean_attrs(attrs))
         span.end()
 
+    def _register_closed_turn(self, turn: Turn) -> None:
+        self._turns_by_index[turn.turn_index] = turn
+        self._open_turns.pop(turn.turn_index, None)
+
+    def _register_abandoned_turn(self, turn_index: int) -> None:
+        self._open_turns.pop(turn_index, None)
+
     # -- public API --------------------------------------------------------
 
     def start_turn(
         self, turn_index: int, speaker_first: SpeakerFirst | str, *, barge_in: bool = False
     ) -> TurnRecorder:
-        return TurnRecorder(self, turn_index, SpeakerFirst(speaker_first), barge_in)
+        """Open a turn (one clock read: ``wall_start_ms``, which seeds the
+        turn's cursor). The returned object has an independent lifetime:
+        close it with ``.close()`` when the turn ends -- other turns may be
+        opened and recorded in the meantime (G1)."""
+        if self._finalized:
+            raise RuntimeError("TraceRecorder.finalize() already called")
+        if turn_index in self._turns_by_index or turn_index in self._open_turns:
+            raise ValueError(f"turn {turn_index} already opened -- turn indexes must be unique")
+        turn = TurnRecorder(self, turn_index, SpeakerFirst(speaker_first), barge_in)
+        self._open_turns[turn_index] = turn
+        return turn
 
     def record_telephony(
         self, provider: str, direction: Direction | str, billable_seconds: int
@@ -552,6 +637,12 @@ class TraceRecorder:
     def finalize(self, end_reason: EndReason | str) -> Trace:
         if self._finalized:
             raise RuntimeError("TraceRecorder.finalize() already called")
+        if self._open_turns:
+            still_open = ", ".join(f"turn {i}" for i in sorted(self._open_turns))
+            raise RuntimeError(
+                f"{len(self._open_turns)} turn(s) still open: {still_open} -- "
+                "close() or abandon() them before finalize()"
+            )
         self._finalized = True
 
         end_reason = EndReason(end_reason)
@@ -591,4 +682,5 @@ class TraceRecorder:
             ended_at=ended_at,
             end_reason=end_reason,
         )
-        return Trace(conversation=conversation, turns=self._turns, telephony=telephony)
+        turns = [self._turns_by_index[i] for i in sorted(self._turns_by_index)]
+        return Trace(conversation=conversation, turns=turns, telephony=telephony)

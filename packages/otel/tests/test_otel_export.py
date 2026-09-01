@@ -35,8 +35,8 @@ def _span_by_name(exporter: InMemorySpanExporter, name: str):
 
 def test_conversation_and_turn_spans_are_emitted():
     rec, exporter = _recorder_with_exporter()
-    with rec.start_turn(0, "caller"):
-        pass
+    turn = rec.start_turn(0, "caller")
+    turn.close()
     rec.finalize("caller_hangup")
 
     names = [s.name for s in exporter.get_finished_spans()]
@@ -51,13 +51,14 @@ def test_conversation_and_turn_spans_are_emitted():
 
 def test_llm_span_carries_gen_ai_attributes():
     rec, exporter = _recorder_with_exporter()
-    with rec.start_turn(0, "caller") as turn:
-        turn.record_llm(
-            gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
-            input_tokens=3840, output_tokens=28, decision_kind="tool_select",
-            decision_chosen="lookup_order", decision_candidates=["lookup_order", "escalate"],
-            output_text="Checking your order.",
-        )
+    turn = rec.start_turn(0, "caller")
+    turn.record_llm(
+        gen_ai_system="anthropic", gen_ai_request_model="claude-sonnet-4-6",
+        input_tokens=3840, output_tokens=28, decision_kind="tool_select",
+        decision_chosen="lookup_order", decision_candidates=["lookup_order", "escalate"],
+        output_text="Checking your order.",
+    )
+    turn.close()
     rec.finalize("caller_hangup")
 
     llm_span = _span_by_name(exporter, "llm.decide")
@@ -74,7 +75,7 @@ def test_llm_span_carries_gen_ai_attributes():
     # too (PRD Sec.3.2 lists them as literal turnstile.* keys on every span
     # type), not just on the Pydantic Trace span -- and must agree exactly
     # with the fake-clock ticks: __init__ consumes tick 1 (t0=1.0s), turn
-    # __enter__ consumes tick 2 (wall_start=(2.0-1.0)*1000=1000ms, which
+    # open consumes tick 2 (wall_start=(2.0-1.0)*1000=1000ms, which
     # seeds the cursor), record_llm consumes tick 3
     # (now=(3.0-1.0)*1000=2000ms) -> start_offset_ms=1000, duration_ms=1000.
     assert attrs["turnstile.start_offset_ms"] == 1000
@@ -83,16 +84,17 @@ def test_llm_span_carries_gen_ai_attributes():
 
 def test_asr_and_tts_spans_carry_gen_ai_system():
     rec, exporter = _recorder_with_exporter()
-    with rec.start_turn(0, "caller") as turn:
-        turn.record_asr(
-            gen_ai_system="deepgram", gen_ai_request_model="nova-3",
-            audio_seconds=4.82, is_streaming=True, transcript="I need help",
-            confidence=0.94,
-        )
-        turn.record_tts(
-            gen_ai_system="cartesia", text="Sure thing.",
-            audio_seconds_generated=0.8, chars_synthesized=len("Sure thing."),
-        )
+    turn = rec.start_turn(0, "caller")
+    turn.record_asr(
+        gen_ai_system="deepgram", gen_ai_request_model="nova-3",
+        audio_seconds=4.82, is_streaming=True, transcript="I need help",
+        confidence=0.94,
+    )
+    turn.record_tts(
+        gen_ai_system="cartesia", text="Sure thing.",
+        audio_seconds_generated=0.8, chars_synthesized=len("Sure thing."),
+    )
+    turn.close()
     rec.finalize("caller_hangup")
 
     asr_span = _span_by_name(exporter, "asr.transcribe")
@@ -107,11 +109,12 @@ def test_asr_and_tts_spans_carry_gen_ai_system():
 
 def test_tool_call_span_carries_tool_status_and_effect():
     rec, exporter = _recorder_with_exporter()
-    with rec.start_turn(0, "agent") as turn:
-        turn.record_tool(
-            tool_name="process_refund", tool_kind="mutation",
-            tool_status="ok", effect="pending", args={"order_id": "A1"},
-        )
+    turn = rec.start_turn(0, "agent")
+    turn.record_tool(
+        tool_name="process_refund", tool_kind="mutation",
+        tool_status="ok", effect="pending", args={"order_id": "A1"},
+    )
+    turn.close()
     rec.finalize("caller_hangup")
 
     tool_span = _span_by_name(exporter, "tool.call")
@@ -122,8 +125,8 @@ def test_tool_call_span_carries_tool_status_and_effect():
 
 def test_telephony_leg_span_is_emitted_as_sibling_of_conversation():
     rec, exporter = _recorder_with_exporter()
-    with rec.start_turn(0, "caller"):
-        pass
+    turn = rec.start_turn(0, "caller")
+    turn.close()
     rec.record_telephony("twilio", "inbound", billable_seconds=12)
     rec.finalize("caller_hangup")
 
@@ -134,8 +137,8 @@ def test_telephony_leg_span_is_emitted_as_sibling_of_conversation():
 
     # telephony.leg spans the whole conversation, so its start_offset_ms is
     # always 0 and duration_ms is the clock reading finalize() took: tick 1
-    # -> t0=1.0s (__init__), tick 2 -> turn __enter__, tick 3 -> turn
-    # __exit__, tick 4 -> finalize()'s total_ms=(4.0-1.0)*1000=3000ms.
+    # -> t0=1.0s (__init__), tick 2 -> turn open, tick 3 -> turn
+    # close, tick 4 -> finalize()'s total_ms=(4.0-1.0)*1000=3000ms.
     assert leg_span.attributes["turnstile.start_offset_ms"] == 0
     assert leg_span.attributes["turnstile.duration_ms"] == 3000
 
