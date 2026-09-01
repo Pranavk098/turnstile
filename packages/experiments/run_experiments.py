@@ -41,8 +41,9 @@ from turnstile_experiments import (
     compute_baselines,
     estimate_cost,
     recoverable_margin,
-    run_matrix_checkpointed,
+    run_matrix_checkpointed_detailed,
 )
+from turnstile_replay import DELTA_COST_REAL_USAGE_LABEL
 
 ROOT = Path(__file__).resolve().parents[2]
 RATES_PATH = ROOT / "pricing" / "rates.yaml"
@@ -136,7 +137,8 @@ def main(argv: list[str] | None = None) -> None:
         variants=VARIANTS, corpus=corpus, rates_path=RATES_PATH, root=ROOT,
     )
 
-    matrix = run_matrix_checkpointed(corpus, VARIANTS, checkpoint_path, backend=backend)
+    matrix, real_usage = run_matrix_checkpointed_detailed(
+        corpus, VARIANTS, checkpoint_path, backend=backend)
 
     total_cost = sum(pt.conv_cost for pt in corpus)
     margin = recoverable_margin(matrix, total_cost, args.annual_calls)
@@ -148,6 +150,14 @@ def main(argv: list[str] | None = None) -> None:
         "manifest": manifest,
         "baselines": baselines.model_dump(),
         "matrix": {name: result.model_dump() for name, result in matrix.items()},
+        # CR-B companion figure, NOT gated: priced on the REAL replayed usage,
+        # so its scale includes the render-size mismatch between real rendered
+        # prompts and the corpus's synthetic input_tokens. PRD Sec.8.3's gate
+        # applies to matrix[*].delta_cost only.
+        "delta_cost_real_usage_mean_usd": {
+            "label": DELTA_COST_REAL_USAGE_LABEL,
+            "per_variant": real_usage,
+        },
         "recoverable_margin": margin,
         "cost_estimate": estimate,
     }

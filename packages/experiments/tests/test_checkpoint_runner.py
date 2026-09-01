@@ -4,6 +4,8 @@ aggregates, resume from a checkpoint WITHOUT recomputing (never re-spending),
 fail loudly on reserved variants, and tolerate a torn final checkpoint line."""
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from turnstile_replay import MockBackend, reset_backend
@@ -15,6 +17,7 @@ from turnstile_experiments import (
     CheckpointStore,
     run_matrix,
     run_matrix_checkpointed,
+    run_matrix_checkpointed_detailed,
 )
 
 from _experiments_builders import llm, priced, turn
@@ -102,4 +105,61 @@ def test_torn_final_line_is_tolerated(tmp_path):
 
     store = CheckpointStore(ck)
     assert len(store) == good  # torn line skipped, valid trials intact
+    reset_backend()
+
+
+# --------------------------------------------------------------------------- #
+# CR-B: the non-gated delta_cost_real_usage companion figure is checkpointed  #
+# alongside the trial (without touching the frozen Trial schema) and survives #
+# a resume -- resumed trials are never recomputed, so the figure must come    #
+# back from the store.                                                        #
+# --------------------------------------------------------------------------- #
+
+def test_real_usage_companion_is_checkpointed_and_survives_resume(tmp_path):
+    reset_backend()
+    corpus = _corpus()
+    ck = tmp_path / "ck.jsonl"
+
+    first, first_real = run_matrix_checkpointed_detailed(corpus, VARIANTS, ck)
+    # MockBackend's safe reroute keeps the original usage, so the real-usage
+    # figure equals the gated rate-arbitrage figure -- both non-None.
+    assert set(first_real) == set(VARIANTS)
+    for name in first_real:
+        assert first_real[name] is not None
+        assert first_real[name] == pytest.approx(first[name].delta_cost_mean)
+
+    # Resume with a backend that would re-spend if invoked: identical matrix
+    # AND identical real-usage means, read back from the checkpoint file.
+    def _explode(context, original_span, variant):
+        raise AssertionError("backend called on resume -- would re-spend")
+
+    second, second_real = run_matrix_checkpointed_detailed(
+        corpus, VARIANTS, ck, backend=_explode)
+    for name in first:
+        assert second[name].model_dump() == first[name].model_dump()
+        assert second_real[name] == pytest.approx(first_real[name])
+    reset_backend()
+
+
+def test_store_real_usage_accessor_and_legacy_records(tmp_path):
+    reset_backend()
+    corpus = _corpus()
+    ck = tmp_path / "ck.jsonl"
+    run_matrix_checkpointed_detailed(corpus, VARIANTS, ck)
+
+    store = CheckpointStore(ck)
+    key = "model_routing_gpt5_nano\tc0"
+    assert store.get_real_usage(key) is not None
+    assert store.get_real_usage("no-such-key") is None
+
+    # Legacy pre-CR-B record (no companion field) reads back as None trial
+    # side-effect free: rewrite one record without the field, reload.
+    lines = ck.read_text(encoding="utf-8").splitlines()
+    legacy = [ln for ln in lines if json.loads(ln)["key"] != key]
+    rec = json.loads(next(ln for ln in lines if json.loads(ln)["key"] == key))
+    legacy.append(json.dumps({"key": rec["key"], "trial": rec["trial"]}))
+    ck.write_text("\n".join(legacy) + "\n", encoding="utf-8")
+    store = CheckpointStore(ck)
+    assert store.get_real_usage(key) is None
+    assert store.get(key) is not None  # the trial itself still loads
     reset_backend()
