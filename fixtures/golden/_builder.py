@@ -2,7 +2,7 @@
 Run a builder function and json.dump its .model_dump(by_alias=True) to disk."""
 from __future__ import annotations
 from turnstile_schema import (
-    Trace, Conversation, Turn, LlmDecide, ToolCall, TtsSynthesize,
+    Trace, Conversation, LlmDecide, ToolCall, TtsSynthesize,
     AudioPlayback, AsrTranscribe, ContextAssemble, TelephonyLeg,
 )
 

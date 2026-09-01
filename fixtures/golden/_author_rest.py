@@ -1,4 +1,6 @@
 # fixtures/golden/_author_rest.py  (run once to emit fixtures 01-06, 08-19)
+# ruff: noqa: E741  -- `l` is this authoring script's local handle for the span
+# just stacked; renaming every occurrence adds churn without value here.
 import math
 from pathlib import Path
 from _builder import conv, llm, tts, playback, tool, leg, context, asr, stack, dump

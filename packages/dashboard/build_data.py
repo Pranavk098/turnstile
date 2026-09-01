@@ -58,9 +58,10 @@ PROVENANCE_NOTE = (
     "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real "
     "token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) "
     "modeled by the fixture generator, not a live audio pipeline; replay via "
-    "the Wave-1 MockBackend (mechanism, not measured). See docs/DEMO.md and "
-    "docs/CORPUS.md for the two-tier split. Real Tier-1 replay numbers come "
-    "later from the OpenAI backend on the full corpus."
+    "the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and "
+    "docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC "
+    "rate-arbitrage recoverable margin (0.57%; needs no live calls); a live "
+    "backend adds only real latency/throughput."
 )
 
 EXPERIMENT_PROVENANCE = (
@@ -68,8 +69,10 @@ EXPERIMENT_PROVENANCE = (
     "path returns the identical output_text/decision_chosen for a cheaper "
     "same-family model, so outcome_preservation_rate=1.0 here is a property "
     "of the mock (cheaper==same outcome by construction), not an observed "
-    "production result. Real Tier-1 outcome-preservation/delta-cost numbers "
-    "require a live backend (docs/CORPUS.md's planned OpenAI replay backend)."
+    "production result. Outcome-preservation is NOT measurable on a synthetic "
+    "corpus (canned inputs/outputs, pinned tools -> structural); it needs "
+    "authored utterances then real traffic (Wave-2). delta_cost is deterministic "
+    "rate arbitrage, needing no live backend (docs/LIMITATIONS.md)."
 )
 
 
