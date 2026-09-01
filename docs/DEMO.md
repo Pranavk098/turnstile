@@ -6,12 +6,20 @@ explicitly split into two tiers, labeled on the slide, and never blurs them.
 
 ## The two tiers (state this structure out loud)
 
-**Tier 1 — measured.** The replay experiment: n≥200 synthetic traces, **real**
-model calls through a real backend, real Δcost, real outcome-preservation,
-bootstrap CI, divergence rate. Every number in this tier came from a machine
-running the thing, not from an author. **This is the headline.** A smaller
-router that actually mis-routes 4% of the time shows up here as 4% — the claim
-survives scrutiny.
+**Tier 1 — proven.** The recoverable-margin experiment: on n=250 synthetic
+traces, `route` decisions re-priced as **deterministic rate arbitrage** against
+the dated rate table — `price(original tokens, cheaper model) − price(original
+tokens, original model)`, §8.3-gated (preservation ≥ 0.95 **and** bootstrap
+CI-upper < 0) — giving **0.57% [0.49, 0.66]** recoverable margin, ~$126/yr at 1M
+calls, with the absolute dollars. Exact arithmetic on real, dated rates,
+reproducible from the run manifest — not an author's guess. **This is the number
+we stand behind, and it is deliberately small: only `route` is replay-executable
+today.** The paid path is real (verified: gpt-5-nano at ~2s/call, k=8 clean) —
+but **outcome-preservation at scale is a Wave-2 measurement, not a claim here.**
+On a synthetic corpus the divergence gate compares real output to canned text
+(vacuous) and verdict-preservation is structural (tools pinned, H-1). We say that
+out loud; we never quote a measured preservation rate we can't defend. (See
+`docs/METHOD.md`, `docs/LIMITATIONS.md`.)
 
 **Tier 2 — instrumented, not measured.** The voice-stack cost decomposition
 (ASR/TTS/telephony), and Detectors 7 (barge-in) and 8 (silence tax). On a
@@ -28,9 +36,9 @@ the G2 gate stays live — see `docs/GATES.md`.)
 
 1. **0:00 — one call, cost flame graph.** "This call cost $X; here is where it went." Label the LLM stage **[measured]** and the ASR/TTS/telephony stages **[modeled acoustics]**. Don't let the flame graph imply the audio stages are measured.
 2. **0:45 — Detector 7, barge-in — as a QUESTION (Tier 2).** Do NOT assert a cents figure. Say: *"I can't tell you what fraction of your TTS spend your callers never hear — because on synthetic audio I'd only be measuring my own assumptions. I can tell you **nobody is measuring it**, and here is the instrument that would. Do you know your number?"* Then show D7 firing correctly on a trace to prove the mechanism. Handing him the gap beats a figure he can't verify — it's what an FDE does.
-3. **1:30 — fleet view (Tier 1).** "Most vendors quote CPRC-naive, the left number. The right one, CPRC-loaded, is your real margin — you pay for the calls that fail too." (Loaded is computed over real replay-verified resolutions.)
+3. **1:30 — fleet view (Tier 1).** "Most vendors quote CPRC-naive, the left number. The right one, CPRC-loaded, is your real margin — you pay for the calls that fail too." (Loaded is computed over verdict-adjudicated resolutions.)
 4. **2:15 — Detector 9, escalation debt (Tier 1 once the verdict fix lands).** "Escalation was predictable at turn 3. We spent nine more turns and $X getting there." And the tier-2 rejected-handoff number: full conversation cost, stranded caller.
-5. **3:00 — replay evidence (THE Tier-1 headline).** "We didn't *suggest* the cheaper router. We replayed N calls on it: X% identical outcome, Y% cheaper, bootstrap CI here, and these Z forked — here they are." Every number machine-produced.
+5. **3:00 — recoverable margin (THE Tier-1 headline).** "We didn't *suggest* the cheaper router. We re-priced every eligible `route` decision on it against the real rate card and gated it: **0.57% [0.49, 0.66]** recoverable, ~$126/yr at 1M calls, bootstrap CI, reproducible from the manifest. Small — because it's the *only* remedy we can prove today; the rest are detected and quantified, not yet replay-proven." Then, unprompted: "What I am **not** showing you is a preservation rate — measuring whether the cheap model keeps the outcome needs real traffic, and I won't fake it on synthetic audio." *(Owner: this beat's spoken delivery is yours to refine — the numbers and the honesty line are fixed.)*
 6. **3:40 — limitations, unprompted (below).**
 
 ## The two judgment lines — say these out loud (Tier 1: real logic on real replay)
