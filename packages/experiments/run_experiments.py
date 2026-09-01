@@ -86,6 +86,11 @@ def main(argv: list[str] | None = None) -> None:
         help="skip the interactive paid-run confirmation (for scripted runs "
              "without a TTY); the TURNSTILE_ALLOW_PAID=1 env gate still applies",
     )
+    parser.add_argument(
+        "--workers", type=int, default=1,
+        help="thread workers for the per-trace replay map (Change B); "
+             "default 1 = sequential. Aggregates are identical regardless",
+    )
     args = parser.parse_args(argv)
 
     out_path = Path(args.out)
@@ -138,7 +143,7 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     matrix, real_usage = run_matrix_checkpointed_detailed(
-        corpus, VARIANTS, checkpoint_path, backend=backend)
+        corpus, VARIANTS, checkpoint_path, backend=backend, max_workers=args.workers)
 
     total_cost = sum(pt.conv_cost for pt in corpus)
     margin = recoverable_margin(matrix, total_cost, args.annual_calls)

@@ -280,8 +280,21 @@ def _earliest_applicable_turn(trace: PricedTrace, variant: VariantSpec) -> int:
     return 0
 
 
+def map_trials(traces: list[PricedTrace], variant: VariantSpec) -> list[Trial]:
+    """`experiment()`'s MAP step (Change B, audit 06 Sec.3): per-trace replay
+    at each trace's earliest applicable turn, in input order. Extracted so a
+    concurrent driver can reuse THE SAME per-trace replay semantics with zero
+    drift -- `replay()` itself stays frozen (PRD Sec.5) and is thread-safe
+    (it reads module globals, builds only local state; the backend callable
+    is the caller's responsibility to make thread-safe, which OpenAIBackend
+    is)."""
+    return [replay(t, variant, _earliest_applicable_turn(t, variant)) for t in traces]
+
+
 def experiment(traces: list[PricedTrace], variant: VariantSpec) -> ExperimentResult:
     """Replay every trace under `variant`, aggregate via
-    `turnstile_stats.aggregate_experiment` (PRD Sec.5 / Sec.8.3)."""
-    trials = [replay(t, variant, _earliest_applicable_turn(t, variant)) for t in traces]
-    return aggregate_experiment(trials)
+    `turnstile_stats.aggregate_experiment` (PRD Sec.5 / Sec.8.3). Expressed
+    as map (`map_trials`) + reduce (`aggregate_experiment`) -- the single
+    implementation concurrent drivers compose, so aggregates can never drift
+    from the sequential path."""
+    return aggregate_experiment(map_trials(traces, variant))

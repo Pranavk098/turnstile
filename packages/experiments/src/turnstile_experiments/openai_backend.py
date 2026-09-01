@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 import time
 from typing import Any
 
@@ -100,6 +101,10 @@ class OpenAIBackend:
         self._request_timeout_s = request_timeout_s
         self._progress_every = progress_every
         self._max_completion_tokens = max_completion_tokens
+        # Change B (audit 06 Sec.6.2): the shared client runs across worker
+        # threads; the progress counter is the only cross-call state and must
+        # not lose increments or interleave its prints.
+        self._calls_lock = threading.Lock()
         self._calls = 0
         self._client = client if client is not None else OpenAI(
             api_key=api_key, timeout=request_timeout_s, max_retries=max_retries
@@ -121,10 +126,13 @@ class OpenAIBackend:
         )
         latency_ms = int((time.monotonic() - start) * 1000)
 
-        self._calls += 1
-        if self._progress_every and self._calls % self._progress_every == 0:
+        with self._calls_lock:
+            self._calls += 1
+            announce = self._progress_every and self._calls % self._progress_every == 0
+            calls = self._calls
+        if announce:
             print(
-                f"[OpenAIBackend] {self._calls} calls (last model={model}, "
+                f"[OpenAIBackend] {calls} calls (last model={model}, "
                 f"{latency_ms}ms)",
                 file=sys.stderr,
                 flush=True,

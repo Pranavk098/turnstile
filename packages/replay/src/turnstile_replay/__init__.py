@@ -13,6 +13,7 @@ from turnstile_replay.replay import (
     DIVERGENCE_SIMILARITY_THRESHOLD,
     ReplayOutcome,
     experiment,
+    map_trials,
     replay,
     replay_with_real_usage_cost,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "ReplayOutcome",
     "DELTA_COST_REAL_USAGE_LABEL",
     "experiment",
+    "map_trials",
     "DIVERGENCE_SIMILARITY_THRESHOLD",
     "DecisionBackend",
     "MockBackend",
