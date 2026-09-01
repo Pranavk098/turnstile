@@ -13,9 +13,17 @@ resolution, for two reasons established on real calls (smoke #3):
   traces flagged divergent, 0 usable trials.
 - **Preservation is structural (H-1).** Verdict labels ride on pinned tool
   effects, so `outcome_preserved` ≈ 1.0 by construction for tool-driven verdicts.
+- **The caller inputs are placeholders too.** The corpus's caller-side transcripts
+  are `"Caller utterance for turn N."` (21 identical-shape strings across all 250
+  traces, same across scenarios), so a decision label is **not inferable from the
+  pinned context even by a perfect model** — any measured agreement on this corpus
+  (text- or label-based) is noise until real utterances are authored. This is the
+  root beneath the divergence finding (see
+  `docs/superpowers/viability-structured-divergence.md` §3–4).
 
 **Consequence:** the Tier-1 headline is the *deterministic* rate-arbitrage
-recoverable margin (0.57% [0.49, 0.66]); measured preservation is **Wave-2**.
+recoverable margin (0.57% [0.49, 0.66]); measured preservation is **Wave-2**,
+and its first step is authoring real caller utterances, not code.
 
 **Wave-2 path (sequenced):**
 1. *(free viability check, first)* Verify the corpus's `decision_chosen` labels
