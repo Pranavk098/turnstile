@@ -53,7 +53,14 @@ class ReplayContext:
 @dataclass(frozen=True)
 class ReplayedDecision:
     """What a DecisionBackend returns for one re-run agent decision -- enough
-    to rebuild the LlmDecide span and re-price it."""
+    to rebuild the LlmDecide span and re-price it.
+
+    M-2, documented at this boundary: `decision_chosen` is whatever the
+    backend's own output parsing produced -- an UTTERANCE, not necessarily a
+    parsed decision value. MockBackend echoes the original span's parsed
+    value; OpenAIBackend currently passes the raw completion text through.
+    Per-decision_kind parsing (escalate_check -> escalate/continue,
+    tool_select -> tool name) is queued, not built, this wave."""
     model: str
     output_text: str
     decision_chosen: str
