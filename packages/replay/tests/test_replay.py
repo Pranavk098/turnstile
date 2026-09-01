@@ -26,6 +26,7 @@ from turnstile_replay import (
     experiment,
     get_backend,
     replay,
+    replay_with_real_usage_cost,
     reset_backend,
     set_backend,
 )
@@ -126,8 +127,91 @@ def test_acceptance_4_backend_is_genuinely_injectable():
     # the injected callable, not MockBackend.
     assert calls == [(0, "l0")]
     assert trial.status == "ok"
-    expected_delta = (10 / 1e6 * 0.25 + 5 / 1e6 * 2.00) - (500 / 1e6 * 1.25 + 15 / 1e6 * 10.00)
+    # CR-B rate arbitrage: ORIGINAL workload (500 in / 15 out) priced at the
+    # replayed model (gpt-5-mini) vs the original model (gpt-5).
+    expected_delta = (500 / 1e6 * 0.25 + 15 / 1e6 * 2.00) - (500 / 1e6 * 1.25 + 15 / 1e6 * 10.00)
     assert trial.delta_cost == pytest.approx(expected_delta)
+
+
+# --------------------------------------------------------------------------- #
+# CR-B acceptance -- delta_cost is deterministic rate arbitrage on the         #
+# ORIGINAL workload, decoupled from the render.                                #
+# --------------------------------------------------------------------------- #
+
+def _realistic_reroute_backend(context, original_span, variant):
+    """Stands in for a real backend on a genuine reroute: gpt-5 -> gpt-5-nano
+    with REAL-scale usage (~85-token rendered prompt, ~200-token reply) --
+    deliberately NOT the corpus's synthetic 500/15."""
+    return ReplayedDecision(
+        model="gpt-5-nano", output_text=original_span.output_text,
+        decision_chosen=original_span.decision_chosen,
+        input_tokens=85, output_tokens=200, latency_ms=original_span.latency_ms,
+    )
+
+
+def test_acceptance_reroute_delta_is_deterministic_rate_arbitrage():
+    """A genuine reroute (gpt-5 -> gpt-5-nano) must yield the delta
+    hand-computed from rates.yaml on the ORIGINAL workload -- invariant to
+    the real usage the backend returned (the render-scale mismatch that made
+    re-priced deltas spuriously negative)."""
+    set_backend(_realistic_reroute_backend)
+    pt = _priced_fixture("01_over_model")
+    trial = replay(pt, VariantSpec(model_routing={"route": "gpt-5-nano"}), from_turn=0)
+    assert trial.status == "ok"
+    # orig 500 in / 15 out: gpt-5 1.25/10.00 per Mtok vs nano 0.05/0.40.
+    expected = (500 / 1e6 * 0.05 + 15 / 1e6 * 0.40) - (500 / 1e6 * 1.25 + 15 / 1e6 * 10.00)
+    assert trial.delta_cost == pytest.approx(expected)
+
+
+def test_acceptance_identity_replay_yields_zero_delta_cost():
+    """A mocked 'real' backend that returns the ORIGINAL span's model AND
+    usage must give delta_cost == 0 exactly: any variant-invariant bias in
+    the cost figure (the CR-B bug) would show up as a systematic nonzero."""
+    def identity_real_backend(context, original_span, variant):
+        return ReplayedDecision(
+            model=original_span.gen_ai_request_model,
+            output_text=original_span.output_text,
+            decision_chosen=original_span.decision_chosen,
+            input_tokens=original_span.input_tokens,
+            output_tokens=original_span.output_tokens,
+            latency_ms=original_span.latency_ms,
+        )
+
+    set_backend(identity_real_backend)
+    pt = _priced_fixture("01_over_model")
+    trial = replay(pt, VariantSpec(model_routing={"route": "gpt-5-nano"}), from_turn=0)
+    assert trial.status == "ok"
+    assert trial.delta_cost == pytest.approx(0.0, abs=1e-12)
+
+
+def test_real_usage_companion_figure_priced_on_replayed_usage():
+    """delta_cost_real_usage: SAME rate-arbitrage formula, but on the REAL
+    replayed usage -- hand-computable from rates.yaml, and explicitly NOT
+    equal to the gated figure when render scale differs."""
+    set_backend(_realistic_reroute_backend)
+    pt = _priced_fixture("01_over_model")
+    outcome = replay_with_real_usage_cost(
+        pt, VariantSpec(model_routing={"route": "gpt-5-nano"}), from_turn=0)
+    trial = outcome.trial
+    assert trial.status == "ok"
+    # Real usage 85 in / 200 out, priced nano vs gpt-5.
+    expected_real = (85 / 1e6 * 0.05 + 200 / 1e6 * 0.40) - (85 / 1e6 * 1.25 + 200 / 1e6 * 10.00)
+    assert outcome.delta_cost_real_usage == pytest.approx(expected_real)
+    # ...and it is a different figure from the gated, orig-workload delta.
+    assert outcome.delta_cost_real_usage != pytest.approx(trial.delta_cost)
+
+
+def test_real_usage_companion_is_none_for_excluded_and_divergent():
+    pt_divergent = _priced_fixture("01_over_model")
+    outcome = replay_with_real_usage_cost(
+        pt_divergent, VariantSpec(model_routing={"route": "gpt-9-untested-model"}), from_turn=0)
+    assert outcome.trial.status == "divergent"
+    assert outcome.delta_cost_real_usage is None
+
+    pt_empty = priced(turn(0, llm_spans=[llm("l0")]))
+    outcome = replay_with_real_usage_cost(pt_empty, VariantSpec(), from_turn=5)
+    assert outcome.trial.status == "excluded"
+    assert outcome.delta_cost_real_usage is None
 
 
 # --------------------------------------------------------------------------- #

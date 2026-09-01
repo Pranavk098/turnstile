@@ -3,6 +3,7 @@ from turnstile_experiments.checkpoint_runner import (
     CheckpointStore,
     run_experiment_checkpointed,
     run_matrix_checkpointed,
+    run_matrix_checkpointed_detailed,
 )
 from turnstile_experiments.cost_estimate import estimate_cost
 from turnstile_experiments.coverage import detector_coverage
@@ -25,6 +26,7 @@ __all__ = [
     "RESERVED_VARIANTS",
     "run_matrix",
     "run_matrix_checkpointed",
+    "run_matrix_checkpointed_detailed",
     "run_experiment_checkpointed",
     "CheckpointStore",
     "build_manifest",

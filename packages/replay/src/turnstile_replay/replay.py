@@ -8,8 +8,23 @@ is always a cache hit against the tool's own original entry -- see
 `_tool_cache` below). Only the AGENT's `llm.decide` spans from `from_turn`
 onward are re-run, through an injectable `DecisionBackend`
 (`turnstile_replay.backend`), under the variant policy. The rebuilt trace is
-re-priced (`turnstile_pricing.price_trace`) and re-adjudicated
+re-priced (`turnstile_pricing.price_trace`) -- that trace-level pricing feeds
+the verdict and the flame graph -- and re-adjudicated
 (`turnstile_verdict.adjudicate`) to produce a `Trial`.
+
+CR-B (owner decision: rate arbitrage): the trial's `delta_cost` is NOT
+`new_priced.conv_cost - trace.conv_cost`. Re-pricing the rebuilt trace mixes
+a render-scale artifact into the delta (a real backend's rendered prompts
+are far smaller than the corpus's synthetic `input_tokens`, so that delta
+would be negative independent of the variant). Instead `delta_cost` is pure
+rate arbitrage, computed per REPLACED decision span on the ORIGINAL token
+workload: `price(orig usage, replayed model) - price(orig usage, orig
+model)` -- same workload, different price, exactly MockBackend's semantics,
+and 0 for spans the variant doesn't reroute. A companion figure,
+`delta_cost_real_usage` (same formula on the REAL replayed usage), is
+returned by `replay_with_real_usage_cost()` and surfaced by the experiments
+layer explicitly labeled "includes render-scale mismatch; not gated"; it
+cannot live on `Trial` without a frozen-schema change.
 
 Divergence (PRD Sec.8.1): the FIRST replayed decision at or after `from_turn`
 (the "pivot" -- PRD Sec.8.1's "utterance at turn k") is compared to the
@@ -32,11 +47,16 @@ exists at or after it -- there is nothing for the variant to act on.
 from __future__ import annotations
 
 import difflib
+from typing import NamedTuple
 
-from turnstile_schema import ExperimentResult, PricedTrace, Trial, VariantSpec
+from turnstile_schema import ExperimentResult, PricedTrace, RateTable, Trial, VariantSpec
 from turnstile_schema.spans import LlmDecide, ToolCall
 from turnstile_schema.trace import Trace, Turn
 from turnstile_pricing import price_trace
+# PRD Sec.4.2's llm cost formula, verbatim and frozen ("do not alter") --
+# imported rather than duplicated so the rate-arbitrage figures below can
+# never drift from the pricing engine's own math.
+from turnstile_pricing.pricing import _cost_llm
 from turnstile_verdict import adjudicate
 from turnstile_stats import aggregate_experiment
 
@@ -97,16 +117,50 @@ def _rebuild_llm_span(original: LlmDecide, decision: ReplayedDecision) -> LlmDec
     })
 
 
-def replay(trace: PricedTrace, variant: VariantSpec, from_turn: int) -> Trial:
-    """Pinned replay of `trace` under `variant` from turn `from_turn` (PRD
-    Sec.5 / Sec.8.1)."""
+def _price_usage(usage: LlmDecide | ReplayedDecision, gen_ai_system: str,
+                 model: str, rates: RateTable) -> float:
+    """Price one decision's token workload at `model`'s llm rate (CR-B rate
+    arbitrage). `usage` only needs the five token fields `_cost_llm` reads --
+    either the ORIGINAL `LlmDecide` (gated figure: same workload, different
+    price) or the `ReplayedDecision` (real-usage companion figure); both
+    expose them. The rate key follows pricing's convention
+    `f"{gen_ai_system}/{model}"` (pricing.py docstring)."""
+    return _cost_llm(usage, rates.llm[f"{gen_ai_system}/{model}"])
+
+
+class ReplayOutcome(NamedTuple):
+    """`replay()`'s Trial plus the non-gated companion cost figure (CR-B).
+    `delta_cost_real_usage` applies the SAME rate-arbitrage formula to the
+    REAL usage the backend returned for the replaced spans. Because real
+    rendered prompts are far smaller than the corpus's synthetic
+    `input_tokens`, its absolute scale includes that render-scale mismatch --
+    informational only, NEVER gated (PRD Sec.8.3's gate applies to
+    `Trial.delta_cost` alone)."""
+    trial: Trial
+    delta_cost_real_usage: float | None
+
+
+DELTA_COST_REAL_USAGE_LABEL = (
+    "rate-arbitrage delta priced on the REAL replayed usage (same formula as "
+    "the gated delta_cost); includes render-scale mismatch; not gated"
+)
+
+
+def replay_with_real_usage_cost(
+    trace: PricedTrace, variant: VariantSpec, from_turn: int
+) -> ReplayOutcome:
+    """`replay()` plus the non-gated `delta_cost_real_usage` companion figure
+    (CR-B). See `ReplayOutcome` and the module docstring."""
     conv = trace.trace
     trace_id = conv.conversation.conversation_id
 
     targets = _llm_spans_from(conv, from_turn)
     if not targets:
-        return Trial(trace_id=trace_id, status="excluded",
-                     delta_cost=None, delta_latency_ms=None, outcome_preserved=None)
+        return ReplayOutcome(
+            Trial(trace_id=trace_id, status="excluded",
+                  delta_cost=None, delta_latency_ms=None, outcome_preserved=None),
+            None,
+        )
 
     backend = get_backend()
     replaced: dict[str, ReplayedDecision] = {}
@@ -125,8 +179,11 @@ def replay(trace: PricedTrace, variant: VariantSpec, from_turn: int) -> Trial:
     pivot_decision = replaced[pivot_span.span_id]
     similarity = _similarity(pivot_span.output_text, pivot_decision.output_text)
     if similarity < DIVERGENCE_SIMILARITY_THRESHOLD:
-        return Trial(trace_id=trace_id, status="divergent",
-                     delta_cost=None, delta_latency_ms=None, outcome_preserved=None)
+        return ReplayOutcome(
+            Trial(trace_id=trace_id, status="divergent",
+                  delta_cost=None, delta_latency_ms=None, outcome_preserved=None),
+            None,
+        )
 
     # -- Rebuild the trace: turns before from_turn are pinned verbatim; turns
     #    at/after it get their llm.decide spans replaced and their tool spans
@@ -143,23 +200,59 @@ def replay(trace: PricedTrace, variant: VariantSpec, from_turn: int) -> Trial:
     new_trace = conv.model_copy(update={"turns": new_turns})
 
     rates = get_rates()
+    # Trace-level pricing is kept for the verdict (and any flame-graph
+    # consumer) -- but per CR-B it no longer feeds delta_cost.
     new_priced = price_trace(new_trace, rates)
 
     original_verdict = adjudicate(trace)
     new_verdict = adjudicate(new_priced)
 
-    delta_cost = new_priced.conv_cost - trace.conv_cost
+    # CR-B, gated figure: pure rate arbitrage on the ORIGINAL token workload
+    # of each REPLACED span -- same workload, different price. Spans the
+    # variant didn't reroute (replayed model == original model) contribute 0.
+    delta_cost = sum(
+        _price_usage(span, span.gen_ai_system, replaced[span.span_id].model, rates)
+        - _price_usage(span, span.gen_ai_system, span.gen_ai_request_model, rates)
+        for _, span in targets
+    )
+    # CR-B, companion figure: same formula on the REAL replayed usage.
+    delta_cost_real_usage = sum(
+        _price_usage(replaced[span.span_id], span.gen_ai_system,
+                     replaced[span.span_id].model, rates)
+        - _price_usage(replaced[span.span_id], span.gen_ai_system,
+                       span.gen_ai_request_model, rates)
+        for _, span in targets
+    )
+
     original_latency = sum(s.latency_ms for _, s in targets)
     replayed_latency = sum(d.latency_ms for d in replaced.values())
     delta_latency_ms = float(replayed_latency - original_latency)
 
-    return Trial(
-        trace_id=trace_id,
-        status="ok",
-        delta_cost=delta_cost,
-        delta_latency_ms=delta_latency_ms,
-        outcome_preserved=(new_verdict.label == original_verdict.label),
+    return ReplayOutcome(
+        Trial(
+            trace_id=trace_id,
+            status="ok",
+            delta_cost=delta_cost,
+            delta_latency_ms=delta_latency_ms,
+            outcome_preserved=(new_verdict.label == original_verdict.label),
+        ),
+        delta_cost_real_usage,
     )
+
+
+def replay(trace: PricedTrace, variant: VariantSpec, from_turn: int) -> Trial:
+    """Pinned replay of `trace` under `variant` from turn `from_turn` (PRD
+    Sec.5 / Sec.8.1 -- signature frozen).
+
+    `delta_cost` (CR-B, owner decision): pure rate arbitrage on each REPLACED
+    span's ORIGINAL token workload -- `price(orig usage, replayed model) -
+    price(orig usage, orig model)`, summed over replaced spans. Deterministic
+    and decoupled from the render: a real backend's rendered prompts are far
+    smaller than the corpus's synthetic `input_tokens`, so re-pricing the
+    rebuilt trace would make `delta_cost` negative independent of the
+    variant. Use `replay_with_real_usage_cost()` for the non-gated
+    real-usage companion figure."""
+    return replay_with_real_usage_cost(trace, variant, from_turn).trial
 
 
 def _earliest_applicable_turn(trace: PricedTrace, variant: VariantSpec) -> int:

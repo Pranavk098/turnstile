@@ -9,13 +9,19 @@ from turnstile_replay.backend import (
     set_backend,
 )
 from turnstile_replay.replay import (
+    DELTA_COST_REAL_USAGE_LABEL,
     DIVERGENCE_SIMILARITY_THRESHOLD,
+    ReplayOutcome,
     experiment,
     replay,
+    replay_with_real_usage_cost,
 )
 
 __all__ = [
     "replay",
+    "replay_with_real_usage_cost",
+    "ReplayOutcome",
+    "DELTA_COST_REAL_USAGE_LABEL",
     "experiment",
     "DIVERGENCE_SIMILARITY_THRESHOLD",
     "DecisionBackend",
