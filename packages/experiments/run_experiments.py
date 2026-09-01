@@ -155,10 +155,10 @@ def main(argv: list[str] | None = None) -> None:
         "manifest": manifest,
         "baselines": baselines.model_dump(),
         "matrix": {name: result.model_dump() for name, result in matrix.items()},
-        # CR-B companion figure, NOT gated: priced on the REAL replayed usage,
-        # so its scale includes the render-size mismatch between real rendered
-        # prompts and the corpus's synthetic input_tokens. PRD Sec.8.3's gate
-        # applies to matrix[*].delta_cost only.
+        # CR-B companion figure, NOT gated: priced on the REAL replayed usage
+        # (far smaller than the corpus's synthetic token counts), so its
+        # absolute magnitude is not directly comparable to the gated figure.
+        # PRD Sec.8.3's gate applies to matrix[*].delta_cost only.
         "delta_cost_real_usage_mean_usd": {
             "label": DELTA_COST_REAL_USAGE_LABEL,
             "per_variant": real_usage,

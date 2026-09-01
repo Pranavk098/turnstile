@@ -140,5 +140,13 @@ def price_trace(trace: Trace, rates: RateTable) -> PricedTrace:
         conv_cost=conv_cost,
         stage_costs=stage_costs,
     )
-    assert math.isclose(sum(stage_costs.values()), conv_cost, rel_tol=1e-9, abs_tol=1e-12)
+    # Post-condition (R6/R7 class of audit finding): the stage decomposition
+    # must close to conv_cost. An explicit raise, not `assert`, so the
+    # invariant survives `python -O`.
+    if not math.isclose(sum(stage_costs.values()), conv_cost, rel_tol=1e-9, abs_tol=1e-12):
+        raise RuntimeError(
+            f"pricing invariant violated: sum(stage_costs)="
+            f"{sum(stage_costs.values())!r} != conv_cost={conv_cost!r} "
+            f"(rel_tol=1e-9, abs_tol=1e-12)"
+        )
     return priced

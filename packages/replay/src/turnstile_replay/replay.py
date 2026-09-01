@@ -23,8 +23,11 @@ model)` -- same workload, different price, exactly MockBackend's semantics,
 and 0 for spans the variant doesn't reroute. A companion figure,
 `delta_cost_real_usage` (same formula on the REAL replayed usage), is
 returned by `replay_with_real_usage_cost()` and surfaced by the experiments
-layer explicitly labeled "includes render-scale mismatch; not gated"; it
-cannot live on `Trial` without a frozen-schema change.
+layer explicitly labeled "informational, not gated"; it cannot live on
+`Trial` without a frozen-schema change. Note the two figures price different
+workloads -- the gated one the corpus's synthetic-scale tokens, the
+companion the real rendered tokens (far smaller) -- so their absolute
+magnitudes are not directly comparable; each is internally a clean arbitrage.
 
 Divergence (PRD Sec.8.1): the FIRST replayed decision at or after `from_turn`
 (the "pivot" -- PRD Sec.8.1's "utterance at turn k") is compared to the
@@ -131,18 +134,21 @@ def _price_usage(usage: LlmDecide | ReplayedDecision, gen_ai_system: str,
 class ReplayOutcome(NamedTuple):
     """`replay()`'s Trial plus the non-gated companion cost figure (CR-B).
     `delta_cost_real_usage` applies the SAME rate-arbitrage formula to the
-    REAL usage the backend returned for the replaced spans. Because real
-    rendered prompts are far smaller than the corpus's synthetic
-    `input_tokens`, its absolute scale includes that render-scale mismatch --
-    informational only, NEVER gated (PRD Sec.8.3's gate applies to
-    `Trial.delta_cost` alone)."""
+    REAL usage the backend returned for the replaced spans. It is internally
+    a clean arbitrage on those real tokens; the scale gap sits BETWEEN the
+    two figures (the gated one prices the corpus's synthetic-scale token
+    counts, the real rendered usage is far smaller), so their absolute
+    magnitudes are not directly comparable. Informational only, NEVER gated
+    (PRD Sec.8.3's gate applies to `Trial.delta_cost` alone)."""
     trial: Trial
     delta_cost_real_usage: float | None
 
 
 DELTA_COST_REAL_USAGE_LABEL = (
     "rate-arbitrage delta priced on the REAL replayed usage (same formula as "
-    "the gated delta_cost); includes render-scale mismatch; not gated"
+    "the gated delta_cost, but on real rendered tokens, which are far smaller "
+    "than the corpus's synthetic token counts -- the two figures' absolute "
+    "magnitudes are not directly comparable); informational, not gated"
 )
 
 
