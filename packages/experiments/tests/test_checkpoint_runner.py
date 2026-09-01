@@ -148,7 +148,7 @@ def test_store_real_usage_accessor_and_legacy_records(tmp_path):
     run_matrix_checkpointed_detailed(corpus, VARIANTS, ck)
 
     store = CheckpointStore(ck)
-    key = f"model_routing_gpt5_nano\tc0"
+    key = "model_routing_gpt5_nano\tc0"
     assert store.get_real_usage(key) is not None
     assert store.get_real_usage("no-such-key") is None
 
