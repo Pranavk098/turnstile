@@ -1,4 +1,5 @@
-import json, pytest
+import json
+import pytest
 from pydantic import ValidationError
 from turnstile_schema import Trace, load_trace
 

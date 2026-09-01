@@ -1,5 +1,8 @@
 from pathlib import Path
-import collections, json, math, yaml, pytest
+import collections
+import json
+import yaml
+import pytest
 from pydantic import ValidationError
 from turnstile_schema import load_trace, load_rates
 from turnstile_schema.spans import ToolCall

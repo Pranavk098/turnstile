@@ -13,7 +13,7 @@ _SRC = Path(__file__).parent / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from turnstile_corpus.generate import main
+from turnstile_corpus.generate import main  # noqa: E402 -- after the sys.path shim above
 
 if __name__ == "__main__":
     main()

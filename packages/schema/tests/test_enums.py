@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from turnstile_schema.enums import EndReason, DecisionKind, ToolStatus, Effect
+from turnstile_schema.enums import EndReason, ToolStatus, Effect
 from turnstile_schema.trace import Conversation
 
 def test_end_reason_vocabulary():

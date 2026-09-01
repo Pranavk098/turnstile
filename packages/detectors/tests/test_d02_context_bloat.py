@@ -4,7 +4,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
 from turnstile_schema import load_rates, load_trace
 from turnstile_pricing import price_trace
