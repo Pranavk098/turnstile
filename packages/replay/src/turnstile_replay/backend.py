@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from turnstile_schema import VariantSpec
-from turnstile_schema.spans import LlmDecide
+from turnstile_schema.spans import AsrTranscribe, LlmDecide
 from turnstile_schema.trace import Turn
 
 
@@ -42,12 +42,18 @@ from turnstile_schema.trace import Turn
 class ReplayContext:
     """Everything a DecisionBackend gets besides the span being replayed and
     the variant: pinned conversation history up to (not including) the turn
-    under replay. Caller side is fixed under pinned replay (PRD Sec.8.1), so
-    `turns_before` is always the ORIGINAL trace's turns, never regenerated."""
+    under replay, plus the CURRENT turn's caller-side ASR transcript(s)
+    (`current_turn_asr`) -- the utterance the decision being replayed
+    responds to. Caller side is fixed under pinned replay (PRD Sec.8.1 pins
+    the caller side of EVERY turn), so both `turns_before` and
+    `current_turn_asr` are always the ORIGINAL trace's spans, never
+    regenerated: the counterfactual agent decides GIVEN the pinned caller
+    audio, which is faithful replay, not leakage."""
     conversation_id: str
     scenario_id: str
     turn_index: int
     turns_before: tuple[Turn, ...]
+    current_turn_asr: tuple[AsrTranscribe, ...] = ()
 
 
 @dataclass(frozen=True)

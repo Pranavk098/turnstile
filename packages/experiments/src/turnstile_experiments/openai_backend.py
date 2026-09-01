@@ -44,11 +44,16 @@ from turnstile_replay.backend import ReplayContext, ReplayedDecision
 
 
 def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[dict[str, str]]:
-    """Pinned history (``ReplayContext.turns_before``) rendered as a chat
-    message list. Caller turns contribute their ASR transcript as a user
+    """Pinned history (``ReplayContext.turns_before``) plus the CURRENT turn's
+    caller-side ASR (``ReplayContext.current_turn_asr``, CR-A) rendered as a
+    chat message list. Caller turns contribute their ASR transcript as a user
     message; agent turns contribute their own prior ``LlmDecide.output_text``
     as an assistant message -- the pinned conversation ``turnstile_replay``
-    keeps fixed for every replayed trial (PRD Sec.8.1)."""
+    keeps fixed for every replayed trial (PRD Sec.8.1). The current turn's
+    ASR transcript(s) come LAST as the final user message(s): that is the
+    utterance the decision being replayed responds to (PRD Sec.8.1 pins the
+    caller side of every turn, so deciding given it is faithful, not
+    leakage)."""
     messages: list[dict[str, str]] = [{
         "role": "system",
         "content": (
@@ -61,6 +66,8 @@ def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[d
             messages.append({"role": "user", "content": asr.transcript})
         for llm_span in turn.llm:
             messages.append({"role": "assistant", "content": llm_span.output_text})
+    for asr in context.current_turn_asr:
+        messages.append({"role": "user", "content": asr.transcript})
     return messages
 
 

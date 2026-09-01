@@ -125,6 +125,63 @@ def test_forms_correct_request_and_parses_response(monkeypatch):
     assert decision.output_tokens == 7
 
 
+# --------------------------------------------------------------------------- #
+# CR-A: the pivot turn's own caller ASR (the utterance the decision responds   #
+# to) must be in the rendered prompt, after the pinned history -- including at #
+# turn 0, where `turns_before` is empty (the case that was measured 30/30      #
+# prompts with zero conversational content).                                   #
+# --------------------------------------------------------------------------- #
+
+def test_renders_pivot_turn_caller_asr_as_final_user_message(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client)
+
+    context = ReplayContext(
+        conversation_id="c1", scenario_id="refund", turn_index=1,
+        turns_before=(turn(0, asr_spans=[asr("a0", transcript="history utterance")],
+                            llm_spans=[llm("l0", output_text="prior reply")]),),
+        current_turn_asr=(asr("a1", transcript="I still want my money back"),),
+    )
+    original_span = llm("l1", decision_kind=DecisionKind.route, model="gpt-5")
+
+    backend(context, original_span, VariantSpec())
+
+    messages = fake_client.completions.calls[0]["messages"]
+    user_messages = [m for m in messages if m["role"] == "user"]
+    assert user_messages, "expected at least one user message"
+    assert user_messages[-1]["content"] == "I still want my money back"
+    # The pivot utterance comes AFTER the entire pinned history.
+    contents = [m["content"] for m in messages]
+    assert contents.index("I still want my money back") > contents.index("history utterance")
+    assert contents.index("I still want my money back") > contents.index("prior reply")
+
+
+def test_renders_pivot_turn_asr_at_turn_zero_with_empty_history(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client)
+
+    # Turn 0: turns_before is empty; the ONLY conversational content must be
+    # the pivot turn's own caller ASR (CR-A regression: prompts had none).
+    context = ReplayContext(
+        conversation_id="c1", scenario_id="refund", turn_index=0,
+        turns_before=(),
+        current_turn_asr=(asr("a0", transcript="I need a refund for order 1234"),),
+    )
+    original_span = llm("l0", decision_kind=DecisionKind.route, model="gpt-5")
+
+    backend(context, original_span, VariantSpec())
+
+    messages = fake_client.completions.calls[0]["messages"]
+    user_messages = [m for m in messages if m["role"] == "user"]
+    assert [m["content"] for m in user_messages] == ["I need a refund for order 1234"]
+
+
 def test_falls_back_to_original_model_when_variant_does_not_route_this_decision(monkeypatch):
     monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
