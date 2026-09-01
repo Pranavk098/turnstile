@@ -111,11 +111,13 @@ def replay(trace: PricedTrace, variant: VariantSpec, from_turn: int) -> Trial:
     backend = get_backend()
     replaced: dict[str, ReplayedDecision] = {}
     for turn_idx, span in targets:
+        current_turn = next(t for t in conv.turns if t.turn_index == turn_idx)
         context = ReplayContext(
             conversation_id=conv.conversation.conversation_id,
             scenario_id=conv.conversation.scenario_id,
             turn_index=turn_idx,
             turns_before=tuple(t for t in conv.turns if t.turn_index < turn_idx),
+            current_turn_asr=tuple(current_turn.asr),
         )
         replaced[span.span_id] = backend(context, span, variant)
 
