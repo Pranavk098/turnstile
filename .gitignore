@@ -6,3 +6,4 @@ __pycache__/
 *.wav
 /corpus/
 experiments/*.json
+experiments/*.jsonl

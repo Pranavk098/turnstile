@@ -1,12 +1,14 @@
 """Tests for run_matrix (packages/experiments)."""
 from __future__ import annotations
 
+import pytest
+
 from turnstile_corpus import generate_corpus
 from turnstile_pricing import price_trace
 from turnstile_replay import MockBackend, get_backend, reset_backend, set_backend
 from turnstile_schema import ExperimentResult, VariantSpec, load_rates
 
-from turnstile_experiments import VARIANTS, run_matrix
+from turnstile_experiments import RESERVED_VARIANTS, VARIANTS, run_matrix
 
 RATES = load_rates("pricing/rates.yaml")
 
@@ -58,13 +60,13 @@ def test_custom_backend_is_actually_used():
     reset_backend()
 
 
-def test_non_routing_variants_run_without_crashing():
-    """MockBackend only differentiates on model_routing (task brief) -- the
-    other five variants should still run cleanly (mostly excluded/identity),
-    not raise."""
+def test_reserved_variants_fail_loudly_instead_of_running_as_no_ops():
+    """The replay engine applies only model_routing; a reserved variant would
+    replay as a zero-delta no-op (and, on --paid, spend real credit doing so).
+    run_matrix must refuse it at experiment start, not silently return an
+    identity result."""
     corpus = _small_corpus(n=5)
-    matrix = run_matrix(corpus, VARIANTS)
-    for name in ("context_window_8", "prefix_caching_on", "retrieval_threshold_0_8",
-                 "tts_chunking_sentence", "escalation_threshold_0_85"):
-        result = matrix[name]
-        assert isinstance(result, ExperimentResult)
+    for name, variant in RESERVED_VARIANTS.items():
+        with pytest.raises(NotImplementedError):
+            run_matrix(corpus, {name: variant})
+    reset_backend()

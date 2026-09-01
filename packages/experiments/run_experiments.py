@@ -28,7 +28,14 @@ from turnstile_corpus import generate_corpus
 from turnstile_pricing import price_trace
 from turnstile_schema import load_rates
 
-from turnstile_experiments import VARIANTS, compute_baselines, estimate_cost, recoverable_margin, run_matrix
+from turnstile_experiments import (
+    VARIANTS,
+    build_manifest,
+    compute_baselines,
+    estimate_cost,
+    recoverable_margin,
+    run_matrix_checkpointed,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 RATES_PATH = ROOT / "pricing" / "rates.yaml"
@@ -43,6 +50,11 @@ def main(argv: list[str] | None = None) -> None:
         help="assumed annual call volume for the annualized savings projection",
     )
     parser.add_argument("--out", type=str, default="experiments/results.json", help="output JSON path")
+    parser.add_argument(
+        "--checkpoint", type=str, default=None,
+        help="trace-level checkpoint JSONL path (default: <out>.checkpoint.jsonl). "
+             "A resumed run reuses completed trials and never re-spends on them.",
+    )
     parser.add_argument(
         "--paid", action="store_true",
         help="use the real OpenAIBackend instead of the free MockBackend "
@@ -77,7 +89,16 @@ def main(argv: list[str] | None = None) -> None:
         from turnstile_experiments import OpenAIBackend
         backend = OpenAIBackend()
 
-    matrix = run_matrix(corpus, VARIANTS, backend=backend)
+    out_path = Path(args.out)
+    checkpoint_path = Path(args.checkpoint) if args.checkpoint else out_path.with_suffix(".checkpoint.jsonl")
+
+    backend_name = "OpenAIBackend" if backend is not None else "MockBackend"
+    manifest = build_manifest(
+        seed=args.seed, n=len(corpus), backend_name=backend_name,
+        variants=VARIANTS, corpus=corpus, rates_path=RATES_PATH, root=ROOT,
+    )
+
+    matrix = run_matrix_checkpointed(corpus, VARIANTS, checkpoint_path, backend=backend)
 
     total_cost = sum(pt.conv_cost for pt in corpus)
     margin = recoverable_margin(matrix, total_cost, args.annual_calls)
@@ -85,14 +106,14 @@ def main(argv: list[str] | None = None) -> None:
     results = {
         "n_corpus": len(corpus),
         "seed": args.seed,
-        "backend": "OpenAIBackend" if backend is not None else "MockBackend",
+        "backend": backend_name,
+        "manifest": manifest,
         "baselines": baselines.model_dump(),
         "matrix": {name: result.model_dump() for name, result in matrix.items()},
         "recoverable_margin": margin,
         "cost_estimate": estimate,
     }
 
-    out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(f"\nwrote results to {out_path}")

@@ -157,3 +157,59 @@ def test_no_model_routing_at_all_uses_original_model(monkeypatch):
 
     assert fake_client.completions.calls[0]["model"] == "gpt-5"
     assert decision.model == "gpt-5"
+
+
+# --------------------------------------------------------------------------- #
+# Resilience: a real (non-injected) client must be built with a per-call      #
+# timeout and bounded retries so a single stalled API call can never hang the #
+# whole matrix (the failure observed on the first n=30 smoke run). The SDK's  #
+# own timeout+max_retries handle transient errors/backoff; we only assert the #
+# client is configured with them and that a per-request timeout is sent.      #
+# --------------------------------------------------------------------------- #
+
+def test_real_client_built_with_timeout_and_retries(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    captured: dict = {}
+
+    class _SpyOpenAI:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr("turnstile_experiments.openai_backend.OpenAI", _SpyOpenAI)
+    OpenAIBackend(request_timeout_s=45.0, max_retries=7)
+
+    assert captured["api_key"] == "sk-test-fake"
+    assert captured["timeout"] == 45.0
+    assert captured["max_retries"] == 7
+
+
+def test_passes_per_request_timeout(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client, request_timeout_s=33.0)
+
+    context = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    backend(context, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    assert fake_client.completions.calls[0]["timeout"] == 33.0
+
+
+def test_progress_logged_every_n_calls(monkeypatch, capsys):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client, progress_every=2)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = llm("l1", decision_kind=DecisionKind.route, model="gpt-5")
+    for _ in range(4):
+        backend(ctx, span, VariantSpec())
+
+    err = capsys.readouterr().err
+    # Cumulative call count is surfaced so a long run is observably progressing.
+    assert "4" in err

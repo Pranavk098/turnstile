@@ -11,6 +11,8 @@ from __future__ import annotations
 from turnstile_schema import ExperimentResult, PricedTrace, VariantSpec
 from turnstile_replay import DecisionBackend, MockBackend, experiment, get_backend, set_backend
 
+from turnstile_experiments.guard import assert_variant_executable
+
 
 def run_matrix(
     corpus: list[PricedTrace],
@@ -22,6 +24,9 @@ def run_matrix(
     if ``backend`` is ``None``). The previously-installed backend is always
     restored afterward (even on error), so calling this never leaks a backend
     change into unrelated code."""
+    for name, variant in variants.items():
+        assert_variant_executable(name, variant)
+
     previous = get_backend()
     set_backend(backend if backend is not None else MockBackend())
     try:

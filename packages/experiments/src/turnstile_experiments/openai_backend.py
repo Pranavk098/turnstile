@@ -22,10 +22,21 @@ nothing in this package's test suite ever reaches the network.
 from __future__ import annotations
 
 import os
+import sys
 import time
 from typing import Any
 
 from openai import OpenAI
+
+# A single stalled Chat Completions call must never hang the whole matrix
+# (observed on the first n=30 smoke: no timeout -> the run blocked ~38min on
+# one call). The OpenAI SDK applies BOTH a per-call ``timeout`` and bounded,
+# backed-off ``max_retries`` (429 / >=500 / connection / timeout) when they are
+# set on the client -- so we set them there rather than hand-rolling a retry
+# loop that would double up with the SDK's own.
+DEFAULT_REQUEST_TIMEOUT_S = 60.0
+DEFAULT_MAX_RETRIES = 5
+DEFAULT_PROGRESS_EVERY = 25
 
 from turnstile_schema import VariantSpec
 from turnstile_schema.spans import LlmDecide
@@ -54,7 +65,14 @@ def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[d
 
 
 class OpenAIBackend:
-    def __init__(self, client: Any | None = None) -> None:
+    def __init__(
+        self,
+        client: Any | None = None,
+        *,
+        request_timeout_s: float = DEFAULT_REQUEST_TIMEOUT_S,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        progress_every: int = DEFAULT_PROGRESS_EVERY,
+    ) -> None:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise RuntimeError(
                 "OpenAIBackend refuses to run: set TURNSTILE_ALLOW_PAID=1 to "
@@ -65,7 +83,12 @@ class OpenAIBackend:
             raise RuntimeError(
                 "OpenAIBackend refuses to run: OPENAI_API_KEY is not set."
             )
-        self._client = client if client is not None else OpenAI(api_key=api_key)
+        self._request_timeout_s = request_timeout_s
+        self._progress_every = progress_every
+        self._calls = 0
+        self._client = client if client is not None else OpenAI(
+            api_key=api_key, timeout=request_timeout_s, max_retries=max_retries
+        )
 
     def __call__(
         self, context: ReplayContext, original_span: LlmDecide, variant: VariantSpec
@@ -76,8 +99,19 @@ class OpenAIBackend:
 
         messages = _render_messages(context, original_span)
         start = time.monotonic()
-        response = self._client.chat.completions.create(model=model, messages=messages)
+        response = self._client.chat.completions.create(
+            model=model, messages=messages, timeout=self._request_timeout_s
+        )
         latency_ms = int((time.monotonic() - start) * 1000)
+
+        self._calls += 1
+        if self._progress_every and self._calls % self._progress_every == 0:
+            print(
+                f"[OpenAIBackend] {self._calls} calls (last model={model}, "
+                f"{latency_ms}ms)",
+                file=sys.stderr,
+                flush=True,
+            )
 
         choice = response.choices[0]
         text = choice.message.content or ""
