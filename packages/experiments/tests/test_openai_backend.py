@@ -111,8 +111,12 @@ def test_forms_correct_request_and_parses_response(monkeypatch):
     assert len(fake_client.completions.calls) == 1
     call = fake_client.completions.calls[0]
     assert call["model"] == "gpt-5-nano"
-    # M-3: the generous completion cap is sent on every call.
-    assert call["max_tokens"] == 256
+    # M-3: the generous completion cap is sent on every call. gpt-5 models
+    # require `max_completion_tokens` (the legacy `max_tokens` 400s).
+    assert call["max_completion_tokens"] == 256
+    # Reasoning models must run at minimal effort or reasoning eats the whole
+    # cap and returns empty content (smoke #3: 100% false divergence).
+    assert call["reasoning_effort"] == "minimal"
 
     # Pinned context is present in the formed request.
     messages_text = " ".join(m["content"] for m in call["messages"])
@@ -289,7 +293,7 @@ def test_max_completion_tokens_cap_is_configurable(monkeypatch):
     ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
     backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
 
-    assert fake_client.completions.calls[0]["max_tokens"] == 128
+    assert fake_client.completions.calls[0]["max_completion_tokens"] == 128
 
 
 def test_completion_hitting_the_cap_is_logged(monkeypatch, capsys):

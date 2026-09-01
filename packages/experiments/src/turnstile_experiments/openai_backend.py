@@ -49,6 +49,17 @@ DEFAULT_PROGRESS_EVERY = 25
 # as a suspected truncation.
 DEFAULT_MAX_COMPLETION_TOKENS = 256
 
+# The gpt-5 family are REASONING models: they spend completion-token budget on
+# internal reasoning BEFORE any visible content. Smoke #3 measured every
+# gpt-5-nano call consuming the whole 256-token cap on reasoning and returning
+# EMPTY content (finish_reason="length") -> 100% false divergence. A routing/
+# slot decision needs no deep reasoning, so we run the replayed model at
+# minimal reasoning effort: verified non-empty content, ~125 completion tokens,
+# and ~2s latency (vs ~9s) on the same prompt. Applied uniformly across the
+# experiment, so it is a stated, consistent modeling choice, not per-trace
+# tuning.
+DEFAULT_REASONING_EFFORT = "minimal"
+
 
 def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[dict[str, str]]:
     """Pinned history (``ReplayContext.turns_before``) plus the CURRENT turn's
@@ -87,6 +98,7 @@ class OpenAIBackend:
         max_retries: int = DEFAULT_MAX_RETRIES,
         progress_every: int = DEFAULT_PROGRESS_EVERY,
         max_completion_tokens: int = DEFAULT_MAX_COMPLETION_TOKENS,
+        reasoning_effort: str = DEFAULT_REASONING_EFFORT,
     ) -> None:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise RuntimeError(
@@ -101,6 +113,7 @@ class OpenAIBackend:
         self._request_timeout_s = request_timeout_s
         self._progress_every = progress_every
         self._max_completion_tokens = max_completion_tokens
+        self._reasoning_effort = reasoning_effort
         # Change B (audit 06 Sec.6.2): the shared client runs across worker
         # threads; the progress counter is the only cross-call state and must
         # not lose increments or interleave its prints.
@@ -121,7 +134,12 @@ class OpenAIBackend:
         start = time.monotonic()
         response = self._client.chat.completions.create(
             model=model, messages=messages,
-            max_tokens=self._max_completion_tokens,  # M-3: bound runaway generations
+            # M-3: bound runaway generations. The gpt-5 family (reasoning
+            # models) rejects the legacy `max_tokens` with a 400 and requires
+            # `max_completion_tokens` -- the fake-client tests can't see that,
+            # so it only surfaced against the real API (smoke #3).
+            max_completion_tokens=self._max_completion_tokens,
+            reasoning_effort=self._reasoning_effort,  # keep reasoning from eating the whole cap
             timeout=self._request_timeout_s,
         )
         latency_ms = int((time.monotonic() - start) * 1000)
