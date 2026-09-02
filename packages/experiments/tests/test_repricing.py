@@ -37,6 +37,7 @@ PREFIX_CACHING = REPRICING_VARIANTS["prefix_caching_on"]
 TOOL_BATCHING = REPRICING_VARIANTS["tool_batching_on"]
 WINDOW_8 = REPRICING_VARIANTS["context_window_8"]
 ESCALATION = REPRICING_VARIANTS["escalation_threshold_0_85"]
+RETRIEVAL = REPRICING_VARIANTS["retrieval_threshold_0_8"]
 
 
 def _two_turn_pt():
@@ -420,14 +421,111 @@ def test_escalation_refuses_unknown_policies():
 
 
 # --------------------------------------------------------------------------- #
+# A5: retrieval_policy="threshold:0.8" -> D3 (drop redundant retrievals)       #
+# --------------------------------------------------------------------------- #
+
+def _retrieval_pt(*, second_has_context=True):
+    # Corpus-shaped: turn 0 retrieves doc d1 (300 tokens into context); turn 1
+    # re-retrieves the SAME doc -- D3's structural redundancy.
+    t0 = turn(0, llm_spans=[llm("l0", model="gpt-5", input_tokens=400, output_tokens=10)],
+              tools_spans=[tool("r0", name="retrieve_kb_article", args_hash="h_d1",
+                                cost_usd=0.01, kind=ToolKind.retrieval,
+                                args_json='{"query": "kb", "doc_id": "d1"}')])
+    t0 = t0.model_copy(update={"context": context(
+        "c0", history_tokens=0, retrieved_tokens=300, retrieved_doc_ids=["d1"])})
+    t1 = turn(1, llm_spans=[llm("l1", model="gpt-5", input_tokens=400, output_tokens=10)],
+              tools_spans=[tool("r1", name="retrieve_kb_article", args_hash="h_d1",
+                                cost_usd=0.02, kind=ToolKind.retrieval,
+                                args_json='{"query": "kb", "doc_id": "d1"}')])
+    if second_has_context:
+        t1 = t1.model_copy(update={"context": context(
+            "c1", history_tokens=0, retrieved_tokens=300, retrieved_doc_ids=["d1"])})
+    return priced(t0, t1)
+
+
+def test_retrieval_threshold_delta_hand_computed_from_rates():
+    pt = _retrieval_pt()
+    result = run_repricing_experiment([pt], RETRIEVAL, rates=RATES)
+    # The redundant re-retrieval is dropped: turn 1 loses d1's 300 tokens at
+    # gpt-5's input rate (D3's token accounting) plus r1's vendor cost.
+    expected = -(300 / 1e6) * GPT5.input - 0.02
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_retrieval_threshold_updates_context_bookkeeping():
+    tr = apply_variant_transform(_retrieval_pt(), RETRIEVAL, rates=RATES)
+    assert len(tr.turns[1].tools) == 0                      # redundant call dropped
+    assert tr.turns[0].tools[0].span_id == "r0"             # first retrieval kept
+    s1 = tr.turns[1].llm[0]
+    assert s1.input_tokens == 100                           # 400 - 300 doc tokens
+    c1 = tr.turns[1].context
+    assert (c1.retrieved_tokens, c1.context_tokens) == (0, 100)
+    assert c1.retrieved_doc_ids == []
+    # turn 0 untouched
+    assert tr.turns[0].llm[0].input_tokens == 400
+    assert tr.turns[0].context.retrieved_doc_ids == ["d1"]
+
+
+def test_retrieval_threshold_keeps_novel_docs():
+    # Same doc id in both turns is redundant; a DIFFERENT doc id is not.
+    t0 = turn(0, llm_spans=[llm("l0", input_tokens=400, output_tokens=10)],
+              tools_spans=[tool("r0", name="retrieve_kb_article", cost_usd=0.01,
+                                kind=ToolKind.retrieval, args_json='{"doc_id": "d1"}')])
+    t0 = t0.model_copy(update={"context": context(
+        "c0", history_tokens=0, retrieved_tokens=300, retrieved_doc_ids=["d1"])})
+    t1 = turn(1, llm_spans=[llm("l1", input_tokens=450, output_tokens=10)],
+              tools_spans=[tool("r1", name="retrieve_kb_article", cost_usd=0.02,
+                                kind=ToolKind.retrieval, args_json='{"doc_id": "d2"}')])
+    t1 = t1.model_copy(update={"context": context(
+        "c1", history_tokens=0, retrieved_tokens=350, retrieved_doc_ids=["d2"])})
+    pt = priced(t0, t1)
+    result = run_repricing_experiment([pt], RETRIEVAL, rates=RATES)
+    assert result.delta_cost_mean == 0.0
+    tr = apply_variant_transform(pt, RETRIEVAL, rates=RATES)
+    assert len(tr.turns[1].tools) == 1
+
+
+def test_retrieval_threshold_without_context_span_still_saves_tokens():
+    # The redundant call's tokens leave the input even when the turn carries
+    # no ContextAssemble to update (floored at 0); only the bookkeeping skip.
+    pt = _retrieval_pt(second_has_context=False)
+    result = run_repricing_experiment([pt], RETRIEVAL, rates=RATES)
+    expected = -(300 / 1e6) * GPT5.input - 0.02
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_retrieval_threshold_refuses_unknown_policies():
+    pt = priced(turn(0, llm_spans=[llm("l0")]))
+    for policy in ("cosine:0.85", "threshold", "threshold:0", "threshold:1.5", "auto"):
+        with pytest.raises(NotImplementedError, match="retrieval_policy"):
+            run_repricing_experiment(
+                [pt], VariantSpec(retrieval_policy=policy), rates=RATES)
+
+
+def test_retrieval_threshold_is_pure_and_deterministic_over_corpus():
+    pt = _retrieval_pt()
+    before = pt.trace.model_dump()
+    apply_variant_transform(pt, RETRIEVAL, rates=RATES)
+    assert pt.trace.model_dump() == before
+
+    corpus = [price_trace(t, RATES) for t in generate_corpus(10, 0)]
+    first = run_repricing_matrix(
+        corpus, {"retrieval_threshold_0_8": RETRIEVAL}, rates=RATES)
+    second = run_repricing_matrix(
+        corpus, {"retrieval_threshold_0_8": RETRIEVAL}, rates=RATES)
+    assert first == second
+    assert first["retrieval_threshold_0_8"].delta_cost_mean <= 0.0
+
+
+# --------------------------------------------------------------------------- #
 # Fail-loud refusals                                                           #
 # --------------------------------------------------------------------------- #
 
 def test_refuses_variant_without_a_transform():
     pt = _two_turn_pt()
-    with pytest.raises(NotImplementedError, match="retrieval_policy"):
+    with pytest.raises(NotImplementedError, match="tts_chunking"):
         run_repricing_experiment(
-            [pt], VariantSpec(retrieval_policy="threshold:0.8"), rates=RATES)
+            [pt], VariantSpec(tts_chunking="sentence"), rates=RATES)
     with pytest.raises(NotImplementedError, match="no fields"):
         run_repricing_experiment([pt], VariantSpec(), rates=RATES)
     # A backend knob cannot ride the re-pricing path either.

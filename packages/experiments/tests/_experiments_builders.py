@@ -46,22 +46,22 @@ def llm(sid: str, *, start=0, dur=500, model="gpt-5", input_tokens=500, output_t
 
 
 def context(sid: str, *, history_tokens, system_tokens=100, retrieved_tokens=0,
-            start=0, dur=50) -> ContextAssemble:
+            retrieved_doc_ids=(), start=0, dur=50) -> ContextAssemble:
     # Corpus convention (generate.py): llm input = system + history + retrieved.
     return ContextAssemble(
         span_id=sid, start_offset_ms=start, duration_ms=dur,
         context_tokens=system_tokens + history_tokens + retrieved_tokens,
         history_tokens=history_tokens, system_tokens=system_tokens,
-        retrieved_tokens=retrieved_tokens, retrieved_doc_ids=[],
+        retrieved_tokens=retrieved_tokens, retrieved_doc_ids=list(retrieved_doc_ids),
         pruning_strategy=PruningStrategy.none,
     )
 
 
 def tool(sid: str, *, start=0, dur=500, name="update_address", args_hash="sha256:h",
-         cost_usd=0.0, kind=ToolKind.lookup, effect=Effect.none) -> ToolCall:
+         cost_usd=0.0, kind=ToolKind.lookup, effect=Effect.none, args_json="{}") -> ToolCall:
     return ToolCall(
         span_id=sid, start_offset_ms=start, duration_ms=dur,
-        tool_name=name, args_hash=args_hash, args_json="{}", result_hash="sha256:r",
+        tool_name=name, args_hash=args_hash, args_json=args_json, result_hash="sha256:r",
         latency_ms=dur, cost_usd=cost_usd, tool_kind=kind, effect=effect,
     )
 

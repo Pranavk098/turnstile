@@ -24,7 +24,6 @@ yet. Each mirrors a detector's ``proposed_variant`` remedy, so they are kept
 here as the concrete to-do list for promoting those findings from Tier-2
 (detected + quantified) to executable:
 
-  * retrieval_policy                -> D3 (redundant retrieval)
   * tts_chunking                    -> D6 (dead tokens), D7 (barge-in)
 
 They are deliberately NOT in ``VARIANTS`` or ``REPRICING_VARIANTS``: running
@@ -53,11 +52,11 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "prefix_caching_on": VariantSpec(prefix_caching=True),
     "tool_batching_on": VariantSpec(tool_batching=True),
     "escalation_threshold_0_85": VariantSpec(escalation_policy="threshold:0.85"),
+    "retrieval_threshold_0_8": VariantSpec(retrieval_policy="threshold:0.8"),
 }
 
 # Reserved -- valid remedies with NO execution path yet (see module
 # docstring). Documented, NOT run by any runner.
 RESERVED_VARIANTS: dict[str, VariantSpec] = {
-    "retrieval_threshold_0_8": VariantSpec(retrieval_policy="threshold:0.8"),
     "tts_chunking_sentence": VariantSpec(tts_chunking="sentence"),
 }

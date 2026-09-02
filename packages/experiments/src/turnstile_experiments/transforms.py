@@ -29,11 +29,12 @@ enforces the separate bucket).
 """
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable
 
 from turnstile_schema import PricedTrace, RateTable, Trace, VariantSpec, load_rates
-from turnstile_schema.enums import VerdictLabel
+from turnstile_schema.enums import ToolKind, VerdictLabel
 from turnstile_schema.spans import ToolCall
 from turnstile_pricing import price_trace
 from turnstile_verdict import adjudicate
@@ -361,6 +362,151 @@ def _dedup_tool_calls(trace: Trace) -> tuple[Trace, list[ToolCall]]:
     if not any_changed:
         return trace, removed
     return trace.model_copy(update={"turns": new_turns}), removed
+
+
+_THRESHOLD_RE = re.compile(r"^threshold:(\d+(?:\.\d+)?)$")
+
+
+@_register("retrieval_policy")
+def _transform_retrieval_threshold(pt: PricedTrace, value: object) -> Trace:
+    """Drop retrievals redundant with what context already holds
+    (``retrieval_policy="threshold:0.8"``, D3's remedy) and remove their
+    tokens from the priced input.
+
+    Threshold model (STATED): "threshold:<p>" names a similarity threshold
+    above which a retrieval is deemed redundant with context. This wave has
+    no embedding model (the cosine-similarity half of D3 is its own Section-C
+    item), so the deterministic stand-in is D3's structural half, reused:
+    an exact doc-id overlap with an earlier turn's context = similarity 1.0
+    (certainty) -> dropped. Retrievals with no measured similarity are KEPT.
+    The stand-in therefore realizes the threshold at effectively 1.0, and the
+    resulting saving is a LOWER BOUND on what a real p=0.8 policy would
+    save -- stated here rather than guessed.
+
+    Mechanics (D3's own accounting, mirrored): a dropped retrieval's doc
+    tokens are priced at the ``retrieved_tokens`` recorded when the doc FIRST
+    surfaced (d03's waste rule); they are subtracted from the redundant
+    turn's ``llm.decide`` inputs (floored at 0, cache tokens clamped to the
+    reduced input). The turn's ``context.assemble`` span, when present, has
+    its retrieved/context token counts reduced and its ``retrieved_doc_ids``
+    lose the dropped docs.
+
+    The vendor-reported ``cost_usd`` of the dropped calls enters via
+    ``UNPRICED_DELTAS`` (price_trace excludes tool spans by design) --
+    D3's "tool cost + retrieved_tokens x rate_in", with the rate_in half
+    realized by the re-priced input reduction.
+
+    CONDITIONAL saving: dropping the retrieval preserves the outcome only if
+    the doc was genuinely already available in context -- unmeasurable on
+    the synthetic corpus (H-1); report under the conditional label, never
+    as measured.
+    """
+    match = _THRESHOLD_RE.match(str(value))
+    if not match:
+        raise NotImplementedError(
+            f"retrieval_policy={value!r} has no deterministic re-pricing "
+            f"transform yet (implemented policies: threshold:<p>, 0 < p <= 1)."
+        )
+    threshold = float(match.group(1))
+    if not 0.0 < threshold <= 1.0:
+        raise NotImplementedError(f"retrieval_policy={value!r}: threshold must be in (0, 1]")
+    kept, _dropped_cost = _apply_retrieval_threshold(pt.trace)
+    return kept
+
+
+@_register_unpriced("retrieval_policy")
+def _unpriced_retrieval_threshold(trace: Trace) -> float:
+    """The dropped (redundant) retrievals' vendor-reported cost, negative =
+    saving -- D3's "tool cost" half; the token half is realized by the
+    transform's input reduction and shows up in the re-priced delta."""
+    _kept, dropped_cost = _apply_retrieval_threshold(trace)
+    return -dropped_cost
+
+
+def _apply_retrieval_threshold(trace: Trace) -> tuple[Trace, float]:
+    """D3's structural rule (mirrored, like cost_estimate mirrors replay's
+    earliest-applicable-turn rule -- keep in sync if d03 changes): a
+    ``tool_kind=retrieval`` call whose doc ids (parsed from ``args_json``'s
+    ``doc_id``/``doc_ids`` keys, the fixture-authoring convention) overlap an
+    EARLIER turn's ``context.assemble.retrieved_doc_ids`` is redundant; the
+    first occurrence of a doc is legitimate. Returns (transformed trace,
+    total vendor cost of the dropped calls). Pure: never mutates the input.
+    """
+    prior_doc_tokens: dict[str, tuple[int, int]] = {}
+    dropped_cost = 0.0
+    new_turns = []
+    any_changed = False
+    for turn in trace.turns:
+        redundant_tokens = 0
+        dropped_ids: set[str] = set()
+        new_tools = []
+        turn_changed = False
+        for tool in turn.tools:
+            if tool.tool_kind is not ToolKind.retrieval:
+                new_tools.append(tool)
+                continue
+            call_ids = _doc_ids_from_args(tool.args_json)
+            overlap = call_ids & prior_doc_tokens.keys()
+            if not overlap:
+                new_tools.append(tool)
+                continue
+            dropped_cost += tool.cost_usd
+            turn_changed = True
+            for doc_id in overlap:
+                if doc_id in dropped_ids:
+                    continue
+                dropped_ids.add(doc_id)
+                redundant_tokens += prior_doc_tokens[doc_id][1]
+        if turn_changed:
+            updates: dict = {"tools": new_tools, "llm": []}
+            if turn.context is not None:
+                updates["context"] = turn.context.model_copy(update={
+                    "retrieved_tokens": max(0, turn.context.retrieved_tokens - redundant_tokens),
+                    "context_tokens": max(0, turn.context.context_tokens - redundant_tokens),
+                    "retrieved_doc_ids": [d for d in turn.context.retrieved_doc_ids
+                                          if d not in dropped_ids],
+                })
+            for span in turn.llm:
+                new_input = max(0, span.input_tokens - redundant_tokens)
+                if new_input != span.input_tokens:
+                    span = span.model_copy(update={
+                        "input_tokens": new_input,
+                        "cache_read_tokens": min(span.cache_read_tokens, new_input),
+                        "cache_write_tokens": min(span.cache_write_tokens, new_input),
+                    })
+                updates["llm"].append(span)
+            new_turns.append(turn.model_copy(update=updates))
+        else:
+            new_turns.append(turn)
+        any_changed = any_changed or turn_changed
+        # D3's ordering: record the turn's own context docs AFTER its tools
+        # were matched, so a turn's retrieval never matches itself; earliest
+        # turn wins (do not overwrite), using the ORIGINAL token counts.
+        if turn.context is not None:
+            for doc_id in turn.context.retrieved_doc_ids:
+                prior_doc_tokens.setdefault(doc_id, (turn.turn_index, turn.context.retrieved_tokens))
+    if not any_changed:
+        return trace, dropped_cost
+    return trace.model_copy(update={"turns": new_turns}), dropped_cost
+
+
+def _doc_ids_from_args(args_json: str) -> set[str]:
+    """Mirrors d03_redundant_retrieval._doc_ids_from_args (private there;
+    duplicated here rather than imported -- keep in sync)."""
+    try:
+        args = json.loads(args_json)
+    except (json.JSONDecodeError, TypeError):
+        return set()
+    if not isinstance(args, dict):
+        return set()
+    ids: set[str] = set()
+    doc_id = args.get("doc_id")
+    if isinstance(doc_id, str):
+        ids.add(doc_id)
+    doc_ids = args.get("doc_ids")
+    if isinstance(doc_ids, list):
+        ids.update(d for d in doc_ids if isinstance(d, str))
+    return ids
 
 
 def apply_variant_transform(
