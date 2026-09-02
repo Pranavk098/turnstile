@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from turnstile_pricing import price_trace
 from turnstile_schema import PricedTrace, load_rates
-from turnstile_schema.enums import DecisionKind, EndReason, PruningStrategy, ToolKind
+from turnstile_schema.enums import DecisionKind, Effect, EndReason, PruningStrategy, ToolKind
 from turnstile_schema.spans import AsrTranscribe, ContextAssemble, LlmDecide, ToolCall
 from turnstile_schema.trace import Conversation, Trace, Turn
 
@@ -58,11 +58,11 @@ def context(sid: str, *, history_tokens, system_tokens=100, retrieved_tokens=0,
 
 
 def tool(sid: str, *, start=0, dur=500, name="update_address", args_hash="sha256:h",
-         cost_usd=0.0) -> ToolCall:
+         cost_usd=0.0, kind=ToolKind.lookup, effect=Effect.none) -> ToolCall:
     return ToolCall(
         span_id=sid, start_offset_ms=start, duration_ms=dur,
         tool_name=name, args_hash=args_hash, args_json="{}", result_hash="sha256:r",
-        latency_ms=dur, cost_usd=cost_usd, tool_kind=ToolKind.lookup,
+        latency_ms=dur, cost_usd=cost_usd, tool_kind=kind, effect=effect,
     )
 
 

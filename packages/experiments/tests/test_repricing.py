@@ -1,4 +1,4 @@
-"""Tests for the deterministic re-pricing path (Section A task 1:
+﻿"""Tests for the deterministic re-pricing path (Section A task 1:
 prefix_caching -> D2, docs/superpowers/GLM-OVERNIGHT-BATCH.md).
 
 The acceptance core: a test hand-computing the delta from rates.yaml on a
@@ -11,6 +11,10 @@ import pytest
 from turnstile_corpus import generate_corpus
 from turnstile_pricing import price_trace
 from turnstile_schema import VariantSpec, load_rates
+from turnstile_schema.enums import DecisionKind, Direction, Effect, ToolKind, VerdictLabel
+from turnstile_schema.spans import TelephonyLeg
+from turnstile_schema.trace import Trace
+from turnstile_verdict import adjudicate
 
 from turnstile_experiments import (
     CONDITIONAL_SAVINGS_LABEL,
@@ -23,7 +27,7 @@ from turnstile_experiments.transforms import (
     apply_variant_transform,
 )
 
-from _experiments_builders import context, llm, priced, tool, turn
+from _experiments_builders import context, conv, llm, priced, tool, turn
 
 RATES = load_rates("pricing/rates.yaml")
 GPT5 = RATES.llm["openai/gpt-5"]
@@ -32,6 +36,7 @@ MINI = RATES.llm["openai/gpt-5-mini"]
 PREFIX_CACHING = REPRICING_VARIANTS["prefix_caching_on"]
 TOOL_BATCHING = REPRICING_VARIANTS["tool_batching_on"]
 WINDOW_8 = REPRICING_VARIANTS["context_window_8"]
+ESCALATION = REPRICING_VARIANTS["escalation_threshold_0_85"]
 
 
 def _two_turn_pt():
@@ -60,7 +65,7 @@ def test_prefix_caching_delta_hand_computed_from_rates():
 
 
 def test_transform_moves_only_the_shared_prefix_to_cache_read():
-    tr = apply_variant_transform(_two_turn_pt().trace, PREFIX_CACHING)
+    tr = apply_variant_transform(_two_turn_pt(), PREFIX_CACHING)
     s0, s1 = tr.turns[0].llm[0], tr.turns[1].llm[0]
     assert s0.cache_read_tokens == 0    # first request establishes the cache
     assert s1.cache_read_tokens == 500  # = turn-0's request size
@@ -73,7 +78,7 @@ def test_delta_is_exact_rate_arbitrage_on_the_prefix_tokens():
     # non-llm stages and the non-prefix tokens contribute nothing.
     pt = _two_turn_pt()
     original = price_trace(pt.trace, RATES)
-    transformed = price_trace(apply_variant_transform(pt.trace, PREFIX_CACHING), RATES)
+    transformed = price_trace(apply_variant_transform(pt, PREFIX_CACHING), RATES)
     assert transformed.conv_cost - original.conv_cost == pytest.approx(
         -(500 / 1e6) * (GPT5.input - GPT5.cache_read))
 
@@ -107,7 +112,7 @@ def test_existing_cache_hits_are_never_reduced():
         turn(1, llm_spans=[llm("l1", model="gpt-5", input_tokens=800, output_tokens=15,
                              cache_read_tokens=600)]),
     )
-    tr = apply_variant_transform(pt.trace, PREFIX_CACHING)
+    tr = apply_variant_transform(pt, PREFIX_CACHING)
     assert tr.turns[1].llm[0].cache_read_tokens == 600  # max() keeps the hit
     result = run_repricing_experiment([pt], PREFIX_CACHING, rates=RATES)
     assert result.delta_cost_mean == 0.0
@@ -118,7 +123,7 @@ def test_context_shrink_caps_the_prefix_at_the_current_request():
         turn(0, llm_spans=[llm("l0", model="gpt-5", input_tokens=500, output_tokens=15)]),
         turn(1, llm_spans=[llm("l1", model="gpt-5", input_tokens=300, output_tokens=15)]),
     )
-    tr = apply_variant_transform(pt.trace, PREFIX_CACHING)
+    tr = apply_variant_transform(pt, PREFIX_CACHING)
     assert tr.turns[1].llm[0].cache_read_tokens == 300
     expected = -(300 / 1e6) * (GPT5.input - GPT5.cache_read)
     result = run_repricing_experiment([pt], PREFIX_CACHING, rates=RATES)
@@ -128,7 +133,7 @@ def test_context_shrink_caps_the_prefix_at_the_current_request():
 def test_transform_is_pure_input_trace_unchanged():
     pt = _two_turn_pt()
     before = pt.trace.model_dump()
-    apply_variant_transform(pt.trace, PREFIX_CACHING)
+    apply_variant_transform(pt, PREFIX_CACHING)
     assert pt.trace.model_dump() == before
 
 
@@ -163,7 +168,7 @@ def test_tool_batching_delta_is_the_deduped_calls_vendor_cost():
     result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
     assert result.delta_cost_mean == pytest.approx(-0.02)
 
-    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    tr = apply_variant_transform(pt, TOOL_BATCHING)
     assert len(tr.turns[0].tools) == 1
     assert len(tr.turns[1].tools) == 0
     # The rate-priced stages are untouched: the whole delta is the unpriced
@@ -180,7 +185,7 @@ def test_tool_batching_collapses_within_turn_duplicates():
              tools_spans=[tool("t0", name="x", args_hash="h", cost_usd=0.01),
                           tool("t1", name="x", args_hash="h", cost_usd=0.02)]),
     )
-    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    tr = apply_variant_transform(pt, TOOL_BATCHING)
     assert [t.span_id for t in tr.turns[0].tools] == ["t0"]
     result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
     assert result.delta_cost_mean == pytest.approx(-0.02)
@@ -195,7 +200,7 @@ def test_tool_batching_keeps_distinct_calls():
                           tool("t1", name="x", args_hash="h2", cost_usd=0.02),
                           tool("t2", name="y", args_hash="h1", cost_usd=0.03)]),
     )
-    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    tr = apply_variant_transform(pt, TOOL_BATCHING)
     assert len(tr.turns[0].tools) == 3
     result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
     assert result.delta_cost_mean == 0.0
@@ -249,7 +254,7 @@ def test_context_window_delta_hand_computed_from_rates():
 
 
 def test_context_window_truncates_exactly_the_out_of_window_turns():
-    tr = apply_variant_transform(_windowed_corpus_pt(n_turns=10, history_step=50).trace,
+    tr = apply_variant_transform(_windowed_corpus_pt(n_turns=10, history_step=50),
                                  WINDOW_8)
     for i in range(8):
         # < 8 turns of history behind turn i -> unchanged
@@ -276,7 +281,7 @@ def test_context_window_clamps_cache_tokens_to_the_reduced_input():
             "context": context(f"c{i}", history_tokens=hist)})
         turns.append(t)
     pt = priced(*turns)
-    tr = apply_variant_transform(pt.trace, WINDOW_8)
+    tr = apply_variant_transform(pt, WINDOW_8)
     # turn 8: input 550 - H_0 (50) -> reduced input 500; the full cache hit
     # (550) clamps to the reduced input.
     assert tr.turns[8].llm[0].input_tokens == 500
@@ -321,6 +326,97 @@ def test_context_window_over_corpus_deterministic_never_positive():
     r = first["context_window_8"]
     assert r.n == 10
     assert r.delta_cost_mean <= 0.0
+
+
+# --------------------------------------------------------------------------- #
+# A4: escalation_policy="threshold:0.85" -> D9 tier-1 early cutoff             #
+# --------------------------------------------------------------------------- #
+
+def _escalating_trace(with_telephony=False):
+    # Fixture-shaped ESCALATED conversation (mirrors golden 09's narrative,
+    # compressed): escalation predictable at turn 1 (earliest escalate_check
+    # -- D9's Wave-1 stand-in cutoff), handoff committed at turn 2.
+    t0 = turn(0, wall_start=0, wall_end=1000,
+              llm_spans=[llm("l0", decision_kind=DecisionKind.route,
+                             decision_chosen="s1", input_tokens=100, output_tokens=10)])
+    t1 = turn(1, wall_start=1000, wall_end=2000,
+              llm_spans=[llm("l1", decision_kind=DecisionKind.escalate_check,
+                             decision_chosen="continue", input_tokens=150, output_tokens=10)])
+    t2 = turn(2, wall_start=2000, wall_end=3000,
+              llm_spans=[llm("l2", decision_kind=DecisionKind.escalate_check,
+                             decision_chosen="escalate", input_tokens=200, output_tokens=10)],
+              tools_spans=[tool("th", name="transfer_to_agent",
+                                kind=ToolKind.handoff, effect=Effect.committed)])
+    telephony = None
+    if with_telephony:
+        telephony = TelephonyLeg(span_id="tel", start_offset_ms=0, duration_ms=3000,
+                                 provider="twilio", direction=Direction.inbound,
+                                 billable_seconds=30)
+    return Trace(conversation=conv(), turns=[t0, t1, t2], telephony=telephony)
+
+
+def test_escalation_cutoff_removes_the_turns_after_no_return():
+    pt = price_trace(_escalating_trace(), RATES)
+    verdict = adjudicate(pt)
+    assert verdict.label is VerdictLabel.ESCALATED
+    assert verdict.turn_of_no_return == 1  # D9's already-computed stand-in cutoff
+    result = run_repricing_experiment([pt], ESCALATION, rates=RATES)
+    # The conversation now ENDS at turn 1; turn 2's cost is the saving:
+    expected = -(200 / 1e6 * GPT5.input + 10 / 1e6 * GPT5.output)
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_escalation_cutoff_shrinks_telephony_pro_rata():
+    pt = price_trace(_escalating_trace(with_telephony=True), RATES)
+    result = run_repricing_experiment([pt], ESCALATION, rates=RATES)
+    stage_delta = -(200 / 1e6 * GPT5.input + 10 / 1e6 * GPT5.output)
+    tel_old = 30 / 60 * 0.0085
+    tel_new = 20 / 60 * 0.0085  # round(30 * 2000/3000) = 20 billable seconds
+    assert result.delta_cost_mean == pytest.approx(stage_delta - (tel_old - tel_new))
+
+
+def test_escalation_cutoff_leaves_non_escalated_traces_unchanged():
+    pt = priced(turn(0, llm_spans=[llm("l0")]))
+    result = run_repricing_experiment([pt], ESCALATION, rates=RATES)
+    assert result.delta_cost_mean == 0.0
+
+
+def test_escalation_cutoff_at_the_last_turn_claims_nothing():
+    t0 = turn(0, llm_spans=[llm("l0", decision_kind=DecisionKind.route,
+                                decision_chosen="s1")])
+    t1 = turn(1, llm_spans=[llm("l1", decision_kind=DecisionKind.escalate_check,
+                                decision_chosen="escalate")],
+              tools_spans=[tool("th", name="transfer_to_agent",
+                                kind=ToolKind.handoff, effect=Effect.committed)])
+    pt = priced(t0, t1)
+    verdict = adjudicate(pt)
+    assert verdict.label is VerdictLabel.ESCALATED
+    assert verdict.turn_of_no_return == 1  # handoff-turn fallback IS the last turn
+    result = run_repricing_experiment([pt], ESCALATION, rates=RATES)
+    assert result.delta_cost_mean == 0.0  # nothing runs after the cutoff
+
+
+def test_escalation_cutoff_is_pure_and_deterministic_over_corpus():
+    pt = price_trace(_escalating_trace(), RATES)
+    before = pt.trace.model_dump()
+    apply_variant_transform(pt, ESCALATION, rates=RATES)
+    assert pt.trace.model_dump() == before
+
+    corpus = [price_trace(t, RATES) for t in generate_corpus(10, 0)]
+    first = run_repricing_matrix(
+        corpus, {"escalation_threshold_0_85": ESCALATION}, rates=RATES)
+    second = run_repricing_matrix(
+        corpus, {"escalation_threshold_0_85": ESCALATION}, rates=RATES)
+    assert first == second
+    assert first["escalation_threshold_0_85"].delta_cost_mean <= 0.0
+
+
+def test_escalation_refuses_unknown_policies():
+    pt = priced(turn(0, llm_spans=[llm("l0")]))
+    for policy in ("classifier:v2", "threshold", "auto"):
+        with pytest.raises(NotImplementedError, match="escalation_policy"):
+            run_repricing_experiment(
+                [pt], VariantSpec(escalation_policy=policy), rates=RATES)
 
 
 # --------------------------------------------------------------------------- #

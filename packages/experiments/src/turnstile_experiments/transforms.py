@@ -1,18 +1,22 @@
 """Deterministic trace transforms for the Section-A re-pricing remedies
 (docs/superpowers/GLM-OVERNIGHT-BATCH.md, Section A).
 
-Each remedy transforms the trace deterministically (fewer tokens / cheaper
-rate / dropped spans); ``turnstile_experiments.repricing`` then re-prices the
-transformed trace via ``turnstile_pricing.price_trace`` and reports
-delta_cost = transformed - original -- the same rate-arbitrage shape
-``model_routing`` uses on the replay path, but with no backend and no spend.
+Each remedy transforms the priced trace deterministically (fewer tokens /
+cheaper rate / dropped spans / truncated conversation); ``turnstile_experiments.
+repricing`` then re-prices the transformed trace via
+``turnstile_pricing.price_trace`` and reports delta_cost = transformed -
+original -- the same rate-arbitrage shape ``model_routing`` uses on the replay
+path, but with no backend and no spend.
 
 The registry is per VariantSpec FIELD: ``REPRICING_TRANSFORMS[field]`` maps to
-``fn(trace, value) -> Trace`` where ``value`` is the field's VariantSpec value
-(``True`` for a bool field, the policy string for e.g. ``context_strategy``).
-A variant is re-pricing-executable iff EVERY field it sets has an entry here;
-``repricing.run_repricing_matrix`` refuses anything else (fail loud, same
-philosophy as ``guard``).
+``fn(priced_trace, value) -> Trace`` where ``value`` is the field's VariantSpec
+value (``True`` for a bool field, the policy string for e.g.
+``context_strategy``). Transforms receive the PRICED trace because some
+remedies read priced-conversation facts (the escalation cutoff reads the
+verdict ``adjudicate`` computes -- which itself reads only ``trace.trace``,
+costs unread). A variant is re-pricing-executable iff EVERY field it sets has
+an entry here; ``repricing.run_repricing_matrix`` refuses anything else (fail
+loud, same philosophy as ``guard``).
 
 Honesty contract shared by every transform here: these transforms REDUCE or
 re-rate work, so each saving is CONDITIONAL on the change preserving the
@@ -28,13 +32,18 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 
-from turnstile_schema import Trace, VariantSpec
+from turnstile_schema import PricedTrace, RateTable, Trace, VariantSpec, load_rates
+from turnstile_schema.enums import VerdictLabel
 from turnstile_schema.spans import ToolCall
+from turnstile_pricing import price_trace
+from turnstile_verdict import adjudicate
 
-# VariantSpec field -> transform(trace, field_value) -> transformed trace.
-# Pure functions: same trace + value in, same transformed trace out; no IO,
-# no RNG, no backend.
-REPRICING_TRANSFORMS: dict[str, Callable[[Trace, object], Trace]] = {}
+RATES_PATH = "pricing/rates.yaml"
+
+# VariantSpec field -> transform(priced_trace, field_value) -> transformed
+# trace. Pure functions: same input in, same transformed trace out; no IO, no
+# RNG, no backend.
+REPRICING_TRANSFORMS: dict[str, Callable[[PricedTrace, object], Trace]] = {}
 
 # VariantSpec field -> unpriced_delta(trace) -> float. Some transforms remove
 # cost that `price_trace` deliberately cannot see: ToolCall.cost_usd is
@@ -61,7 +70,7 @@ def _register_unpriced(field: str):
 
 
 @_register("prefix_caching")
-def _transform_prefix_caching(trace: Trace, _value: object) -> Trace:
+def _transform_prefix_caching(pt: PricedTrace, _value: object) -> Trace:
     """Re-price each decision's shared prefix at the ``cache_read`` rate
     (D2's remedy; the rate already exists in pricing/rates.yaml).
 
@@ -91,6 +100,7 @@ def _transform_prefix_caching(trace: Trace, _value: object) -> Trace:
     is NOT verified here (H-1). Report under the conditional label, never
     as a measured/proven saving.
     """
+    trace = pt.trace
     new_turns = []
     prev_input = 0
     any_changed = False
@@ -111,55 +121,11 @@ def _transform_prefix_caching(trace: Trace, _value: object) -> Trace:
     return trace.model_copy(update={"turns": new_turns})
 
 
-@_register("tool_batching")
-def _transform_tool_batching(trace: Trace, _value: object) -> Trace:
-    """Collapse duplicate tool calls to one billed call (D10's remedy).
-
-    Duplicate rule (verbatim D10's detection rule -- reused, not reinvented):
-    the FIRST occurrence of a ``(tool_name, args_hash)`` pair in the
-    conversation is the legitimate call; every later occurrence is dropped
-    from the trace. This collapses cross-turn repeats (the corpus's and golden
-    fixture 10's shape: a redundant re-call in a later turn) and within-turn
-    duplicates alike.
-
-    What is deterministically saved -- and what is NOT: dropping the duplicate
-    span removes only the redundant EXECUTION (the vendor call). The
-    duplicate's turn still happens under a memoizing tool layer -- the caller
-    still speaks, the agent's ``llm.decide`` still runs -- so this remedy
-    does NOT claim the redundant turn's cost. That turn-level attribution
-    ("cost of the duplicate calls + their turns") remains Detector 10's
-    Tier-2 waste estimate, deliberately NOT claimed here; this remedy claims
-    only "the deduped calls' cost" (vendor-reported ``cost_usd``, via
-    ``UNPRICED_DELTAS`` -- ``price_trace`` excludes tool spans by design).
-
-    CONDITIONAL saving + honest zero: batching preserves the outcome only if
-    the duplicate is truly redundant (same args -> same result; fixture 10's
-    own builder comment: both calls actually succeeded) -- preservation is
-    unverified (H-1), report under the conditional label. And the synthetic
-    corpus records no vendor cost (``cost_usd`` defaults to 0.0 and neither
-    the generator nor fixture 10 sets it), so on THIS corpus the delta is
-    exactly 0.0 -- the redundancy's measured cost on the corpus is turn-level
-    (D10's Tier-2 number), not vendor-level. That zero is honest: do not
-    turn it into the turn-level figure by stealth.
-    """
-    kept, _removed = _dedup_tool_calls(trace)
-    return kept
-
-
-@_register_unpriced("tool_batching")
-def _unpriced_tool_batching(trace: Trace) -> float:
-    """The deduped calls' vendor-reported cost (negative = saving) -- the
-    only cost a removed ToolCall carries, and the only cost this remedy
-    claims (see the transform's docstring for what is NOT claimed)."""
-    _kept, removed = _dedup_tool_calls(trace)
-    return -sum(tool.cost_usd for tool in removed)
-
-
 _WINDOW_POLICY_RE = re.compile(r"^window:(\d+)$")
 
 
 @_register("context_strategy")
-def _transform_context_window(trace: Trace, value: object) -> Trace:
+def _transform_context_window(pt: PricedTrace, value: object) -> Trace:
     """Truncate each decision's input to the last N turns of history
     (``context_strategy="window:N"``, D2/D4's remedy). N is the policy,
     stated in the variant string itself (e.g. ``window:8``); any other
@@ -207,6 +173,7 @@ def _transform_context_window(trace: Trace, value: object) -> Trace:
     if n_turns < 1:
         raise NotImplementedError(f"context_strategy={value!r}: window must keep >= 1 turn")
 
+    trace = pt.trace
     # (turn_index, history_tokens) of every context-bearing turn, in order.
     history_by_turn: list[tuple[int, int]] = []
     new_turns = []
@@ -217,7 +184,8 @@ def _transform_context_window(trace: Trace, value: object) -> Trace:
             history_by_turn.append((turn.turn_index, context.history_tokens))
 
         edge = None
-        for turn_index, history in reversed(history_by_turn[:-1] if context is not None else history_by_turn):
+        seen_all = history_by_turn[:-1] if context is not None else history_by_turn
+        for turn_index, history in reversed(seen_all):
             if turn_index <= turn.turn_index - n_turns:
                 edge = history
                 break
@@ -249,6 +217,124 @@ def _transform_context_window(trace: Trace, value: object) -> Trace:
     return trace.model_copy(update={"turns": new_turns})
 
 
+@_register("tool_batching")
+def _transform_tool_batching(pt: PricedTrace, _value: object) -> Trace:
+    """Collapse duplicate tool calls to one billed call (D10's remedy).
+
+    Duplicate rule (verbatim D10's detection rule -- reused, not reinvented):
+    the FIRST occurrence of a ``(tool_name, args_hash)`` pair in the
+    conversation is the legitimate call; every later occurrence is dropped
+    from the trace. This collapses cross-turn repeats (the corpus's and golden
+    fixture 10's shape: a redundant re-call in a later turn) and within-turn
+    duplicates alike.
+
+    What is deterministically saved -- and what is NOT: dropping the duplicate
+    span removes only the redundant EXECUTION (the vendor call). The
+    duplicate's turn still happens under a memoizing tool layer -- the caller
+    still speaks, the agent's ``llm.decide`` still runs -- so this remedy
+    does NOT claim the redundant turn's cost. That turn-level attribution
+    ("cost of the duplicate calls + their turns") remains Detector 10's
+    Tier-2 waste estimate, deliberately NOT claimed here; this remedy claims
+    only "the deduped calls' cost" (vendor-reported ``cost_usd``, via
+    ``UNPRICED_DELTAS`` -- ``price_trace`` excludes tool spans by design).
+
+    CONDITIONAL saving + honest zero: batching preserves the outcome only if
+    the duplicate is truly redundant (same args -> same result; fixture 10's
+    own builder comment: both calls actually succeeded) -- preservation is
+    unverified (H-1), report under the conditional label. And the synthetic
+    corpus records no vendor cost (``cost_usd`` defaults to 0.0 and neither
+    the generator nor fixture 10 sets it), so on THIS corpus the delta is
+    exactly 0.0 -- the redundancy's measured cost on the corpus is turn-level
+    (D10's Tier-2 number), not vendor-level. That zero is honest: do not
+    turn it into the turn-level figure by stealth.
+    """
+    kept, _removed = _dedup_tool_calls(pt.trace)
+    return kept
+
+
+@_register_unpriced("tool_batching")
+def _unpriced_tool_batching(trace: Trace) -> float:
+    """The deduped calls' vendor-reported cost (negative = saving) -- the
+    only cost a removed ToolCall carries, and the only cost this remedy
+    claims (see the transform's docstring for what is NOT claimed)."""
+    _kept, removed = _dedup_tool_calls(trace)
+    return -sum(tool.cost_usd for tool in removed)
+
+
+_ESCALATION_POLICY_RE = re.compile(r"^threshold:(\d+(?:\.\d+)?)$")
+
+
+@_register("escalation_policy")
+def _transform_escalation_early_cutoff(pt: PricedTrace, value: object) -> Trace:
+    """Truncate the conversation at the earliest predictable-escalation turn
+    (``escalation_policy="threshold:0.85"``, D9 Tier-1's remedy).
+
+    The cutoff is D9's own, already-computed quantity (the batch doc: "reuse
+    what is already computed"): ``adjudicate(pt).turn_of_no_return`` -- the
+    Wave-1 deterministic stand-in for a live escalation classifier (earliest
+    ``escalate_check`` turn, handoff-turn fallback; see d09's STAND-IN note).
+    Applied only when the verdict is ``ESCALATED`` and the cutoff exists and
+    is not already the last turn; every other trace is left UNCHANGED
+    (delta 0 -- honestly: there is no predictable-early cutoff to act on).
+
+    Model (stated, deterministic): under the policy the agent escalates at
+    turn t instead of stalling, so the conversation ENDS at t: turns with
+    ``turn_index > t`` are removed entirely (caller utterances included --
+    the call is over), and turn t itself still happens (it becomes the
+    escalation turn). Delta = the cost of the turns AFTER t -- note this is
+    turns t+1..end, one turn narrower than D9's inclusive Tier-1 waste
+    ("full cost of turns t..end"): the detector's debt includes the
+    escalation turn, the remedy's saving cannot (the escalation still runs).
+
+    Telephony: the conversation-level leg is a corpus fact of the WHOLE call
+    (billable_seconds = max(1, round(total wall seconds)) in generate.py).
+    Under the shorter call it shrinks pro-rata by wall time --
+    ``billable * kept_wall / total_wall`` -- the same pro-rata model
+    ``price_trace`` uses to attribute telephony to turns; kept_wall/total_wall
+    is exact for the corpus (turn windows tile the call from 0). A trace
+    with zero total wall duration keeps its telephony unchanged (cannot
+    attribute; conservative).
+
+    D9 Tier-2 (rejected terminal handoff, verdict UNRESOLVED) is deliberately
+    NOT covered: "the whole call was wasted" is not implementable as a
+    preservation-plausible transform (the call never escalated). The
+    detector's Tier-2 number stands as Tier-2.
+
+    CONDITIONAL saving: the caller's outcome (escalation reached) is
+    preserved only if the agent escalating at t would have produced the same
+    resolution -- unmeasurable on the synthetic corpus (H-1); report under
+    the conditional label, never as measured.
+    """
+    if not _ESCALATION_POLICY_RE.match(str(value)):
+        raise NotImplementedError(
+            f"escalation_policy={value!r} has no deterministic re-pricing "
+            f"transform yet (implemented policies: threshold:<p>)."
+        )
+    trace = pt.trace
+    verdict = adjudicate(pt)
+    if verdict.label is not VerdictLabel.ESCALATED:
+        return trace
+    t = verdict.turn_of_no_return
+    if t is None:
+        return trace
+    t_pos = next((i for i, turn in enumerate(trace.turns) if turn.turn_index == t), None)
+    if t_pos is None or t_pos >= len(trace.turns) - 1:
+        return trace  # nothing runs after the cutoff: no saving to claim
+
+    kept_turns = trace.turns[:t_pos + 1]
+    new_turns = list(kept_turns)
+    telephony = trace.telephony
+    if telephony is not None:
+        total_wall_ms = sum(tu.wall_end_ms - tu.wall_start_ms for tu in trace.turns)
+        kept_wall_ms = sum(tu.wall_end_ms - tu.wall_start_ms for tu in kept_turns)
+        if total_wall_ms > 0:
+            new_billable = max(0, round(telephony.billable_seconds * kept_wall_ms / total_wall_ms))
+            if new_billable != telephony.billable_seconds:
+                telephony = telephony.model_copy(update={"billable_seconds": new_billable})
+    new_trace = trace.model_copy(update={"turns": new_turns, "telephony": telephony})
+    return new_trace
+
+
 def _dedup_tool_calls(trace: Trace) -> tuple[Trace, list[ToolCall]]:
     """D10's duplicate rule, shared by the transform (which drops the
     duplicates) and the unpriced-delta hook (which costs them): walk turns in
@@ -277,10 +363,17 @@ def _dedup_tool_calls(trace: Trace) -> tuple[Trace, list[ToolCall]]:
     return trace.model_copy(update={"turns": new_turns}), removed
 
 
-def apply_variant_transform(trace: Trace, variant: VariantSpec) -> Trace:
+def apply_variant_transform(
+    pt: PricedTrace, variant: VariantSpec, rates: RateTable | None = None
+) -> Trace:
     """Apply the re-pricing transform of every field ``variant`` sets, in
     VariantSpec field order, returning the transformed trace (the input is
     never mutated).
+
+    Each transform receives a PRICED trace. The first field reuses ``pt``
+    (already priced); a later field in a multi-field variant prices the
+    intermediate trace first (``rates`` defaults to the repo's
+    ``pricing/rates.yaml``) so chained remedies compose deterministically.
 
     Raises ``NotImplementedError`` if the variant sets a field with no
     transform (nothing silently replays as a no-op) or no fields at all."""
@@ -297,6 +390,11 @@ def apply_variant_transform(trace: Trace, variant: VariantSpec) -> Trace:
             f"implement it in turnstile_experiments.transforms first "
             f"(fields with a transform: {sorted(REPRICING_TRANSFORMS)})."
         )
-    for f in set_:
-        trace = REPRICING_TRANSFORMS[f](trace, getattr(variant, f))
+    rates = rates if rates is not None else load_rates(RATES_PATH)
+    trace = pt.trace
+    priced = pt
+    for idx, f in enumerate(set_):
+        if idx > 0:
+            priced = price_trace(trace, rates)
+        trace = REPRICING_TRANSFORMS[f](priced, getattr(variant, f))
     return trace

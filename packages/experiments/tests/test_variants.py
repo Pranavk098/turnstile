@@ -36,10 +36,14 @@ def test_every_executable_variant_is_actually_executable():
 
 
 def test_repricing_variants_have_a_transform_but_no_backend_path():
-    assert set(REPRICING_VARIANTS) == {"context_window_8", "prefix_caching_on", "tool_batching_on"}
+    assert set(REPRICING_VARIANTS) == {
+        "context_window_8", "prefix_caching_on", "tool_batching_on",
+        "escalation_threshold_0_85"}
     assert REPRICING_VARIANTS["context_window_8"] == VariantSpec(context_strategy="window:8")
     assert REPRICING_VARIANTS["prefix_caching_on"] == VariantSpec(prefix_caching=True)
     assert REPRICING_VARIANTS["tool_batching_on"] == VariantSpec(tool_batching=True)
+    assert REPRICING_VARIANTS["escalation_threshold_0_85"] == VariantSpec(
+        escalation_policy="threshold:0.85")
     for name, variant in REPRICING_VARIANTS.items():
         assert_variant_executable(name, variant)  # transform exists...
         with pytest.raises(NotImplementedError, match="run_repricing_matrix"):
@@ -49,7 +53,6 @@ def test_repricing_variants_have_a_transform_but_no_backend_path():
 def test_reserved_variants_are_the_pending_remedies():
     assert set(RESERVED_VARIANTS) == {
         "retrieval_threshold_0_8", "tts_chunking_sentence",
-        "escalation_threshold_0_85",
     }
     # Each reserved variant sets a field no runner can execute yet.
     for name, variant in RESERVED_VARIANTS.items():

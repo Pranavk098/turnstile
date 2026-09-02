@@ -99,7 +99,7 @@ def reprice_trace_delta(
         fn = UNPRICED_DELTAS.get(f)
         if fn is not None:
             unpriced += fn(pt.trace)
-    transformed = apply_variant_transform(pt.trace, variant)
+    transformed = apply_variant_transform(pt, variant, rates)
     return price_trace(transformed, rates).conv_cost - pt.conv_cost + unpriced
 
 

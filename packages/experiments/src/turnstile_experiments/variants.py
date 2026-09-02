@@ -26,7 +26,6 @@ here as the concrete to-do list for promoting those findings from Tier-2
 
   * retrieval_policy                -> D3 (redundant retrieval)
   * tts_chunking                    -> D6 (dead tokens), D7 (barge-in)
-  * escalation_policy               -> D9 (escalation debt)
 
 They are deliberately NOT in ``VARIANTS`` or ``REPRICING_VARIANTS``: running
 one would be a zero-delta no-op that looks measured but proves nothing, and
@@ -53,6 +52,7 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "context_window_8": VariantSpec(context_strategy="window:8"),
     "prefix_caching_on": VariantSpec(prefix_caching=True),
     "tool_batching_on": VariantSpec(tool_batching=True),
+    "escalation_threshold_0_85": VariantSpec(escalation_policy="threshold:0.85"),
 }
 
 # Reserved -- valid remedies with NO execution path yet (see module
@@ -60,5 +60,4 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
 RESERVED_VARIANTS: dict[str, VariantSpec] = {
     "retrieval_threshold_0_8": VariantSpec(retrieval_policy="threshold:0.8"),
     "tts_chunking_sentence": VariantSpec(tts_chunking="sentence"),
-    "escalation_threshold_0_85": VariantSpec(escalation_policy="threshold:0.85"),
 }
