@@ -8,7 +8,12 @@ from turnstile_pricing import price_trace
 from turnstile_replay import MockBackend, get_backend, reset_backend, set_backend
 from turnstile_schema import ExperimentResult, load_rates
 
-from turnstile_experiments import RESERVED_VARIANTS, VARIANTS, run_matrix
+from turnstile_experiments import (
+    REPRICING_VARIANTS,
+    RESERVED_VARIANTS,
+    VARIANTS,
+    run_matrix,
+)
 
 RATES = load_rates("pricing/rates.yaml")
 
@@ -69,4 +74,14 @@ def test_reserved_variants_fail_loudly_instead_of_running_as_no_ops():
     for name, variant in RESERVED_VARIANTS.items():
         with pytest.raises(NotImplementedError):
             run_matrix(corpus, {name: variant})
+    reset_backend()
+
+
+def test_repricing_variants_fail_loudly_on_the_backend_path():
+    """Section A: prefix_caching executes via the deterministic re-pricing
+    runner, not the backend -- here it would replay as the silent zero-delta
+    no-op guard exists to prevent, so run_matrix must refuse it."""
+    corpus = _small_corpus(n=5)
+    with pytest.raises(NotImplementedError, match="run_repricing_matrix"):
+        run_matrix(corpus, REPRICING_VARIANTS)
     reset_backend()

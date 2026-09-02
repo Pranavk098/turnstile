@@ -5,7 +5,11 @@ import pytest
 
 from turnstile_schema import ExperimentResult
 
-from turnstile_experiments import recoverable_margin
+from turnstile_experiments import (
+    CONDITIONAL_SAVINGS_LABEL,
+    RepricingResult,
+    recoverable_margin,
+)
 from turnstile_experiments.margin import _passes_gate
 
 
@@ -80,3 +84,61 @@ def test_empty_matrix():
     assert margin["recoverable_margin_pct"] == 0.0
     assert margin["annualized_usd"] == 0.0
     assert margin["n_reference"] == 0
+
+
+# --------------------------------------------------------------------------- #
+# Section A: the conditional bucket (separate from proven_savings, labeled)   #
+# --------------------------------------------------------------------------- #
+
+def test_conditional_bucket_is_separate_and_labeled():
+    a = _result(10, 1.0, (-0.5, -0.1), mean=-0.2)  # gated routing variant
+    cond = RepricingResult(n=10, delta_cost_mean=-0.3, delta_cost_ci95=(-0.4, -0.2))
+
+    baseline = recoverable_margin({"a": a}, total_cost=100.0, annual_calls=1200)
+    margin = recoverable_margin(
+        {"a": a}, total_cost=100.0, annual_calls=1200,
+        conditional={"prefix_caching_on": cond},
+    )
+
+    # The gated math is UNCHANGED by the conditional bucket's presence.
+    for key in ("recoverable_margin_pct", "recoverable_margin_pct_ci95",
+                "proven_savings_usd", "proven_savings_usd_ci95",
+                "annualized_usd", "gated_variants", "excluded_variants"):
+        assert margin[key] == baseline[key]
+
+    bucket = margin["conditional_savings"]
+    assert bucket["label"] == CONDITIONAL_SAVINGS_LABEL
+    assert bucket["label"] == (
+        "deterministic conditional saving — preservation unverified (Wave-2)")
+    assert "H-1" in bucket["note"]
+    assert "NOT in proven_savings_usd" in bucket["note"]
+
+    v = bucket["variants"]["prefix_caching_on"]
+    assert v["n"] == 10
+    assert v["delta_cost_mean"] == pytest.approx(-0.3)
+    assert v["savings_usd"] == pytest.approx(0.3)
+    assert v["savings_usd_ci95"] == pytest.approx([0.2, 0.4])  # (-hi, -lo) flip
+    assert v["label"] == CONDITIONAL_SAVINGS_LABEL
+    assert bucket["total_savings_usd"] == pytest.approx(0.3)
+
+
+def test_conditional_bucket_empty_by_default():
+    margin = recoverable_margin({}, total_cost=10.0, annual_calls=100)
+    assert margin["conditional_savings"]["variants"] == {}
+    assert margin["conditional_savings"]["total_savings_usd"] == 0.0
+    assert margin["conditional_savings"]["label"] == CONDITIONAL_SAVINGS_LABEL
+
+
+def test_multiple_conditional_variants_sum_into_the_bucket_total():
+    c1 = RepricingResult(n=5, delta_cost_mean=-0.1, delta_cost_ci95=(-0.2, -0.05))
+    c2 = RepricingResult(n=5, delta_cost_mean=-0.3, delta_cost_ci95=(-0.4, -0.2))
+    margin = recoverable_margin(
+        {}, total_cost=10.0, annual_calls=100,
+        conditional={"prefix_caching_on": c1, "other": c2},
+    )
+    bucket = margin["conditional_savings"]
+    assert set(bucket["variants"]) == {"prefix_caching_on", "other"}
+    assert bucket["total_savings_usd"] == pytest.approx(0.4)
+    # and the gated side stays zero -- conditional never leaks in
+    assert margin["proven_savings_usd"] == 0.0
+    assert margin["gated_variants"] == []

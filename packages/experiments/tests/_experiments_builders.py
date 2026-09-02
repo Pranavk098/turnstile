@@ -33,11 +33,13 @@ def asr(sid: str, *, transcript: str = "hello", start=0, dur=500) -> AsrTranscri
 
 
 def llm(sid: str, *, start=0, dur=500, model="gpt-5", input_tokens=500, output_tokens=15,
-        decision_kind=DecisionKind.route, decision_chosen="x", output_text="x") -> LlmDecide:
+        decision_kind=DecisionKind.route, decision_chosen="x", output_text="x",
+        cache_read_tokens=0) -> LlmDecide:
     return LlmDecide(
         span_id=sid, start_offset_ms=start, duration_ms=dur,
         gen_ai_system="openai", gen_ai_request_model=model,
         input_tokens=input_tokens, output_tokens=output_tokens,
+        cache_read_tokens=cache_read_tokens,
         decision_kind=decision_kind, decision_chosen=decision_chosen,
         decision_candidates=[decision_chosen], output_text=output_text, latency_ms=dur,
     )

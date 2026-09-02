@@ -33,7 +33,7 @@ from turnstile_replay.replay import (
 )
 from turnstile_stats import aggregate_experiment
 
-from turnstile_experiments.guard import assert_variant_executable
+from turnstile_experiments.guard import assert_backend_executable, assert_variant_executable
 
 
 def _trace_id(pt: PricedTrace) -> str:
@@ -126,6 +126,7 @@ def run_experiment_checkpointed(
     regardless of completion order, so aggregates are byte-identical to the
     sequential path."""
     assert_variant_executable(variant_name, variant)
+    assert_backend_executable(variant_name, variant)
 
     keys = [f"{variant_name}\t{_trace_id(pt)}" for pt in corpus]
     trials: list[Trial | None] = [store.get(k) for k in keys]
@@ -173,9 +174,11 @@ def run_matrix_checkpointed_detailed(
 
     ``max_workers`` (Change B): worker count for each variant's per-trace
     map (see ``run_experiment_checkpointed``); variants themselves stay
+    sequential (see ``run_experiment_checkpointed``); variants themselves stay
     sequential."""
     for name, variant in variants.items():
         assert_variant_executable(name, variant)
+        assert_backend_executable(name, variant)
 
     store = CheckpointStore(checkpoint_path)
     previous = get_backend()

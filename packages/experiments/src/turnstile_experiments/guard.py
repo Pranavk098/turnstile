@@ -16,13 +16,30 @@ That silent-no-op is the failure mode the first paid smoke run exposed (five of
 six matrix variants were burning tokens on identical calls). This guard makes
 it loud: any attempt to RUN a variant with a field no backend reads raises
 ``NotImplementedError`` at experiment start, before a cent is spent.
+
+Since Section A (docs/superpowers/GLM-OVERNIGHT-BATCH.md), remedy fields can
+also be executed OFF the replay path, by deterministic re-pricing
+(``turnstile_experiments.repricing`` via ``transforms.REPRICING_TRANSFORMS``).
+So ``IMPLEMENTED_VARIANT_FIELDS`` now means "a deterministic execution path
+exists" (backend replay OR re-pricing transform); ``BACKEND_APPLIED_VARIANT_FIELDS``
+is the strictly smaller set the replay backend actually applies, and the
+backend runners (``run_matrix`` / checkpoint runner) gate on THAT -- a
+re-pricing-only variant handed to the backend would be exactly the silent
+zero-delta no-op above, so ``assert_backend_executable`` refuses it.
 """
 from __future__ import annotations
 
 from turnstile_schema import VariantSpec
 
-# The only VariantSpec field any replay backend actually applies today.
-IMPLEMENTED_VARIANT_FIELDS: frozenset[str] = frozenset({"model_routing"})
+# VariantSpec fields with a deterministic execution path: "model_routing" on
+# the replay backends; "prefix_caching" (and, as Section A lands, its
+# siblings) by the re-pricing runner -- each only once its transform exists.
+IMPLEMENTED_VARIANT_FIELDS: frozenset[str] = frozenset({"model_routing", "prefix_caching"})
+
+# The subset of IMPLEMENTED the replay BACKEND actually applies. The backend
+# runners gate on this, NOT on IMPLEMENTED: a re-pricing-only field would
+# replay as a silent no-op there.
+BACKEND_APPLIED_VARIANT_FIELDS: frozenset[str] = frozenset({"model_routing"})
 
 # Every field VariantSpec declares (derived, so it can't drift from the schema).
 ALL_VARIANT_FIELDS: frozenset[str] = frozenset(VariantSpec.model_fields)
@@ -39,7 +56,8 @@ def set_fields(variant: VariantSpec) -> set[str]:
 
 
 def applied_fields(variant: VariantSpec) -> set[str]:
-    """The subset of set fields the replay engine will actually apply."""
+    """The subset of set fields with a deterministic execution path (backend
+    replay or re-pricing transform)."""
     return set_fields(variant) & IMPLEMENTED_VARIANT_FIELDS
 
 
@@ -68,4 +86,24 @@ def assert_variant_executable(name: str, variant: VariantSpec) -> None:
         raise NotImplementedError(
             f"variant {name!r} sets no fields at all -- an identity replay is a "
             f"no-op, not a measurement."
+        )
+
+
+def assert_backend_executable(name: str, variant: VariantSpec) -> None:
+    """Raise ``NotImplementedError`` if ``variant`` sets any field the replay
+    backend does not apply. Such a field may still be IMPLEMENTED (a
+    deterministic re-pricing transform exists) -- but handing it to the
+    backend path would replay it as the silent zero-delta no-op this module
+    exists to prevent. Run it via ``turnstile_experiments.run_repricing_matrix``
+    instead: its savings are conditional (preservation unverified) and land
+    in the margin's conditional bucket, never in ``proven_savings``."""
+    not_backend = set_fields(variant) - BACKEND_APPLIED_VARIANT_FIELDS
+    if not_backend:
+        raise NotImplementedError(
+            f"variant {name!r} sets field(s) {sorted(not_backend)} that the "
+            f"replay backend does not apply (it applies "
+            f"{sorted(BACKEND_APPLIED_VARIANT_FIELDS)}), so replaying them "
+            f"here would be a zero-delta no-op that proves nothing. These "
+            f"fields execute via the deterministic re-pricing runner -- use "
+            f"turnstile_experiments.run_repricing_matrix."
         )

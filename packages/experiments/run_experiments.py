@@ -36,12 +36,14 @@ from turnstile_pricing import price_trace
 from turnstile_schema import load_rates
 
 from turnstile_experiments import (
+    REPRICING_VARIANTS,
     VARIANTS,
     build_manifest,
     compute_baselines,
     estimate_cost,
     recoverable_margin,
     run_matrix_checkpointed_detailed,
+    run_repricing_matrix,
 )
 from turnstile_replay import DELTA_COST_REAL_USAGE_LABEL
 
@@ -145,8 +147,14 @@ def main(argv: list[str] | None = None) -> None:
     matrix, real_usage = run_matrix_checkpointed_detailed(
         corpus, VARIANTS, checkpoint_path, backend=backend, max_workers=args.workers)
 
+    # Section A: deterministic re-pricing remedies -- no backend, no spend,
+    # no fabricated preservation. Their savings land in the margin's
+    # SEPARATE conditional bucket (preservation unverified, Wave-2), never
+    # in proven_savings; the gated matrix above is untouched.
+    conditional = run_repricing_matrix(corpus, REPRICING_VARIANTS, rates=rates)
+
     total_cost = sum(pt.conv_cost for pt in corpus)
-    margin = recoverable_margin(matrix, total_cost, args.annual_calls)
+    margin = recoverable_margin(matrix, total_cost, args.annual_calls, conditional=conditional)
 
     results = {
         "n_corpus": len(corpus),
@@ -172,6 +180,9 @@ def main(argv: list[str] | None = None) -> None:
     print(f"\nwrote results to {out_path}")
     print(f"recoverable margin: {margin['recoverable_margin_pct']:.2f}% "
           f"[{margin['recoverable_margin_pct_ci95'][0]:.2f}, {margin['recoverable_margin_pct_ci95'][1]:.2f}]")
+    cond = margin["conditional_savings"]
+    print(f"conditional re-pricing savings (NOT in the margin above): "
+          f"${cond['total_savings_usd']:.4f} -- {cond['label']}")
 
 
 if __name__ == "__main__":

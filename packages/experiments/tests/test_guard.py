@@ -8,9 +8,11 @@ import pytest
 from turnstile_schema import VariantSpec
 
 from turnstile_experiments.guard import (
+    BACKEND_APPLIED_VARIANT_FIELDS,
     IMPLEMENTED_VARIANT_FIELDS,
     RESERVED_VARIANT_FIELDS,
     applied_fields,
+    assert_backend_executable,
     assert_variant_executable,
     unimplemented_fields,
 )
@@ -21,11 +23,11 @@ def test_model_routing_is_executable():
     assert applied_fields(v) == {"model_routing"}
     assert unimplemented_fields(v) == set()
     assert_variant_executable("model_routing_gpt5_nano", v)  # does not raise
+    assert_backend_executable("model_routing_gpt5_nano", v)  # does not raise
 
 
 @pytest.mark.parametrize("field, value", [
     ("context_strategy", "window:8"),
-    ("prefix_caching", True),
     ("retrieval_policy", "threshold:0.8"),
     ("tts_chunking", "sentence"),
     ("escalation_policy", "threshold:0.85"),
@@ -38,14 +40,29 @@ def test_reserved_fields_raise(field, value):
         assert_variant_executable("reserved", v)
 
 
+def test_prefix_caching_implemented_via_repricing_not_on_the_backend():
+    # Section A: a deterministic re-pricing transform exists, so the field is
+    # implemented -- but the replay backend does not apply it, and handing it
+    # to the backend path would be the silent zero-delta no-op guard exists
+    # to prevent. It must be run via run_repricing_matrix instead.
+    v = VariantSpec(prefix_caching=True)
+    assert applied_fields(v) == {"prefix_caching"}
+    assert unimplemented_fields(v) == set()
+    assert_variant_executable("prefix_caching_on", v)  # does not raise
+    with pytest.raises(NotImplementedError, match="run_repricing_matrix"):
+        assert_backend_executable("prefix_caching_on", v)
+
+
 def test_mixed_variant_raises_on_the_unsupported_field():
     # Even with an executable model_routing present, an unsupported field must
     # still fail loudly rather than partially run.
-    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, prefix_caching=True)
+    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, context_strategy="window:8")
     assert applied_fields(v) == {"model_routing"}
-    assert unimplemented_fields(v) == {"prefix_caching"}
-    with pytest.raises(NotImplementedError, match="prefix_caching"):
+    assert unimplemented_fields(v) == {"context_strategy"}
+    with pytest.raises(NotImplementedError, match="context_strategy"):
         assert_variant_executable("mixed", v)
+    with pytest.raises(NotImplementedError, match="context_strategy"):
+        assert_backend_executable("mixed", v)
 
 
 def test_empty_variant_raises():
@@ -54,6 +71,8 @@ def test_empty_variant_raises():
 
 
 def test_field_sets_partition_the_schema():
-    assert IMPLEMENTED_VARIANT_FIELDS == {"model_routing"}
-    assert "prefix_caching" in RESERVED_VARIANT_FIELDS
+    assert IMPLEMENTED_VARIANT_FIELDS == {"model_routing", "prefix_caching"}
+    assert BACKEND_APPLIED_VARIANT_FIELDS == {"model_routing"}
+    assert BACKEND_APPLIED_VARIANT_FIELDS < IMPLEMENTED_VARIANT_FIELDS
+    assert "prefix_caching" not in RESERVED_VARIANT_FIELDS
     assert IMPLEMENTED_VARIANT_FIELDS.isdisjoint(RESERVED_VARIANT_FIELDS)

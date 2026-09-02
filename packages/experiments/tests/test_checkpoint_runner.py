@@ -13,6 +13,7 @@ from turnstile_schema import Trial
 from turnstile_schema.enums import DecisionKind
 
 from turnstile_experiments import (
+    REPRICING_VARIANTS,
     RESERVED_VARIANTS,
     VARIANTS,
     CheckpointStore,
@@ -90,6 +91,16 @@ def test_reserved_variant_fails_loudly(tmp_path):
     for name, variant in RESERVED_VARIANTS.items():
         with pytest.raises(NotImplementedError):
             run_matrix_checkpointed(corpus, {name: variant}, tmp_path / f"{name}.jsonl")
+    reset_backend()
+
+
+def test_repricing_variant_fails_loudly(tmp_path):
+    # prefix_caching executes via run_repricing_matrix, never the (possibly
+    # paid) backend path -- there it would be a silent zero-delta no-op.
+    reset_backend()
+    corpus = _corpus()
+    with pytest.raises(NotImplementedError, match="run_repricing_matrix"):
+        run_matrix_checkpointed(corpus, REPRICING_VARIANTS, tmp_path / "repricing.jsonl")
     reset_backend()
 
 
