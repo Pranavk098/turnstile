@@ -27,7 +27,6 @@ def test_model_routing_is_executable():
 
 
 @pytest.mark.parametrize("field, value", [
-    ("context_strategy", "window:8"),
     ("retrieval_policy", "threshold:0.8"),
     ("tts_chunking", "sentence"),
     ("escalation_policy", "threshold:0.85"),
@@ -55,12 +54,12 @@ def test_prefix_caching_implemented_via_repricing_not_on_the_backend():
 def test_mixed_variant_raises_on_the_unsupported_field():
     # Even with an executable model_routing present, an unsupported field must
     # still fail loudly rather than partially run.
-    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, context_strategy="window:8")
+    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, retrieval_policy="threshold:0.8")
     assert applied_fields(v) == {"model_routing"}
-    assert unimplemented_fields(v) == {"context_strategy"}
-    with pytest.raises(NotImplementedError, match="context_strategy"):
+    assert unimplemented_fields(v) == {"retrieval_policy"}
+    with pytest.raises(NotImplementedError, match="retrieval_policy"):
         assert_variant_executable("mixed", v)
-    with pytest.raises(NotImplementedError, match="context_strategy"):
+    with pytest.raises(NotImplementedError, match="retrieval_policy"):
         assert_backend_executable("mixed", v)
 
 
@@ -70,9 +69,11 @@ def test_empty_variant_raises():
 
 
 def test_field_sets_partition_the_schema():
-    assert IMPLEMENTED_VARIANT_FIELDS == {"model_routing", "prefix_caching", "tool_batching"}
+    assert IMPLEMENTED_VARIANT_FIELDS == {
+        "model_routing", "context_strategy", "prefix_caching", "tool_batching"}
     assert BACKEND_APPLIED_VARIANT_FIELDS == {"model_routing"}
     assert BACKEND_APPLIED_VARIANT_FIELDS < IMPLEMENTED_VARIANT_FIELDS
     assert "prefix_caching" not in RESERVED_VARIANT_FIELDS
     assert "tool_batching" not in RESERVED_VARIANT_FIELDS
+    assert "context_strategy" not in RESERVED_VARIANT_FIELDS
     assert IMPLEMENTED_VARIANT_FIELDS.isdisjoint(RESERVED_VARIANT_FIELDS)

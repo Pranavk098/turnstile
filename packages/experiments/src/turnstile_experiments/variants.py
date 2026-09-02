@@ -24,7 +24,6 @@ yet. Each mirrors a detector's ``proposed_variant`` remedy, so they are kept
 here as the concrete to-do list for promoting those findings from Tier-2
 (detected + quantified) to executable:
 
-  * context_strategy                -> D2 (context bloat), D4 (turn inflation)
   * retrieval_policy                -> D3 (redundant retrieval)
   * tts_chunking                    -> D6 (dead tokens), D7 (barge-in)
   * escalation_policy               -> D9 (escalation debt)
@@ -51,6 +50,7 @@ VARIANTS: dict[str, VariantSpec] = {
 # (preservation unverified, Wave-2) and reported in the separate conditional
 # bucket, never in gated proven_savings.
 REPRICING_VARIANTS: dict[str, VariantSpec] = {
+    "context_window_8": VariantSpec(context_strategy="window:8"),
     "prefix_caching_on": VariantSpec(prefix_caching=True),
     "tool_batching_on": VariantSpec(tool_batching=True),
 }
@@ -58,7 +58,6 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
 # Reserved -- valid remedies with NO execution path yet (see module
 # docstring). Documented, NOT run by any runner.
 RESERVED_VARIANTS: dict[str, VariantSpec] = {
-    "context_window_8": VariantSpec(context_strategy="window:8"),
     "retrieval_threshold_0_8": VariantSpec(retrieval_policy="threshold:0.8"),
     "tts_chunking_sentence": VariantSpec(tts_chunking="sentence"),
     "escalation_threshold_0_85": VariantSpec(escalation_policy="threshold:0.85"),

@@ -25,6 +25,7 @@ enforces the separate bucket).
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
 from turnstile_schema import Trace, VariantSpec
@@ -152,6 +153,100 @@ def _unpriced_tool_batching(trace: Trace) -> float:
     claims (see the transform's docstring for what is NOT claimed)."""
     _kept, removed = _dedup_tool_calls(trace)
     return -sum(tool.cost_usd for tool in removed)
+
+
+_WINDOW_POLICY_RE = re.compile(r"^window:(\d+)$")
+
+
+@_register("context_strategy")
+def _transform_context_window(trace: Trace, value: object) -> Trace:
+    """Truncate each decision's input to the last N turns of history
+    (``context_strategy="window:N"``, D2/D4's remedy). N is the policy,
+    stated in the variant string itself (e.g. ``window:8``); any other
+    policy string (e.g. ``summarize:2000``) has no transform yet and raises
+    ``NotImplementedError`` -- never a silent identity.
+
+    Model (corpus-native, stated): a decision's input is
+    ``system_tokens + history_tokens + retrieved_tokens`` (the corpus's own
+    ContextAssemble decomposition -- generate.py), and history accumulates
+    per turn as (caller-utterance + agent-reply) tokens. Under window:N the
+    decision at turn i keeps only turns (i-N, i]'s contributions, which --
+    for an UNPRUNED trace -- is exactly
+
+        new_input(i) = input(i) - history_tokens(turn j),  j = latest
+        context-bearing turn with turn_index <= i - N;
+
+    turns with fewer than N turns of history behind them are unchanged
+    (nothing to truncate). For an ALREADY-PRUNED trace (the corpus also
+    generates token-capped ``window``/``summarize`` contexts),
+    ``history_tokens`` is the observed, possibly capped series, so the
+    subtraction drops at most the observed level N turns back -- a LOWER
+    BOUND on the true last-N-turns footprint, i.e. a conservative saving,
+    stated here rather than guessed.
+
+    Safety clamps (never bind on corpus traces, where H is nondecreasing):
+    the reduced input is floored at system + retrieved tokens when the turn
+    carries its own ContextAssemble (system + retrieval are always kept
+    under the policy) -- a turn WITHOUT its own ContextAssemble is truncated
+    with a 0 floor, since its decomposition cannot be verified there; and
+    cache_read/cache_write are clamped to the reduced input (a cache hit
+    cannot exceed the request size) so the PRD pricing formula can never see
+    a negative full-rate term.
+
+    CONDITIONAL saving: truncation preserves the outcome only if the dropped
+    history was not needed for it -- unmeasurable on the synthetic corpus
+    (H-1); report under the conditional label, never as measured.
+    """
+    match = _WINDOW_POLICY_RE.match(str(value))
+    if not match:
+        raise NotImplementedError(
+            f"context_strategy={value!r} has no deterministic re-pricing "
+            f"transform yet (implemented policies: window:<N>)."
+        )
+    n_turns = int(match.group(1))
+    if n_turns < 1:
+        raise NotImplementedError(f"context_strategy={value!r}: window must keep >= 1 turn")
+
+    # (turn_index, history_tokens) of every context-bearing turn, in order.
+    history_by_turn: list[tuple[int, int]] = []
+    new_turns = []
+    any_changed = False
+    for turn in trace.turns:
+        context = turn.context
+        if context is not None:
+            history_by_turn.append((turn.turn_index, context.history_tokens))
+
+        edge = None
+        for turn_index, history in reversed(history_by_turn[:-1] if context is not None else history_by_turn):
+            if turn_index <= turn.turn_index - n_turns:
+                edge = history
+                break
+
+        if edge is None or not turn.llm:
+            new_turns.append(turn)
+            continue
+
+        floor = 0
+        if context is not None:
+            floor = context.system_tokens + context.retrieved_tokens
+        new_llm = []
+        turn_changed = False
+        for span in turn.llm:
+            new_input = max(span.input_tokens - edge, floor)
+            if new_input != span.input_tokens:
+                span = span.model_copy(update={
+                    "input_tokens": new_input,
+                    "cache_read_tokens": min(span.cache_read_tokens, new_input),
+                    "cache_write_tokens": min(span.cache_write_tokens, new_input),
+                })
+                turn_changed = True
+            new_llm.append(span)
+        any_changed = any_changed or turn_changed
+        new_turns.append(turn.model_copy(update={"llm": new_llm}) if turn_changed else turn)
+
+    if not any_changed:
+        return trace
+    return trace.model_copy(update={"turns": new_turns})
 
 
 def _dedup_tool_calls(trace: Trace) -> tuple[Trace, list[ToolCall]]:

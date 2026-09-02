@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 
 from turnstile_pricing import price_trace
 from turnstile_schema import PricedTrace, load_rates
-from turnstile_schema.enums import DecisionKind, EndReason, ToolKind
-from turnstile_schema.spans import AsrTranscribe, LlmDecide, ToolCall
+from turnstile_schema.enums import DecisionKind, EndReason, PruningStrategy, ToolKind
+from turnstile_schema.spans import AsrTranscribe, ContextAssemble, LlmDecide, ToolCall
 from turnstile_schema.trace import Conversation, Trace, Turn
 
 RATES = load_rates("pricing/rates.yaml")
@@ -42,6 +42,18 @@ def llm(sid: str, *, start=0, dur=500, model="gpt-5", input_tokens=500, output_t
         cache_read_tokens=cache_read_tokens,
         decision_kind=decision_kind, decision_chosen=decision_chosen,
         decision_candidates=[decision_chosen], output_text=output_text, latency_ms=dur,
+    )
+
+
+def context(sid: str, *, history_tokens, system_tokens=100, retrieved_tokens=0,
+            start=0, dur=50) -> ContextAssemble:
+    # Corpus convention (generate.py): llm input = system + history + retrieved.
+    return ContextAssemble(
+        span_id=sid, start_offset_ms=start, duration_ms=dur,
+        context_tokens=system_tokens + history_tokens + retrieved_tokens,
+        history_tokens=history_tokens, system_tokens=system_tokens,
+        retrieved_tokens=retrieved_tokens, retrieved_doc_ids=[],
+        pruning_strategy=PruningStrategy.none,
     )
 
 

@@ -23,7 +23,7 @@ from turnstile_experiments.transforms import (
     apply_variant_transform,
 )
 
-from _experiments_builders import llm, priced, tool, turn
+from _experiments_builders import context, llm, priced, tool, turn
 
 RATES = load_rates("pricing/rates.yaml")
 GPT5 = RATES.llm["openai/gpt-5"]
@@ -31,6 +31,7 @@ MINI = RATES.llm["openai/gpt-5-mini"]
 
 PREFIX_CACHING = REPRICING_VARIANTS["prefix_caching_on"]
 TOOL_BATCHING = REPRICING_VARIANTS["tool_batching_on"]
+WINDOW_8 = REPRICING_VARIANTS["context_window_8"]
 
 
 def _two_turn_pt():
@@ -216,13 +217,121 @@ def test_tool_batching_is_exactly_zero_when_vendor_cost_unrecorded():
 
 
 # --------------------------------------------------------------------------- #
+# A3: context_strategy="window:N" -> D2/D4 (truncate to the last N turns)      #
+# --------------------------------------------------------------------------- #
+
+def _windowed_corpus_pt(n_turns=10, history_step=50):
+    # Corpus-shaped: turn i's llm input = system(100) + history_i, with
+    # history_i = history_step * (i+1) growing monotonic and unpruned; each
+    # turn's ContextAssemble mirrors that decomposition.
+    turns = []
+    for i in range(n_turns):
+        hist = history_step * (i + 1)
+        turns.append(turn(
+            i,
+            llm_spans=[llm(f"l{i}", model="gpt-5", input_tokens=100 + hist,
+                           output_tokens=10)],
+        ))
+        turns[-1] = turns[-1].model_copy(update={
+            "context": context(f"c{i}", history_tokens=hist)})
+    return priced(*turns)
+
+
+def test_context_window_delta_hand_computed_from_rates():
+    pt = _windowed_corpus_pt(n_turns=10, history_step=50)
+    result = run_repricing_experiment([pt], WINDOW_8, rates=RATES)
+    # window:8 keeps the last 8 turns of history: turns 0..7 are unchanged
+    # (fewer than 8 turns behind them); turn 8 drops H_0 = 50 tokens, turn 9
+    # drops H_1 = 100 tokens (each at gpt-5's input rate).
+    expected = -((50 + 100) / 1e6) * GPT5.input
+    assert result.delta_cost_mean == pytest.approx(expected)
+    assert result.n == 1
+
+
+def test_context_window_truncates_exactly_the_out_of_window_turns():
+    tr = apply_variant_transform(_windowed_corpus_pt(n_turns=10, history_step=50).trace,
+                                 WINDOW_8)
+    for i in range(8):
+        # < 8 turns of history behind turn i -> unchanged
+        assert tr.turns[i].llm[0].input_tokens == 100 + 50 * (i + 1)
+    assert tr.turns[8].llm[0].input_tokens == 100 + 450 - 50   # dropped H_0
+    assert tr.turns[9].llm[0].input_tokens == 100 + 500 - 100  # dropped H_1
+    # floors hold: system(+retrieved) always kept
+    assert tr.turns[8].llm[0].input_tokens >= 100
+
+
+def test_context_window_short_traces_are_unchanged():
+    pt = _windowed_corpus_pt(n_turns=3)
+    result = run_repricing_experiment([pt], WINDOW_8, rates=RATES)
+    assert result.delta_cost_mean == 0.0
+
+
+def test_context_window_clamps_cache_tokens_to_the_reduced_input():
+    turns = []
+    for i in range(10):
+        hist = 50 * (i + 1)
+        llm_span = llm(f"l{i}", model="gpt-5", input_tokens=100 + hist,
+                       output_tokens=10, cache_read_tokens=100 + hist)  # fully cached
+        t = turn(i, llm_spans=[llm_span]).model_copy(update={
+            "context": context(f"c{i}", history_tokens=hist)})
+        turns.append(t)
+    pt = priced(*turns)
+    tr = apply_variant_transform(pt.trace, WINDOW_8)
+    # turn 8: input 550 - H_0 (50) -> reduced input 500; the full cache hit
+    # (550) clamps to the reduced input.
+    assert tr.turns[8].llm[0].input_tokens == 500
+    assert tr.turns[8].llm[0].cache_read_tokens == 500
+    # and the re-priced formula stays coherent (no negative full-rate term):
+    result = run_repricing_experiment([pt], WINDOW_8, rates=RATES)
+    assert result.delta_cost_mean == pytest.approx(
+        -((50 + 100) / 1e6) * GPT5.cache_read)
+
+
+def test_context_window_turn_without_context_span_truncates_with_zero_floor():
+    turns = []
+    for i in range(10):
+        hist = 50 * (i + 1)
+        t = turn(i, llm_spans=[llm(f"l{i}", model="gpt-5", input_tokens=100 + hist,
+                                   output_tokens=10)])
+        if i != 9:  # last turn carries no ContextAssemble
+            t = t.model_copy(update={"context": context(f"c{i}", history_tokens=hist)})
+        turns.append(t)
+    pt = priced(*turns)
+    result = run_repricing_experiment([pt], WINDOW_8, rates=RATES)
+    # turns 0..7 unchanged (< N behind); turn 8 truncates via H_0 (floored at
+    # system+retrieved=100); turn 9 has no context span of its own, so it
+    # truncates via H_1 with a 0 floor (stated in the transform's docstring).
+    expected = -((50 + 100) / 1e6) * GPT5.input
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_context_window_refuses_unknown_policies():
+    pt = _windowed_corpus_pt(n_turns=3)
+    for policy in ("summarize:2000", "window", "window:0", "window:abc"):
+        with pytest.raises(NotImplementedError, match="context_strategy"):
+            run_repricing_experiment(
+                [pt], VariantSpec(context_strategy=policy), rates=RATES)
+
+
+def test_context_window_over_corpus_deterministic_never_positive():
+    corpus = [price_trace(t, RATES) for t in generate_corpus(10, 0)]
+    first = run_repricing_matrix(corpus, {"context_window_8": WINDOW_8}, rates=RATES)
+    second = run_repricing_matrix(corpus, {"context_window_8": WINDOW_8}, rates=RATES)
+    assert first == second
+    r = first["context_window_8"]
+    assert r.n == 10
+    assert r.delta_cost_mean <= 0.0
+
+
+# --------------------------------------------------------------------------- #
 # Fail-loud refusals                                                           #
 # --------------------------------------------------------------------------- #
 
 def test_refuses_variant_without_a_transform():
     pt = _two_turn_pt()
-    with pytest.raises(NotImplementedError, match="context_strategy"):
-        run_repricing_experiment([pt], VariantSpec(context_strategy="window:8"), rates=RATES)
+    with pytest.raises(NotImplementedError, match="retrieval_policy"):
+        run_repricing_experiment(
+            [pt], VariantSpec(retrieval_policy="threshold:0.8"), rates=RATES)
     with pytest.raises(NotImplementedError, match="no fields"):
         run_repricing_experiment([pt], VariantSpec(), rates=RATES)
     # A backend knob cannot ride the re-pricing path either.
@@ -239,9 +348,9 @@ def test_refuses_variant_without_a_transform():
 
 def test_matrix_validates_all_variants_before_running_any():
     corpus = [price_trace(t, RATES) for t in generate_corpus(3, 0)]
-    with pytest.raises(NotImplementedError, match="context_strategy"):
+    with pytest.raises(NotImplementedError, match="retrieval_policy"):
         run_repricing_matrix(
             corpus,
-            {"prefix_caching_on": PREFIX_CACHING, "bad": VariantSpec(context_strategy="x")},
+            {"prefix_caching_on": PREFIX_CACHING, "bad": VariantSpec(retrieval_policy="x")},
             rates=RATES,
         )
