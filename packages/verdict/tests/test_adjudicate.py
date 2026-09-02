@@ -101,6 +101,7 @@ def _synthetic(
     *, tool: ToolCall | None = None, llm_text: str = "ok",
     decision_kind: DecisionKind = DecisionKind.compose,
     end_reason: EndReason = EndReason.caller_hangup,
+    scenario_id: str = "s1",
 ) -> PricedTrace:
     turn = Turn(
         turn_index=0, speaker_first="agent", wall_start_ms=0, wall_end_ms=1000,
@@ -109,7 +110,7 @@ def _synthetic(
     )
     trace = Trace(
         conversation=Conversation(
-            conversation_id="c1", agent_version="v1", scenario_id="s1",
+            conversation_id="c1", agent_version="v1", scenario_id=scenario_id,
             started_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
             ended_at=datetime(2026, 1, 1, 0, 1, tzinfo=timezone.utc),
             end_reason=end_reason,
@@ -175,13 +176,59 @@ def test_committed_mutation_is_resolved():
 
 def test_rejected_mutation_with_completion_assertion_is_false_resolve():
     v = adjudicate(_synthetic(tool=_tool(ToolKind.mutation, Effect.rejected),
-                              llm_text="Your refund is processed."))
+                              llm_text="Your refund is processed.",
+                              scenario_id="refund"))
     assert v.label is VerdictLabel.FALSE_RESOLVE
+    # Section B3: the binding is recorded in evidence.
+    assert "refund" in v.evidence[0]["bound_to_intent"]
+
+
+# -- completion assertions are bound to intent (Section B3) ------------------ #
+
+def test_keyword_hit_without_intent_reference_is_not_false_resolve():
+    # Unbound keyword: the utterance claims SOMETHING completed but never
+    # references the intent (scenario refund / tool process_refund) -- the
+    # old free-substring match would have fired FALSE_RESOLVE here.
+    v = adjudicate(_synthetic(tool=_tool(ToolKind.mutation, Effect.rejected),
+                              llm_text="The report is processed."))
+    assert v.label is VerdictLabel.UNRESOLVED
+    assert v.confidence == pytest.approx(0.80)  # CONF_MUTATION_INCOMPLETE
+    assert v.evidence[0]["asserts_completion"] is False
+
+
+def test_intent_can_bind_via_tool_name_alone():
+    # Opaque scenario_id, intent carried by the terminal mutation's tool_name.
+    tool = ToolCall(
+        span_id="tool1", start_offset_ms=0, duration_ms=100,
+        tool_name="cancel_subscription", args_hash="sha256:a", args_json="{}",
+        result_hash="sha256:b", latency_ms=100,
+        tool_kind=ToolKind.mutation, tool_status=ToolStatus.ok,
+        effect=Effect.rejected,
+    )
+    v = adjudicate(_synthetic(tool=tool,
+                              llm_text="Your subscription is cancelled."))
+    assert v.label is VerdictLabel.FALSE_RESOLVE
+    assert "subscription" in v.evidence[0]["bound_to_intent"]
+
+
+def test_unresolvable_intent_never_yields_false_resolve():
+    # No intent tokens derivable (opaque scenario AND tool name): the
+    # assertion cannot be bound, so FALSE_RESOLVE is never claimed.
+    tool = ToolCall(
+        span_id="tool1", start_offset_ms=0, duration_ms=100,
+        tool_name="fix", args_hash="sha256:a", args_json="{}",
+        result_hash="sha256:b", latency_ms=100,
+        tool_kind=ToolKind.mutation, tool_status=ToolStatus.ok,
+        effect=Effect.rejected,
+    )
+    v = adjudicate(_synthetic(tool=tool, llm_text="All done."))
+    assert v.label is VerdictLabel.UNRESOLVED
 
 
 def test_pending_mutation_with_completion_assertion_is_false_resolve():
     v = adjudicate(_synthetic(tool=_tool(ToolKind.mutation, Effect.pending),
-                              llm_text="All set, that's completed."))
+                              llm_text="All set, your refund is completed.",
+                              scenario_id="refund"))
     assert v.label is VerdictLabel.FALSE_RESOLVE
 
 

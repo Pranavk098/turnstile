@@ -22,6 +22,10 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
   - RESOLVED requires the terminal required mutation ``effect == committed``.
   - FALSE_RESOLVE: agent asserts completion AND terminal mutation
     ``effect in {pending, rejected}`` or ``tool_status == error``. Deterministic.
+    The assertion is BOUND TO INTENT (Section B3): the final utterance must
+    contain a completion keyword AND reference an intent token parsed from
+    the scenario_id / terminal tool_name (Wave-1 stand-in for the scenario
+    registry; with no derivable intent tokens FALSE_RESOLVE is never claimed).
   - unknown blocks confident verdicts: any required mutation at ``effect ==
     unknown`` caps confidence at 0.6, forbids RESOLVED/FALSE_RESOLVE, and records
     the ambiguity in evidence.
@@ -40,6 +44,8 @@ Wave-2/3 work. This only changes ``turn_of_no_return`` -- it never changes
 the verdict LABEL.
 """
 from __future__ import annotations
+
+import re
 
 from turnstile_schema import PricedTrace, Verdict
 from turnstile_schema.enums import (
@@ -89,8 +95,11 @@ NON_CLEAN_END_REASONS = frozenset(
 CONFIRMATION_WINDOW_TURNS = 2
 
 # "Agent asserts completion" heuristic (drives FALSE_RESOLVE). Case-insensitive
-# substring match against the agent's final output_text. Wave-2 refinement:
-# replace with a scenario-aware completion classifier.
+# substring match against the agent's final output_text -- BOUND TO THE SCENARIO
+# INTENT (Section B3): a keyword hit alone is not an assertion of THE INTENT's
+# completion; the utterance must also reference an intent token (parsed from the
+# scenario_id / terminal mutation's tool_name, see _intent_terms). Wave-2
+# refinement: replace with a scenario-registry-aware completion classifier.
 COMPLETION_ASSERTION_KEYWORDS = (
     "processed", "completed", "is complete", "all set", "done",
     "taken care of", "has been", "successfully", "refunded",
@@ -174,10 +183,35 @@ def _earliest_escalate_check(trace: Trace) -> int | None:
     return None
 
 
-def _asserts_completion(text: str) -> bool:
-    """Does the agent's utterance claim the task is done? (FALSE_RESOLVE trigger)."""
+def _intent_terms(scenario_id: str | None, tool_name: str | None) -> frozenset[str]:
+    """The intent's identifying tokens -- the Wave-1 deterministic stand-in
+    for the scenario registry (Wave-2): parsed from the scenario_id and the
+    terminal mutation's tool_name (split on non-alphanumerics; fragments
+    under 4 chars dropped as noise). Both sources may be opaque, in which
+    case the set is empty and no completion assertion can be bound."""
+    terms: set[str] = set()
+    for source in (scenario_id, tool_name):
+        for token in re.split(r"[^a-z0-9]+", (source or "").lower()):
+            if len(token) >= 4:
+                terms.add(token)
+    return frozenset(terms)
+
+
+def _asserts_completion(text: str, intent_terms: frozenset[str]) -> bool:
+    """Does the agent's utterance claim THE INTENT's task is done?
+    (FALSE_RESOLVE trigger.)
+
+    Bound to intent (Section B3): a completion keyword alone is not enough --
+    an unbound free-substring match fired on cross-intent and incidental hits
+    (e.g. 'the status has been updated' on a cancellation intent). The
+    utterance must also reference one of the intent's tokens. If no intent
+    tokens can be derived (opaque scenario_id AND tool_name), the assertion
+    cannot be bound and is conservatively reported as False -- FALSE_RESOLVE
+    is never claimed on an unbound keyword hit."""
     low = text.lower()
-    return any(kw in low for kw in COMPLETION_ASSERTION_KEYWORDS)
+    if not any(kw in low for kw in COMPLETION_ASSERTION_KEYWORDS):
+        return False
+    return any(term in low for term in intent_terms)
 
 
 def _has_clean_close(trace: Trace) -> bool:
@@ -315,8 +349,9 @@ def _adjudicate_mutation(trace: Trace, turn_idx: int, tool: ToolCall) -> Verdict
         or tool.tool_status is ToolStatus.error
     )
     if incomplete:
+        intent_terms = _intent_terms(trace.conversation.scenario_id, tool.tool_name)
         final = _final_llm(trace)
-        asserts = final is not None and _asserts_completion(final[1].output_text)
+        asserts = final is not None and _asserts_completion(final[1].output_text, intent_terms)
         if asserts:
             # Deterministic FALSE_RESOLVE -- the most expensive failure.
             return Verdict(
@@ -326,8 +361,11 @@ def _adjudicate_mutation(trace: Trace, turn_idx: int, tool: ToolCall) -> Verdict
                     **base,
                     "rule": "false_resolve_assertion_contradicts_effect",
                     "asserts_completion": True,
+                    "bound_to_intent": sorted(intent_terms),
                     "final_output_text": final[1].output_text,
-                    "note": "agent claimed completion but mutation did not commit.",
+                    "note": "agent claimed completion of the intent but mutation "
+                            "did not commit (assertion bound to intent tokens from "
+                            "scenario_id/tool_name).",
                 }],
                 turn_of_no_return=turn_idx,
             )

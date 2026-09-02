@@ -330,7 +330,9 @@ def test_custom_backend_can_flip_the_outcome_and_replay_detects_it():
     set_backend(backend)
     pt = priced(turn(
         0, llm_spans=[llm("l0", decision_kind=DecisionKind.compose, output_text=original_text)],
-        tools=[tool("t0", kind=ToolKind.mutation, effect="rejected")],
+        # intent-carrying tool name so the completion assertion can bind to
+        # the intent (Section B3) -- "processing" references the tool's intent.
+        tools=[tool("t0", name="process_refund", kind=ToolKind.mutation, effect="rejected")],
     ))
     trial = replay(pt, VariantSpec(), from_turn=0)
     assert trial.status == "ok"
