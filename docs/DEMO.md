@@ -6,39 +6,46 @@ explicitly split into two tiers, labeled on the slide, and never blurs them.
 
 ## The two tiers (state this structure out loud)
 
-**Tier 1 — proven.** The recoverable-margin experiment: on n=250 synthetic
-traces, `route` decisions re-priced as **deterministic rate arbitrage** against
-the dated rate table — `price(original tokens, cheaper model) − price(original
-tokens, original model)`, §8.3-gated (preservation ≥ 0.95 **and** bootstrap
-CI-upper < 0) — giving **0.57% [0.49, 0.66]** recoverable margin, ~$126/yr at 1M
-calls, with the absolute dollars. Exact arithmetic on real, dated rates,
-reproducible from the run manifest — not an author's guess. **This is the number
-we stand behind, and it is deliberately small: only `route` is replay-executable
-today.** The paid path is real (verified: gpt-5-nano at ~2s/call, k=8 clean) —
-but **outcome-preservation at scale is a Wave-2 measurement, not a claim here.**
-On a synthetic corpus the divergence gate compares real output to canned text
-(vacuous) and verdict-preservation is structural (tools pinned, H-1). We say that
-out loud; we never quote a measured preservation rate we can't defend. (See
-`docs/METHOD.md`, `docs/LIMITATIONS.md`.)
+**Tier 1 — proven.** Two numbers, both stand up to a hostile question.
+
+**① The headline — barge-in waste (a number nobody has published).** We ran
+**750 real Piper TTS synthesis calls** through the instrument and measured the
+fraction of synthesized, *billed* speech a caller never hears when they barge in.
+At a cited **15% barge-in rate** and a **2-second streaming buffer**: **4.1% of
+TTS spend is generated, billed, and never heard** — about one buffer-lead of
+audio per interruption. The mechanism: local streaming TTS generates **~40×
+realtime** (measured), so the whole readback exists before the caller has heard a
+quarter of it; generation always wins the race — the only question is how far
+ahead you buffer. Swept over barge-in rate 5%→30% = 1.9%→7.9%, and over buffer
+policy [lead_cap sweep once it lands]. Provenance stated on the slide: real
+generation-ahead behavior **measured**; barge-in rate/position **modeled, swept,
+uniform-null**; N controlled harness calls, **not production**.
+
+**② The supporting proven number — routing margin.** Deterministic rate arbitrage
+on `route` decisions to a cheaper model: **0.57% [0.49, 0.66]** recoverable,
+~$126/yr at 1M calls, §8.3-gated, reproducible from the manifest. Exact
+arithmetic — small by construction (only `route` is replay-executable today). We
+do **not** quote a measured preservation rate: that needs real traffic (Wave-2),
+and we won't fake it on synthetic audio. (See `docs/METHOD.md`, `docs/LIMITATIONS.md`.)
 
 **Tier 2 — instrumented, not measured.** The voice-stack cost decomposition
-(ASR/TTS/telephony), and Detectors 7 (barge-in) and 8 (silence tax). On a
-synthetic corpus these measure the *generator's* modeled acoustics, not a real
-audio pipeline. So we demonstrate the **mechanism** and **do not claim the
-magnitude.** Present Tier 2 as a *question*, not a result (see 0:45).
+(ASR/TTS/telephony) and **Detector 8 (silence tax)** on synthetic acoustics —
+mechanism shown, magnitude not claimed, presented as a *question* (see 0:45).
+**Detector 7 (barge-in) has PROMOTED to Tier 1 above** — the native harness
+measures its number on real TTS. That promotion is the proof of the next line:
 
-**The promotion line — say it:** "The instrument doesn't change; only the
-fidelity of what it's pointed at. The moment the recorder emits real audio,
-every Tier-2 detector promotes to Tier 1 with no code change." (This is why
-the G2 gate stays live — see `docs/GATES.md`.)
+**The promotion line — say it:** "The instrument doesn't change; only the fidelity
+of what it's pointed at. D7 just made that jump — a real TTS harness, no code
+change to the analysis. D8 follows the moment real audio flows." (This is why the
+G2 gate stays live — see `docs/GATES.md`.)
 
 ## The spine (PRD Appendix A), tagged by tier
 
 1. **0:00 — one call, cost flame graph.** "This call cost $X; here is where it went." Label the LLM stage **[measured]** and the ASR/TTS/telephony stages **[modeled acoustics]**. Don't let the flame graph imply the audio stages are measured.
-2. **0:45 — Detector 7, barge-in — as a QUESTION (Tier 2).** Do NOT assert a cents figure. Say: *"I can't tell you what fraction of your TTS spend your callers never hear — because on synthetic audio I'd only be measuring my own assumptions. I can tell you **nobody is measuring it**, and here is the instrument that would. Do you know your number?"* Then show D7 firing correctly on a trace to prove the mechanism. Handing him the gap beats a figure he can't verify — it's what an FDE does.
+2. **0:45 — Detector 7, barge-in — THE measured headline (Tier 1).** Lead with the number nobody has: *"I ran 750 real TTS synthesis calls and measured how much synthesized, billed speech your callers never hear when they interrupt. At a 15% barge-in rate on a 2-second buffer: **4.1% of your TTS spend — generated, billed, and never heard.** Streaming TTS runs ~40× realtime, so the whole readback exists before they've heard a quarter of it."* Show the sweep table (barge-in rate, and the buffer-policy sweep once it lands) as the honesty exhibit, and state the provenance out loud (generation-ahead **measured**; barge-in rate/position **modeled + swept**; controlled harness, not production). This is the reaction you want — not "nice tool," but *"wait, what's OUR number?"*
 3. **1:30 — fleet view (Tier 1).** "Most vendors quote CPRC-naive, the left number. The right one, CPRC-loaded, is your real margin — you pay for the calls that fail too." (Loaded is computed over verdict-adjudicated resolutions.)
 4. **2:15 — Detector 9, escalation debt (Tier 1 once the verdict fix lands).** "Escalation was predictable at turn 3. We spent nine more turns and $X getting there." And the tier-2 rejected-handoff number: full conversation cost, stranded caller.
-5. **3:00 — recoverable margin (THE Tier-1 headline).** "We didn't *suggest* the cheaper router. We re-priced every eligible `route` decision on it against the real rate card and gated it: **0.57% [0.49, 0.66]** recoverable, ~$126/yr at 1M calls, bootstrap CI, reproducible from the manifest. Small — because it's the *only* remedy we can prove today; the rest are detected and quantified, not yet replay-proven." Then, unprompted: "What I am **not** showing you is a preservation rate — measuring whether the cheap model keeps the outcome needs real traffic, and I won't fake it on synthetic audio." *(Owner: this beat's spoken delivery is yours to refine — the numbers and the honesty line are fixed.)*
+5. **3:00 — routing margin, then the ask (Tier 1 supporting → the close).** "And a deterministic one, exact from the rate card: routing eligible `route` decisions to a cheaper model recovers **0.57% [0.49, 0.66]**, ~$126/yr at 1M calls, gated and reproducible from the manifest. Small — it's the *only* remedy replay-executable today; the rest are detected and quantified, not yet replay-proven, and I label them that way. What I am **not** showing you is a preservation rate — that needs real traffic, and I won't fake it on synthetic audio." Then the FDE close, unprompted: *"This is what I can prove on public data and a controlled harness. The barge-in number becomes **yours** the moment you point this at your traffic — your buffer policy, your barge-in rate, your real dollars. That's the engagement."* *(Owner: delivery is yours — the numbers and the honesty lines are fixed.)*
 6. **3:40 — limitations, unprompted (below).**
 
 ## The two judgment lines — say these out loud (Tier 1: real logic on real replay)
