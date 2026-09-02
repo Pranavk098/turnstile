@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 from turnstile_agent import TtsEngine
-from turnstile_agent.harness import PROVENANCE, run_calls
+from turnstile_agent.harness import PROVENANCE, run_calls, run_leadcap_sweep
 from turnstile_detectors import detect
 from turnstile_pricing import price_trace
 from turnstile_replay._rates import get_rates
@@ -64,17 +64,11 @@ def _tts_spend_usd(priced) -> float:
     )
 
 
-def _run_rate(
-    engine: TtsEngine,
-    rate: float,
-    *,
-    n: int,
-    seed: int,
-    lead_cap_s: float,
-    rates_table: RateTable,
-) -> RatePoint:
-    calls = run_calls(engine, n=n, rate=rate, seed=seed, lead_cap_s=lead_cap_s)
-
+def _aggregate(calls, *, n: int, rates_table: RateTable) -> dict:
+    """Run one set of harness calls through the built instrument
+    (price -> adjudicate -> detect) and aggregate the D7 accounting. Shared
+    by both 1-D sweeps (barge-in rate, buffer lead) so their numbers come
+    from ONE aggregation implementation."""
     d7_waste = 0.0
     d7_count = 0
     tts_spend = 0.0
@@ -99,30 +93,101 @@ def _run_rate(
         if c.accounting.achieved_lead_at_barge_in_s is not None
     ]
 
-    return RatePoint(
-        barge_in_rate=rate,
-        n_calls=n,
-        barge_in_calls=len(barge_ins),
-        d7_findings=d7_count,
-        d7_waste_usd_total=d7_waste,
-        d7_waste_usd_mean_per_call=d7_waste / n if n else 0.0,
-        d7_waste_usd_ci95=bootstrap_ci(per_call_waste),
-        tts_spend_usd_total=tts_spend,
-        waste_share_of_tts_spend=(
+    return {
+        "n_calls": n,
+        "barge_in_calls": len(barge_ins),
+        "d7_findings": d7_count,
+        "d7_waste_usd_total": d7_waste,
+        "d7_waste_usd_mean_per_call": d7_waste / n if n else 0.0,
+        "d7_waste_usd_ci95": bootstrap_ci(per_call_waste),
+        "tts_spend_usd_total": tts_spend,
+        "waste_share_of_tts_spend": (
             d7_waste / tts_spend if tts_spend > 0 else 0.0
         ),
-        generated_chars_total=generated_chars,
-        wasted_chars_total=wasted_chars,
-        wasted_char_share=(
+        "generated_chars_total": generated_chars,
+        "wasted_chars_total": wasted_chars,
+        "wasted_char_share": (
             wasted_chars / generated_chars if generated_chars else 0.0
         ),
-        mean_gen_rate_realtime_x=(
+        "mean_gen_rate_realtime_x": (
             float(sum(gen_rates) / len(gen_rates)) if gen_rates else 0.0
         ),
-        mean_achieved_lead_s=(
+        "mean_achieved_lead_s": (
             float(sum(leads) / len(leads)) if leads else 0.0
         ),
+    }
+
+
+def _run_rate(
+    engine: TtsEngine,
+    rate: float,
+    *,
+    n: int,
+    seed: int,
+    lead_cap_s: float,
+    rates_table: RateTable,
+) -> RatePoint:
+    calls = run_calls(engine, n=n, rate=rate, seed=seed, lead_cap_s=lead_cap_s)
+    return RatePoint(barge_in_rate=rate, **_aggregate(calls, n=n, rates_table=rates_table))
+
+
+class LeadCapPoint(TypedDict):
+    """One point of the buffer-lead policy sweep: the barge-in rate is HELD
+    at the cited default; only ``lead_cap_s`` varies."""
+
+    lead_cap_s: float
+    n_calls: int
+    barge_in_calls: int
+    d7_findings: int
+    d7_waste_usd_total: float
+    d7_waste_usd_mean_per_call: float
+    d7_waste_usd_ci95: tuple[float, float]
+    tts_spend_usd_total: float
+    waste_share_of_tts_spend: float
+    generated_chars_total: int
+    wasted_chars_total: int
+    wasted_char_share: float
+    mean_gen_rate_realtime_x: float
+    mean_achieved_lead_s: float
+
+
+# Stated plausible POLICY BAND for a streaming TTS's buffer lead (seconds of
+# generated-but-unheard audio a pipeline allows). NOT a claim about any
+# vendor's pipeline -- no clean citation exists, so the band is stated and
+# swept rather than asserting a single figure. It is centered plausibly
+# around common 1-3s streaming-buffer designs, not around flattering any
+# particular point; the corpus's cited default anchors the rate dimension,
+# not this one.
+LEAD_CAP_VALUES: list[float] = [0.5, 1.0, 2.0, 3.0, 4.0]
+
+# The buffer-lead sweep holds the barge-in rate at the CITED default
+# (turnstile_corpus.distributions.BARGE_IN_RATE) so the two sweeps vary one
+# named parameter each.
+LEAD_CAP_SWEEP_RATE = 0.15
+
+
+def _run_leadcap(
+    engine: TtsEngine,
+    *,
+    n: int,
+    seed: int,
+    lead_caps: list[float],
+    rates_table: RateTable,
+    rate: float = LEAD_CAP_SWEEP_RATE,
+) -> list[LeadCapPoint]:
+    """One sampling pass (barge-in draws fixed), replayed at every lead-cap
+    value -- the measured phase-1 schedules are shared across points, so the
+    sweep can only move the POLICY, never the measurement."""
+    sweep = run_leadcap_sweep(
+        engine, n=n, rate=rate, seed=seed, lead_caps=lead_caps
     )
+    return [
+        LeadCapPoint(
+            lead_cap_s=cap,
+            **_aggregate(sweep[cap], n=n, rates_table=rates_table),
+        )
+        for cap in lead_caps
+    ]
 
 
 def run_bargein_report(
@@ -132,12 +197,18 @@ def run_bargein_report(
     n: int = DEFAULT_N,
     seed: int = DEFAULT_SEED,
     lead_cap_s: float = 2.0,
+    lead_caps: list[float] | None = None,
     rates_table: RateTable | None = None,
 ) -> dict:
-    """Sweep the modeled barge-in rate, pipe every call through the built
-    instrument, and package the measured D7 number with its provenance.
-    ``engine`` defaults to the real :class:`PiperEngine` (requires the piper
-    extra + a voice model); tests inject the deterministic fake engine."""
+    """Run BOTH 1-D sweeps and package the measured D7 number with its
+    provenance:
+
+    * the barge-in RATE sweep (modeled input; buffer held at ``lead_cap_s``),
+    * the buffer-LEAD sweep (stated policy band; rate held at the cited 0.15).
+
+    Every call goes through the built instrument unchanged. ``engine``
+    defaults to the real :class:`PiperEngine` (requires the piper extra + a
+    voice model); tests inject the deterministic fake engine."""
     if engine is None:
         from turnstile_agent import PiperEngine
 
@@ -152,6 +223,12 @@ def run_bargein_report(
         for rate in (rates_values if rates_values is not None else BARGE_IN_RATES)
     ]
 
+    leadcap_points = _run_leadcap(
+        engine, n=n, seed=seed,
+        lead_caps=lead_caps if lead_caps is not None else LEAD_CAP_VALUES,
+        rates_table=rates_table,
+    )
+
     return {
         "provenance": PROVENANCE,
         "n": n,
@@ -160,4 +237,13 @@ def run_bargein_report(
         "parameter": "barge-in rate (modeled input, swept)",
         "class_id": D7_CLASS_ID,
         "points": points,
+        "lead_cap_sweep": {
+            "parameter": (
+                "streaming buffer-lead policy lead_cap_s (modeled input, "
+                "swept over a stated plausible policy band -- not a claim "
+                "about any vendor's pipeline)"
+            ),
+            "barge_in_rate_held_at": LEAD_CAP_SWEEP_RATE,
+            "points": leadcap_points,
+        },
     }

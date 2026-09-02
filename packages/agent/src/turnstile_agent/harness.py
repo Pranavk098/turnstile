@@ -114,3 +114,69 @@ def run_calls(
             HarnessCall(index=i, rate=rate, accounting=accounting, trace=trace)
         )
     return calls
+
+
+def run_leadcap_sweep(
+    engine: TtsEngine,
+    *,
+    n: int,
+    rate: float,
+    seed: int,
+    lead_caps: list[float],
+    record: bool = True,
+) -> dict[float, list[HarnessCall]]:
+    """Sweep the streaming BUFFER-LEAD POLICY (``lead_cap_s``) -- the one
+    parameter the waste magnitude scales with -- while holding the barge-in
+    behavior FIXED: one sampling pass (same seed -> same per-call barge-in
+    draws), replayed at every lead-cap value.
+
+    Anti-tuning guarantee, same rule as the rate sweep: the modeled
+    interruption pattern is drawn ONCE, before any lead_cap is applied, and
+    the MEASURED phase-1 chunk schedule is measured ONCE per utterance and
+    reused across every point -- ``lead_cap`` only affects the phase-2
+    replay's ``generate_ahead`` cap, never the measured schedule, never the
+    interruption draws. Returns ``{lead_cap: [HarnessCall, ...]}`` in the
+    given order."""
+    rng = np.random.default_rng(seed)
+    samples: list[tuple[str, list, float | None]] = []
+    schedules: dict[str, list] = {}
+    for i in range(n):
+        utterance = READBACKS[i % len(READBACKS)]
+        if utterance not in schedules:
+            schedules[utterance] = measure_utterance(engine, utterance)
+        schedule = schedules[utterance]
+        total_audio_s = sum(c.audio_seconds for c in schedule)
+        barges = bool(rng.random() < rate)
+        barge_at = (
+            sample_barge_in_position(rng, total_audio_s) if barges else None
+        )
+        samples.append((utterance, schedule, barge_at))
+
+    results: dict[float, list[HarnessCall]] = {}
+    for cap in lead_caps:
+        calls: list[HarnessCall] = []
+        for i, (utterance, schedule, barge_at) in enumerate(samples):
+            accounting = simulate_call(
+                engine,
+                utterance,
+                barge_in_at_audio_s=barge_at,
+                lead_cap_s=cap,
+                schedule=schedule,
+            )
+            trace = None
+            if record:
+                trace = record_call(
+                    accounting,
+                    conversation_id=f"bargein-leadcap-{seed}-{cap:.1f}-{i:04d}",
+                    caller_opening=CALLER_OPENINGS[i % len(CALLER_OPENINGS)],
+                    caller_interrupt=(
+                        CALLER_INTERRUPTS[i % len(CALLER_INTERRUPTS)]
+                        if accounting.truncated
+                        else None
+                    ),
+                )
+            calls.append(
+                HarnessCall(index=i, rate=rate, accounting=accounting, trace=trace)
+            )
+        results[cap] = calls
+    return results
