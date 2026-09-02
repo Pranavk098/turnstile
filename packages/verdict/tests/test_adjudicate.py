@@ -267,3 +267,37 @@ def test_informational_resolution_leaves_turn_of_no_return_none():
     v = adjudicate(_synthetic(llm_text="Your order ships tomorrow. Goodbye."))
     assert v.label is VerdictLabel.RESOLVED
     assert v.turn_of_no_return is None
+
+
+# -- non-clean end on the informational path (Section B2) -------------------- #
+
+@pytest.mark.parametrize("reason", [EndReason.timeout, EndReason.error, EndReason.agent_hangup])
+def test_non_clean_end_on_informational_path_is_not_resolved(reason):
+    """The sharpest confidently-wrong edge: an informational-intent trace that
+    ends non-cleanly must NOT default to RESOLVED@0.70 -- the call may have
+    died before the intent was served. Matching the unknown-handling style:
+    UNRESOLVED with confidence capped at the unknown cap, rule in evidence."""
+    v = adjudicate(_synthetic(llm_text="Your order ships tomorrow.", end_reason=reason))
+    assert v.label is VerdictLabel.UNRESOLVED
+    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert any(e.get("rule") == "non_clean_end_blocks_informational_resolution"
+               for e in v.evidence)
+    assert v.evidence[0]["end_reason"] == reason.value
+
+
+def test_non_clean_end_blocks_resolved_even_with_a_clean_close_utterance():
+    # A courtesy goodbye in the tail does not make a timeout a resolution --
+    # the doc's rule is absolute on the informational path.
+    v = adjudicate(_synthetic(llm_text="Glad I could help. Goodbye!",
+                              end_reason=EndReason.timeout))
+    assert v.label is VerdictLabel.UNRESOLVED
+    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert v.evidence[0]["clean_close"] is True
+
+
+def test_clean_end_informational_path_still_resolves():
+    # Regression guard: caller_hangup stays a legitimate informational close.
+    v = adjudicate(_synthetic(llm_text="Your order ships tomorrow. Goodbye.",
+                              end_reason=EndReason.caller_hangup))
+    assert v.label is VerdictLabel.RESOLVED
+    assert v.confidence > UNKNOWN_CONFIDENCE_CAP

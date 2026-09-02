@@ -74,6 +74,16 @@ CONF_ABANDONED = 0.70               # caller hung up mid-slot-fill
 # forbids RESOLVED / FALSE_RESOLVE.
 UNKNOWN_CONFIDENCE_CAP = 0.60
 
+# End reasons that mean the call did NOT finish normally. On the informational
+# path (no required mutation/handoff) a non-clean end forbids the default
+# "intent was served" RESOLVED: the conversation may have ended before the
+# intent was actually handled. Matches the doc's non-clean set exactly
+# (timeout / error / agent_hangup); caller_hangup is the caller's choice and
+# remains a legitimate informational close.
+NON_CLEAN_END_REASONS = frozenset(
+    {EndReason.timeout, EndReason.error, EndReason.agent_hangup}
+)
+
 # Source 3 search window: caller-confirmation / clean-close utterance is looked
 # for in the final N turns.
 CONFIRMATION_WINDOW_TURNS = 2
@@ -365,6 +375,29 @@ def _adjudicate_informational(trace: Trace) -> Verdict:
                 }],
                 turn_of_no_return=hangup_turn,
             )
+
+    # Non-clean end (timeout / error / agent_hangup): the call did not finish
+    # normally, so the informational intent cannot be judged "served" -- even
+    # with a clean-close utterance in the tail (a courtesy goodbye before a
+    # timeout is still a timeout). Matching the binding-v1.1 unknown-handling
+    # style: mark unknown, cap confidence, forbid RESOLVED, record the
+    # ambiguity in evidence. (Placed after the ABANDONED branch, which requires
+    # caller_hangup and is therefore disjoint from this guard.)
+    if trace.conversation.end_reason in NON_CLEAN_END_REASONS:
+        return Verdict(
+            label=VerdictLabel.UNRESOLVED,
+            confidence=UNKNOWN_CONFIDENCE_CAP,
+            evidence=[{
+                "source": "informational_resolution",
+                "rule": "non_clean_end_blocks_informational_resolution",
+                "end_reason": trace.conversation.end_reason.value,
+                "clean_close": _has_clean_close(trace),
+                "note": "informational intent (no required mutation/handoff) but "
+                        "the call ended non-cleanly; declining to fabricate a "
+                        "resolution. confidence capped, RESOLVED forbidden.",
+            }],
+            turn_of_no_return=None,
+        )
 
     # Otherwise the informational intent was served (source 4: no escalation
     # span; source 3: clean close where present). turn_of_no_return left None:
