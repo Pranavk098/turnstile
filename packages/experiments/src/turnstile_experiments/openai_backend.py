@@ -30,6 +30,7 @@ from typing import Any
 from openai import OpenAI
 
 from turnstile_schema import VariantSpec
+from turnstile_schema.enums import DecisionKind
 from turnstile_schema.spans import LlmDecide
 from turnstile_replay.backend import ReplayContext, ReplayedDecision
 
@@ -59,6 +60,55 @@ DEFAULT_MAX_COMPLETION_TOKENS = 256
 # experiment, so it is a stated, consistent modeling choice, not per-trace
 # tuning.
 DEFAULT_REASONING_EFFORT = "minimal"
+
+
+# M-2 / Section B4: per-decision_kind parsing of `decision_chosen` (the raw
+# completion utterance stays in `output_text` verbatim). Containment keyword
+# lists are stated constants, same convention as the verdict layer's
+# heuristics; full calibration is Wave-2 (the structured-divergence work this
+# parsing is the prereq for).
+ESCALATE_CONTAINMENT_MARKERS = (
+    "escalate", "escalating", "transfer", "transferring", "specialist",
+    "supervisor", "human agent", "connect you", "connecting you",
+)
+CONTINUE_CONTAINMENT_MARKERS = (
+    "continue", "keep looking", "looking into", "still working",
+    "one moment", "let me check",
+)
+
+
+def parse_decision_chosen(
+    decision_kind: DecisionKind, text: str, candidates: list[str]
+) -> str:
+    """Parse the raw completion utterance into a `decision_chosen` value for
+    the decision's kind (M-2):
+
+    * ``escalate_check`` -> ``"escalate"``/``"continue"`` by containment: any
+      ESCALATE_CONTAINMENT_MARKERS hit wins (escalation is the load-bearing
+      signal), otherwise ``"continue"`` -- the conservative default, since
+      claiming escalation has consequences. (Neither the utterance nor the
+      corpus's own escalate texts necessarily contain the literal decision
+      verbs -- "I'm connecting you with a specialist now." contains neither
+      "escalate" nor "continue" -- hence the marker lists.)
+    * ``tool_select`` -> the tool name: the longest of the original span's
+      ``decision_candidates`` contained in the utterance (most specific wins;
+      candidates are the valid tool names, e.g. ``retrieve_kb_article``).
+      When NO candidate is contained, the raw text passes through -- a tool
+      choice is never fabricated.
+    * every other kind -> documented passthrough (the raw text): Wave-1 has
+      no per-kind schema for route/compose/slot_fill decisions.
+    """
+    low = text.lower()
+    if decision_kind is DecisionKind.escalate_check:
+        if any(marker in low for marker in ESCALATE_CONTAINMENT_MARKERS):
+            return "escalate"
+        return "continue"
+    if decision_kind is DecisionKind.tool_select:
+        matches = [c for c in candidates if c.lower() in low]
+        if matches:
+            return max(matches, key=len)
+        return text
+    return text
 
 
 def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[dict[str, str]]:
@@ -170,14 +220,17 @@ class OpenAIBackend:
                 flush=True,
             )
 
-        # M-2 (documented at the ReplayedDecision boundary): `decision_chosen`
-        # here is the RAW completion utterance, not a parsed decision value.
-        # Wave-1 proxies it; per-decision_kind parsing (escalate_check ->
-        # escalate/continue, tool_select -> tool name) is queued for Wave-2.
+        # M-2 / Section B4: `decision_chosen` is parsed per decision_kind
+        # (escalate_check -> escalate/continue containment; tool_select -> the
+        # candidate tool name contained in the utterance; every other kind ->
+        # documented passthrough). The RAW completion utterance stays in
+        # `output_text` verbatim. See parse_decision_chosen.
         return ReplayedDecision(
             model=model,
             output_text=text,
-            decision_chosen=text,
+            decision_chosen=parse_decision_chosen(
+                original_span.decision_kind, text, original_span.decision_candidates
+            ),
             input_tokens=usage.prompt_tokens,
             output_tokens=usage.completion_tokens,
             latency_ms=latency_ms,

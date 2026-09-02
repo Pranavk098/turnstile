@@ -323,3 +323,90 @@ def test_completion_below_the_cap_is_not_logged(monkeypatch, capsys):
     backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
 
     assert "max_tokens" not in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------- #
+# Section B4 (M-2): decision_chosen is parsed per decision_kind; the raw      #
+# utterance stays in output_text. Fake-client tests only -- no spend.         #
+# --------------------------------------------------------------------------- #
+
+def _with_candidates(span, candidates):
+    return span.model_copy(update={"decision_candidates": candidates})
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("I'm connecting you with a specialist now.", "escalate"),
+    ("Let me transfer you to our returns team.", "escalate"),
+    ("I'll escalate this to a higher level of support.", "escalate"),
+    ("Let me keep looking into this for you.", "continue"),
+    ("One moment, still working on it.", "continue"),
+    ("Understood.", "continue"),  # stated conservative default: no marker -> continue
+])
+def test_escalate_check_parsed_by_containment(monkeypatch, text, expected):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = llm("l1", decision_kind=DecisionKind.escalate_check, model="gpt-5")
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.output_text == text  # raw utterance preserved
+    assert decision.decision_chosen == expected
+
+
+def test_tool_select_parsed_to_contained_candidate_tool_name(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(
+        _FakeResponse("Let me pull up the article: retrieve_kb_article", 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.tool_select, decision_chosen="retrieve_kb_article",
+            model="gpt-5"),
+        ["retrieve_kb_article", "lookup_account"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.output_text == "Let me pull up the article: retrieve_kb_article"
+    assert decision.decision_chosen == "retrieve_kb_article"
+
+
+def test_tool_select_longest_candidate_wins(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("running lookup_account_extended now", 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.tool_select, decision_chosen="lookup_account_extended",
+            model="gpt-5"),
+        ["lookup_account", "lookup_account_extended"],  # both contained; longest is the tool
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+    assert decision.decision_chosen == "lookup_account_extended"
+
+
+def test_tool_select_with_no_contained_candidate_passes_through(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("I would check the shipping database.", 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.tool_select, decision_chosen="lookup_account",
+            model="gpt-5"),
+        ["lookup_account"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+    # A tool choice is never fabricated: no candidate contained -> raw passthrough.
+    assert decision.decision_chosen == "I would check the shipping database."
