@@ -31,6 +31,12 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
     the ambiguity in evidence.
   - ESCALATED requires ``handoff.effect == committed``; a rejected handoff ->
     UNRESOLVED, a pending handoff -> UNRESOLVED (not yet ESCALATED).
+  - Section C2 (GAP-11) via the minimal scenario registry
+    (``turnstile_verdict.registry``): MISROUTED when a committed mutation is
+    not the scenario's required tool (or the scenario requires no mutation);
+    PARTIALLY_RESOLVED when the registry-matched required mutation is present
+    but pending (attempted, not committed). Unregistered scenarios keep the
+    pre-registry behavior exactly.
 
 ``turn_of_no_return`` for ESCALATED (GAP-05, PRD Sec.6 D9): PRD Sec.7 defines
 it as "the earliest turn at which the final verdict was already determined."
@@ -59,6 +65,8 @@ from turnstile_schema.enums import (
 from turnstile_schema.spans import LlmDecide, ToolCall
 from turnstile_schema.trace import Trace
 
+from turnstile_verdict.registry import lookup
+
 # --------------------------------------------------------------------------- #
 # Named constants -- documented thresholds and keyword lists (never inline      #
 # magic literals). Full calibration (60 hand labels, Cohen's kappa) is deferred #
@@ -75,6 +83,10 @@ CONF_HANDOFF_REJECTED = 0.85        # handoff effect=rejected -> UNRESOLVED
 CONF_HANDOFF_PENDING = 0.80         # handoff effect=pending -> not yet ESCALATED
 CONF_MUTATION_INCOMPLETE = 0.80     # pending/rejected mutation, no completion claim
 CONF_ABANDONED = 0.70               # caller hung up mid-slot-fill
+
+# Section C2 (GAP-11): the two labels the registry makes emitable.
+CONF_MISROUTED = 0.85               # deterministic: committed tool != registry's required tool
+CONF_PARTIALLY_RESOLVED = 0.75      # registry-matched mutation attempted (pending), not committed
 
 # Binding v1.1: any required mutation at effect=unknown caps confidence here and
 # forbids RESOLVED / FALSE_RESOLVE.
@@ -348,40 +360,79 @@ def _adjudicate_mutation(trace: Trace, turn_idx: int, tool: ToolCall) -> Verdict
         tool.effect in (Effect.pending, Effect.rejected)
         or tool.tool_status is ToolStatus.error
     )
-    if incomplete:
-        intent_terms = _intent_terms(trace.conversation.scenario_id, tool.tool_name)
-        final = _final_llm(trace)
-        asserts = final is not None and _asserts_completion(final[1].output_text, intent_terms)
-        if asserts:
-            # Deterministic FALSE_RESOLVE -- the most expensive failure.
+    if not incomplete:
+        # effect == committed: RESOLVED -- unless the registry says the
+        # handled intent is not the scenario's intent (Section C2, MISROUTED),
+        # or the scenario requires NO mutation at all.
+        spec = lookup(trace.conversation.scenario_id)
+        if spec is not None and tool.tool_name != spec.requires_mutation:
             return Verdict(
-                label=VerdictLabel.FALSE_RESOLVE,
-                confidence=CONF_FALSE_RESOLVE,
+                label=VerdictLabel.MISROUTED,
+                confidence=CONF_MISROUTED,
                 evidence=[{
                     **base,
-                    "rule": "false_resolve_assertion_contradicts_effect",
-                    "asserts_completion": True,
-                    "bound_to_intent": sorted(intent_terms),
-                    "final_output_text": final[1].output_text,
-                    "note": "agent claimed completion of the intent but mutation "
-                            "did not commit (assertion bound to intent tokens from "
-                            "scenario_id/tool_name).",
+                    "rule": "handled_intent_mismatches_scenario",
+                    "scenario_id": trace.conversation.scenario_id,
+                    "handled_tool": tool.tool_name,
+                    "required_tool": spec.requires_mutation,
+                    "note": "mutation committed, but not the one the scenario's "
+                            "intent requires (registry: turnstile_verdict.registry).",
                 }],
                 turn_of_no_return=turn_idx,
             )
-        # Mutation did not commit and the agent did not over-claim.
         return Verdict(
-            label=VerdictLabel.UNRESOLVED,
-            confidence=CONF_MUTATION_INCOMPLETE,
-            evidence=[{**base, "rule": "mutation_not_committed",
-                       "asserts_completion": False}],
+            label=VerdictLabel.RESOLVED,
+            confidence=CONF_RESOLVED_COMMITTED,
+            evidence=[{**base, "rule": "resolved_requires_effect_committed"}],
             turn_of_no_return=turn_idx,
         )
-    # effect == committed: RESOLVED.
+    intent_terms = _intent_terms(trace.conversation.scenario_id, tool.tool_name)
+    final = _final_llm(trace)
+    asserts = final is not None and _asserts_completion(final[1].output_text, intent_terms)
+    if asserts:
+        # Deterministic FALSE_RESOLVE -- the most expensive failure.
+        return Verdict(
+            label=VerdictLabel.FALSE_RESOLVE,
+            confidence=CONF_FALSE_RESOLVE,
+            evidence=[{
+                **base,
+                "rule": "false_resolve_assertion_contradicts_effect",
+                "asserts_completion": True,
+                "bound_to_intent": sorted(intent_terms),
+                "final_output_text": final[1].output_text,
+                "note": "agent claimed completion of the intent but mutation "
+                        "did not commit (assertion bound to intent tokens from "
+                        "scenario_id/tool_name).",
+            }],
+            turn_of_no_return=turn_idx,
+        )
+    if tool.effect is Effect.pending:
+        # Section C2 (GAP-11): the registry-matched required mutation was
+        # ATTEMPTED but not committed -- some-but-not-all of the required
+        # effects occurred. Rejected stays UNRESOLVED (a failed attempt, not
+        # a partial one); an unregistered or wrong-tool pending mutation
+        # stays UNRESOLVED (no partial claim without an intent match).
+        spec = lookup(trace.conversation.scenario_id)
+        if spec is not None and tool.tool_name == spec.requires_mutation:
+            return Verdict(
+                label=VerdictLabel.PARTIALLY_RESOLVED,
+                confidence=CONF_PARTIALLY_RESOLVED,
+                evidence=[{
+                    **base,
+                    "rule": "required_mutation_attempted_not_committed",
+                    "scenario_id": trace.conversation.scenario_id,
+                    "handled_tool": tool.tool_name,
+                    "note": "the scenario's required mutation is present but "
+                            "pending -- partially handled, not resolved.",
+                }],
+                turn_of_no_return=turn_idx,
+            )
+    # Mutation did not commit and the agent did not over-claim.
     return Verdict(
-        label=VerdictLabel.RESOLVED,
-        confidence=CONF_RESOLVED_COMMITTED,
-        evidence=[{**base, "rule": "resolved_requires_effect_committed"}],
+        label=VerdictLabel.UNRESOLVED,
+        confidence=CONF_MUTATION_INCOMPLETE,
+        evidence=[{**base, "rule": "mutation_not_committed",
+                   "asserts_completion": False}],
         turn_of_no_return=turn_idx,
     )
 
