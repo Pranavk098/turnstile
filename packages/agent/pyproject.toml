@@ -1,0 +1,22 @@
+[project]
+name = "turnstile-agent"
+version = "0.1.0"
+description = "Native barge-in harness: real Piper TTS through the G1 TraceRecorder, producing schema-v1.1 traces the built instrument can price and detect on (docs/superpowers/briefs/glm-barge-in-measured-number.md)."
+requires-python = ">=3.11"
+dependencies = [
+    "turnstile-schema",
+    "turnstile-otel",
+]
+
+[project.optional-dependencies]
+# Real synthesis is an OPTIONAL runtime capability: every unit test runs on the
+# injectable fake engine, and the real-Piper integration test skips cleanly
+# when this extra (or the voice model) is absent.
+piper = ["piper-tts>=1.2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/turnstile_agent"]
