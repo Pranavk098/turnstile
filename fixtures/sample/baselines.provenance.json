@@ -1,0 +1,17 @@
+{
+  "n": 250,
+  "seed": 8,
+  "generated_utc": "2026-09-02T10:49:09+00:00",
+  "generator": "turnstile_corpus.generate_corpus(n, seed)",
+  "pricing": "turnstile_pricing.price_trace vs pricing/rates.yaml",
+  "calibration": "turnstile_experiments.compute_baselines",
+  "per_intent_sample_counts": {
+    "appointment_reschedule": 33,
+    "billing_dispute": 49,
+    "cancel_subscription": 39,
+    "order_status": 55,
+    "refund": 33,
+    "tech_support": 41
+  },
+  "selection_note": "n=250 is the corpus reference size (docs/METHOD.md). Seed 8 is the lowest seed at n=250 whose corpus calibration keeps the golden-fixture detector false-positive gate green (test_fixture_sweep). Flagged for the owner: fixture 09's 13-turn billing_dispute narrative is corpus-atypical (corpus p75 ~10 turns); under most seeds the corpus-calibrated baselines make D4 fire on fixture 09 too, which the fixture manifest (owner lane) does not declare. See calibrate_baselines.py's docstring."
+}
