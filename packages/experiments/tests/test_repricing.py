@@ -18,15 +18,19 @@ from turnstile_experiments import (
     run_repricing_experiment,
     run_repricing_matrix,
 )
-from turnstile_experiments.transforms import apply_variant_transform
+from turnstile_experiments.transforms import (
+    UNPRICED_DELTAS,
+    apply_variant_transform,
+)
 
-from _experiments_builders import llm, priced, turn
+from _experiments_builders import llm, priced, tool, turn
 
 RATES = load_rates("pricing/rates.yaml")
 GPT5 = RATES.llm["openai/gpt-5"]
 MINI = RATES.llm["openai/gpt-5-mini"]
 
 PREFIX_CACHING = REPRICING_VARIANTS["prefix_caching_on"]
+TOOL_BATCHING = REPRICING_VARIANTS["tool_batching_on"]
 
 
 def _two_turn_pt():
@@ -139,6 +143,76 @@ def test_real_corpus_deltas_deterministic_and_never_positive():
     r = first["prefix_caching_on"]
     assert r.n == 10  # every trace counts; traces with nothing to cache -> 0.0
     assert r.delta_cost_mean <= 0.0  # caching re-bills cheaper, never costs more
+
+
+# --------------------------------------------------------------------------- #
+# A2: tool_batching -> D10 (the deduped calls' vendor cost, nothing more)      #
+# --------------------------------------------------------------------------- #
+
+def test_tool_batching_delta_is_the_deduped_calls_vendor_cost():
+    # Cross-turn repeat (the corpus's and fixture 10's shape): turn-1 re-calls
+    # what turn-0 already called. The first call stays billed; the deduped
+    # (removed) call's vendor cost is the saving.
+    pt = priced(
+        turn(0, llm_spans=[llm("l0")],
+             tools_spans=[tool("t0", name="update_address", args_hash="h1", cost_usd=0.01)]),
+        turn(1, llm_spans=[llm("l1")],
+             tools_spans=[tool("t1", name="update_address", args_hash="h1", cost_usd=0.02)]),
+    )
+    result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
+    assert result.delta_cost_mean == pytest.approx(-0.02)
+
+    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    assert len(tr.turns[0].tools) == 1
+    assert len(tr.turns[1].tools) == 0
+    # The rate-priced stages are untouched: the whole delta is the unpriced
+    # vendor term (ToolCall.cost_usd is excluded from price_trace by design).
+    original = price_trace(pt.trace, RATES)
+    transformed = price_trace(tr, RATES)
+    assert transformed.conv_cost == pytest.approx(original.conv_cost)
+    assert "tool_batching" in UNPRICED_DELTAS
+
+
+def test_tool_batching_collapses_within_turn_duplicates():
+    pt = priced(
+        turn(0, llm_spans=[llm("l0")],
+             tools_spans=[tool("t0", name="x", args_hash="h", cost_usd=0.01),
+                          tool("t1", name="x", args_hash="h", cost_usd=0.02)]),
+    )
+    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    assert [t.span_id for t in tr.turns[0].tools] == ["t0"]
+    result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
+    assert result.delta_cost_mean == pytest.approx(-0.02)
+
+
+def test_tool_batching_keeps_distinct_calls():
+    # Same tool, different args -> not duplicates. Same args, different tool
+    # -> not duplicates (D10 keys on the (tool_name, args_hash) pair).
+    pt = priced(
+        turn(0, llm_spans=[llm("l0")],
+             tools_spans=[tool("t0", name="x", args_hash="h1", cost_usd=0.01),
+                          tool("t1", name="x", args_hash="h2", cost_usd=0.02),
+                          tool("t2", name="y", args_hash="h1", cost_usd=0.03)]),
+    )
+    tr = apply_variant_transform(pt.trace, TOOL_BATCHING)
+    assert len(tr.turns[0].tools) == 3
+    result = run_repricing_experiment([pt], TOOL_BATCHING, rates=RATES)
+    assert result.delta_cost_mean == 0.0
+
+
+def test_tool_batching_is_exactly_zero_when_vendor_cost_unrecorded():
+    # The synthetic corpus records no vendor cost (cost_usd defaults to 0.0,
+    # the generator never sets it), so the deterministic delta is exactly 0:
+    # the redundancy's cost on THIS corpus is turn-level -- Detector 10's
+    # Tier-2 waste -- and this remedy must not claim it by stealth. If the
+    # corpus ever starts recording vendor costs, this test fails loudly and
+    # the remedy's labeling must be re-checked.
+    corpus = [price_trace(t, RATES) for t in generate_corpus(10, 0)]
+    result = run_repricing_matrix(
+        corpus, {"tool_batching_on": TOOL_BATCHING}, rates=RATES)["tool_batching_on"]
+    assert result.n == 10
+    assert result.delta_cost_mean == 0.0
+    assert result.delta_cost_ci95 == (0.0, 0.0)
 
 
 # --------------------------------------------------------------------------- #

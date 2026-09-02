@@ -52,6 +52,7 @@ VARIANTS: dict[str, VariantSpec] = {
 # bucket, never in gated proven_savings.
 REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "prefix_caching_on": VariantSpec(prefix_caching=True),
+    "tool_batching_on": VariantSpec(tool_batching=True),
 }
 
 # Reserved -- valid remedies with NO execution path yet (see module

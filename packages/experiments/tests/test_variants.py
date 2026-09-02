@@ -36,8 +36,9 @@ def test_every_executable_variant_is_actually_executable():
 
 
 def test_repricing_variants_have_a_transform_but_no_backend_path():
-    assert set(REPRICING_VARIANTS) == {"prefix_caching_on"}
+    assert set(REPRICING_VARIANTS) == {"prefix_caching_on", "tool_batching_on"}
     assert REPRICING_VARIANTS["prefix_caching_on"] == VariantSpec(prefix_caching=True)
+    assert REPRICING_VARIANTS["tool_batching_on"] == VariantSpec(tool_batching=True)
     for name, variant in REPRICING_VARIANTS.items():
         assert_variant_executable(name, variant)  # transform exists...
         with pytest.raises(NotImplementedError, match="run_repricing_matrix"):

@@ -28,16 +28,33 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from turnstile_schema import Trace, VariantSpec
+from turnstile_schema.spans import ToolCall
 
 # VariantSpec field -> transform(trace, field_value) -> transformed trace.
 # Pure functions: same trace + value in, same transformed trace out; no IO,
 # no RNG, no backend.
 REPRICING_TRANSFORMS: dict[str, Callable[[Trace, object], Trace]] = {}
 
+# VariantSpec field -> unpriced_delta(trace) -> float. Some transforms remove
+# cost that `price_trace` deliberately cannot see: ToolCall.cost_usd is
+# vendor-reported metadata, excluded from span/stage costs so the stage-cost
+# decomposition closes (packages/pricing). A field's entry here returns the
+# NEGATIVE dollar cost of what the transform removes (a saving), on the
+# ORIGINAL trace; `repricing.reprice_trace_delta` adds it to the re-priced
+# conv_cost delta. Fields without an entry contribute 0.0.
+UNPRICED_DELTAS: dict[str, Callable[[Trace], float]] = {}
+
 
 def _register(field: str):
     def deco(fn):
         REPRICING_TRANSFORMS[field] = fn
+        return fn
+    return deco
+
+
+def _register_unpriced(field: str):
+    def deco(fn):
+        UNPRICED_DELTAS[field] = fn
         return fn
     return deco
 
@@ -91,6 +108,78 @@ def _transform_prefix_caching(trace: Trace, _value: object) -> Trace:
     if not any_changed:
         return trace
     return trace.model_copy(update={"turns": new_turns})
+
+
+@_register("tool_batching")
+def _transform_tool_batching(trace: Trace, _value: object) -> Trace:
+    """Collapse duplicate tool calls to one billed call (D10's remedy).
+
+    Duplicate rule (verbatim D10's detection rule -- reused, not reinvented):
+    the FIRST occurrence of a ``(tool_name, args_hash)`` pair in the
+    conversation is the legitimate call; every later occurrence is dropped
+    from the trace. This collapses cross-turn repeats (the corpus's and golden
+    fixture 10's shape: a redundant re-call in a later turn) and within-turn
+    duplicates alike.
+
+    What is deterministically saved -- and what is NOT: dropping the duplicate
+    span removes only the redundant EXECUTION (the vendor call). The
+    duplicate's turn still happens under a memoizing tool layer -- the caller
+    still speaks, the agent's ``llm.decide`` still runs -- so this remedy
+    does NOT claim the redundant turn's cost. That turn-level attribution
+    ("cost of the duplicate calls + their turns") remains Detector 10's
+    Tier-2 waste estimate, deliberately NOT claimed here; this remedy claims
+    only "the deduped calls' cost" (vendor-reported ``cost_usd``, via
+    ``UNPRICED_DELTAS`` -- ``price_trace`` excludes tool spans by design).
+
+    CONDITIONAL saving + honest zero: batching preserves the outcome only if
+    the duplicate is truly redundant (same args -> same result; fixture 10's
+    own builder comment: both calls actually succeeded) -- preservation is
+    unverified (H-1), report under the conditional label. And the synthetic
+    corpus records no vendor cost (``cost_usd`` defaults to 0.0 and neither
+    the generator nor fixture 10 sets it), so on THIS corpus the delta is
+    exactly 0.0 -- the redundancy's measured cost on the corpus is turn-level
+    (D10's Tier-2 number), not vendor-level. That zero is honest: do not
+    turn it into the turn-level figure by stealth.
+    """
+    kept, _removed = _dedup_tool_calls(trace)
+    return kept
+
+
+@_register_unpriced("tool_batching")
+def _unpriced_tool_batching(trace: Trace) -> float:
+    """The deduped calls' vendor-reported cost (negative = saving) -- the
+    only cost a removed ToolCall carries, and the only cost this remedy
+    claims (see the transform's docstring for what is NOT claimed)."""
+    _kept, removed = _dedup_tool_calls(trace)
+    return -sum(tool.cost_usd for tool in removed)
+
+
+def _dedup_tool_calls(trace: Trace) -> tuple[Trace, list[ToolCall]]:
+    """D10's duplicate rule, shared by the transform (which drops the
+    duplicates) and the unpriced-delta hook (which costs them): walk turns in
+    order; the first ``(tool_name, args_hash)`` occurrence is kept, every
+    later one is removed. Returns (new trace, removed spans, in removal
+    order). Pure: never mutates the input."""
+    seen: set[tuple[str, str]] = set()
+    removed: list[ToolCall] = []
+    new_turns = []
+    any_changed = False
+    for turn in trace.turns:
+        new_tools = []
+        turn_changed = False
+        for tool in turn.tools:
+            key = (tool.tool_name, tool.args_hash)
+            if key in seen:
+                removed.append(tool)
+                turn_changed = True
+                continue
+            seen.add(key)
+            new_tools.append(tool)
+        any_changed = any_changed or turn_changed
+        new_turns.append(turn.model_copy(update={"tools": new_tools}) if turn_changed else turn)
+    if not any_changed:
+        return trace, removed
+    return trace.model_copy(update={"turns": new_turns}), removed
 
 
 def apply_variant_transform(trace: Trace, variant: VariantSpec) -> Trace:

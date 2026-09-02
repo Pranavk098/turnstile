@@ -37,7 +37,11 @@ from turnstile_schema import PricedTrace, RateTable, VariantSpec, load_rates
 from turnstile_pricing import price_trace
 from turnstile_stats import bootstrap_ci
 
-from turnstile_experiments.transforms import REPRICING_TRANSFORMS, apply_variant_transform
+from turnstile_experiments.transforms import (
+    REPRICING_TRANSFORMS,
+    UNPRICED_DELTAS,
+    apply_variant_transform,
+)
 from turnstile_experiments.guard import set_fields
 
 RATES_PATH = "pricing/rates.yaml"
@@ -86,9 +90,17 @@ def assert_variant_supported(name: str, variant: VariantSpec) -> None:
 def reprice_trace_delta(
     pt: PricedTrace, variant: VariantSpec, rates: RateTable
 ) -> float:
-    """Delta = re-priced(transformed trace) - original, for ONE trace."""
+    """Delta = re-priced(transformed trace) - original, for ONE trace, plus
+    any UNPRICED_DELTAS term the variant's fields declare (vendor-reported
+    costs ``price_trace`` deliberately excludes -- e.g. ToolCall.cost_usd).
+    Negative = saving, throughout."""
+    unpriced = 0.0
+    for f in set_fields(variant):
+        fn = UNPRICED_DELTAS.get(f)
+        if fn is not None:
+            unpriced += fn(pt.trace)
     transformed = apply_variant_transform(pt.trace, variant)
-    return price_trace(transformed, rates).conv_cost - pt.conv_cost
+    return price_trace(transformed, rates).conv_cost - pt.conv_cost + unpriced
 
 
 def run_repricing_experiment(

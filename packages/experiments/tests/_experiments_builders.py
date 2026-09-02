@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 
 from turnstile_pricing import price_trace
 from turnstile_schema import PricedTrace, load_rates
-from turnstile_schema.enums import DecisionKind, EndReason
-from turnstile_schema.spans import AsrTranscribe, LlmDecide
+from turnstile_schema.enums import DecisionKind, EndReason, ToolKind
+from turnstile_schema.spans import AsrTranscribe, LlmDecide, ToolCall
 from turnstile_schema.trace import Conversation, Trace, Turn
 
 RATES = load_rates("pricing/rates.yaml")
@@ -45,11 +45,21 @@ def llm(sid: str, *, start=0, dur=500, model="gpt-5", input_tokens=500, output_t
     )
 
 
+def tool(sid: str, *, start=0, dur=500, name="update_address", args_hash="sha256:h",
+         cost_usd=0.0) -> ToolCall:
+    return ToolCall(
+        span_id=sid, start_offset_ms=start, duration_ms=dur,
+        tool_name=name, args_hash=args_hash, args_json="{}", result_hash="sha256:r",
+        latency_ms=dur, cost_usd=cost_usd, tool_kind=ToolKind.lookup,
+    )
+
+
 def turn(idx: int, *, wall_start=0, wall_end=1000, asr_spans=(), llm_spans=(),
-         speaker_first="agent") -> Turn:
+         tools_spans=(), speaker_first="agent") -> Turn:
     return Turn(
         turn_index=idx, speaker_first=speaker_first, wall_start_ms=wall_start,
         wall_end_ms=wall_end, asr=list(asr_spans), llm=list(llm_spans),
+        tools=list(tools_spans),
     )
 
 

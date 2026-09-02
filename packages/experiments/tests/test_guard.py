@@ -31,7 +31,6 @@ def test_model_routing_is_executable():
     ("retrieval_policy", "threshold:0.8"),
     ("tts_chunking", "sentence"),
     ("escalation_policy", "threshold:0.85"),
-    ("tool_batching", True),
 ])
 def test_reserved_fields_raise(field, value):
     v = VariantSpec(**{field: value})
@@ -71,8 +70,9 @@ def test_empty_variant_raises():
 
 
 def test_field_sets_partition_the_schema():
-    assert IMPLEMENTED_VARIANT_FIELDS == {"model_routing", "prefix_caching"}
+    assert IMPLEMENTED_VARIANT_FIELDS == {"model_routing", "prefix_caching", "tool_batching"}
     assert BACKEND_APPLIED_VARIANT_FIELDS == {"model_routing"}
     assert BACKEND_APPLIED_VARIANT_FIELDS < IMPLEMENTED_VARIANT_FIELDS
     assert "prefix_caching" not in RESERVED_VARIANT_FIELDS
+    assert "tool_batching" not in RESERVED_VARIANT_FIELDS
     assert IMPLEMENTED_VARIANT_FIELDS.isdisjoint(RESERVED_VARIANT_FIELDS)

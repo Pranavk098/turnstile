@@ -32,9 +32,12 @@ from __future__ import annotations
 from turnstile_schema import VariantSpec
 
 # VariantSpec fields with a deterministic execution path: "model_routing" on
-# the replay backends; "prefix_caching" (and, as Section A lands, its
-# siblings) by the re-pricing runner -- each only once its transform exists.
-IMPLEMENTED_VARIANT_FIELDS: frozenset[str] = frozenset({"model_routing", "prefix_caching"})
+# the replay backends; "prefix_caching" and "tool_batching" (and, as Section
+# A lands, its siblings) by the re-pricing runner -- each only once its
+# transform exists.
+IMPLEMENTED_VARIANT_FIELDS: frozenset[str] = frozenset(
+    {"model_routing", "prefix_caching", "tool_batching"}
+)
 
 # The subset of IMPLEMENTED the replay BACKEND actually applies. The backend
 # runners gate on this, NOT on IMPLEMENTED: a re-pricing-only field would
