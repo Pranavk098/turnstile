@@ -8,7 +8,6 @@ package = false
 
 [tool.uv.workspace]
 members = ["packages/*"]
-exclude = ["packages/agent"]   # spike-only until Wave 1 builds it into a real package
 
 [dependency-groups]
 # Depend on every workspace member so `uv sync` installs them all (and their
@@ -25,7 +24,13 @@ dev = [
     "turnstile-replay",
     "turnstile-corpus",
     "turnstile-experiments",
+    "turnstile-agent",
 ]
+# Real synthesis engine for the barge-in harness (packages/agent) -- OPTIONAL:
+# plain `uv sync` does not install it; `uv sync --group piper` does. Every
+# test runs on the fake engine without it; the real-Piper integration test
+# skips cleanly when absent.
+piper = ["piper-tts>=1.2"]
 
 [tool.uv.sources]
 turnstile-schema = { workspace = true }
@@ -37,6 +42,7 @@ turnstile-stats = { workspace = true }
 turnstile-replay = { workspace = true }
 turnstile-corpus = { workspace = true }
 turnstile-experiments = { workspace = true }
+turnstile-agent = { workspace = true }
 
 [tool.pytest.ini_options]
 pythonpath = []

@@ -1,3 +1,4 @@
+from turnstile_experiments.bargein_report import BARGE_IN_RATES, run_bargein_report
 from turnstile_experiments.baselines import compute_baselines
 from turnstile_experiments.checkpoint_runner import (
     CheckpointStore,
@@ -22,6 +23,8 @@ from turnstile_experiments.variants import RESERVED_VARIANTS, VARIANTS
 
 __all__ = [
     "compute_baselines",
+    "BARGE_IN_RATES",
+    "run_bargein_report",
     "VARIANTS",
     "RESERVED_VARIANTS",
     "run_matrix",
