@@ -58,3 +58,39 @@ def test_tts_spend_and_char_share_are_consistent():
     assert one["tts_spend_usd_total"] > 0.0
     # The MEASURED streaming fact is surfaced: generation faster than realtime.
     assert one["mean_gen_rate_realtime_x"] == pytest.approx(10.0)
+
+
+# --------------------------------------------------------------------------- #
+# The buffer-lead policy sweep (fast follow): one sampling pass replayed at    #
+# every lead_cap value at the cited rate -- more buffer, more waste, and the   #
+# measured phase-1 schedule identical across every point.                      #
+# --------------------------------------------------------------------------- #
+
+def test_leadcap_sweep_is_monotonic_with_a_fixed_barge_in_pattern():
+    report = run_bargein_report(
+        FakeEngine(), rates_values=[0.15], n=40, seed=5,
+    )
+    sweep = report["lead_cap_sweep"]
+    assert sweep["barge_in_rate_held_at"] == 0.15
+    pts = sweep["points"]
+    assert [p["lead_cap_s"] for p in pts] == [0.5, 1.0, 2.0, 3.0, 4.0]
+    # Monotonic: more buffer -> at least as much billed-but-unheard waste.
+    wastes = [p["d7_waste_usd_total"] for p in pts]
+    assert all(w2 >= w1 for w1, w2 in zip(wastes, wastes[1:]))
+    assert wastes[-1] > wastes[0]
+    # One sampling pass: the barge-in pattern is IDENTICAL at every point.
+    barge_in_counts = {p["barge_in_calls"] for p in pts}
+    assert len(barge_in_counts) == 1
+    assert barge_in_counts == {pts[0]["barge_in_calls"]}
+    assert pts[0]["barge_in_calls"] > 0  # the fixed pattern actually bites
+    # Every point carries its own bootstrap CI.
+    for p in pts:
+        lo, hi = p["d7_waste_usd_ci95"]
+        assert 0.0 <= lo <= hi
+
+
+def test_leadcap_sweep_label_is_the_stated_policy_band():
+    report = run_bargein_report(FakeEngine(), rates_values=[0.15], n=4, seed=1)
+    label = report["lead_cap_sweep"]["parameter"]
+    assert "stated plausible policy band" in label
+    assert "not a claim about any vendor" in label

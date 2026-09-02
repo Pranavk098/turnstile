@@ -36,6 +36,11 @@ def main(argv: list[str] | None = None) -> None:
         help="barge-in rate sweep values (default: the cited band 0.05..0.30)",
     )
     parser.add_argument(
+        "--lead-caps", type=float, nargs="*", default=None,
+        help="buffer-lead policy sweep values in seconds (default: the stated "
+             "plausible band 0.5..4.0), swept with the barge-in rate held at 0.15",
+    )
+    parser.add_argument(
         "--lead-cap-s", type=float, default=2.0,
         help="streaming buffer policy: max generated-but-unheard audio seconds",
     )
@@ -48,7 +53,7 @@ def main(argv: list[str] | None = None) -> None:
     try:
         report = run_bargein_report(
             rates_values=args.rates, n=args.n, seed=args.seed,
-            lead_cap_s=args.lead_cap_s,
+            lead_cap_s=args.lead_cap_s, lead_caps=args.lead_caps,
         )
     except RuntimeError as exc:
         print(f"Cannot start the harness: {exc}", file=sys.stderr)
@@ -68,6 +73,18 @@ def main(argv: list[str] | None = None) -> None:
             f"{p['d7_waste_usd_mean_per_call']:>10.5f} "
             f"{p['waste_share_of_tts_spend']:>10.2%} "
             f"{p['mean_gen_rate_realtime_x']:>8.1f}x"
+        )
+    print("\nbuffer-lead policy sweep (barge-in rate held at the cited "
+          f"{report['lead_cap_sweep']['barge_in_rate_held_at']}):")
+    print(f"{'lead_cap_s':>11} {'D7 $':>10} {'$/call':>10} {'%TTS spend':>11} "
+          f"{'CI95 $/call':>22}")
+    for p in report["lead_cap_sweep"]["points"]:
+        lo, hi = p["d7_waste_usd_ci95"]
+        print(
+            f"{p['lead_cap_s']:>11.1f} {p['d7_waste_usd_total']:>10.4f} "
+            f"{p['d7_waste_usd_mean_per_call']:>10.5f} "
+            f"{p['waste_share_of_tts_spend']:>10.2%} "
+            f"[{lo:.5f}, {hi:.5f}]"
         )
     print(f"\nwrote {out_path}")
 
