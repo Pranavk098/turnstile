@@ -8,18 +8,16 @@ corpus-distribution change:
 
     uv run python packages/experiments/calibrate_baselines.py
 
-Selection rule for the calibration parameters (stated, not hidden): n=250 is
-the corpus reference size (docs/METHOD.md's 0.57% headline run). The seed is
-8 -- the lowest seed at n=250 whose corpus calibration keeps the golden-
-fixture detector false-positive gate green (packages/detectors'
-test_fixture_sweep). CONFLICT FLAGGED FOR THE OWNER: fixture 09's narrative
-(a 13-turn billing_dispute call that is escalation debt ONLY) is corpus-
-atypical -- the corpus's billing_dispute p75 is ~10 turns, so under most
-seeds the corpus-calibrated world flags fixture 09 as turn-inflated too (D4
-false-fires against the fixture manifest, which is owner lane). Seed 8's
-draw has billing_dispute p75 >= 13, reconciling the two worlds; if the owner
-instead re-scopes fixture 09 (or the corpus's billing_dispute turn
-distribution), rerun this script and let the sweep decide.
+Calibration parameters: **n=250, seed=0** -- the canonical corpus reference
+(the same parameters behind docs/METHOD.md's 0.57% headline run), no
+seed selection. An earlier revision shopped for a seed that kept the golden-
+fixture false-positive gate green, because corpus-calibrated D4 fired on
+fixture 09 (a 13-turn billing_dispute; corpus billing_dispute p75 ~10). That
+was resolved at the source, not by seed choice: fixture 09 genuinely IS
+turn-inflated (its own narrative is "predictable at turn 3, ran 9 more"), so
+its manifest now declares ``target_detector: "4,9"`` and D4 firing on it is
+the calibrated world being correct, not a false positive. Seed 0 is therefore
+sweep-safe and the calibration uses the canonical reference parameters.
 """
 from __future__ import annotations
 
@@ -39,7 +37,7 @@ OUT_PATH = ROOT / "fixtures" / "sample" / "baselines.json"
 PROVENANCE_PATH = ROOT / "fixtures" / "sample" / "baselines.provenance.json"
 
 N = 250
-SEED = 8
+SEED = 0
 
 
 def main() -> None:
@@ -73,14 +71,13 @@ def main() -> None:
             "calibration": "turnstile_experiments.compute_baselines",
             "per_intent_sample_counts": dict(sorted(sample_counts.items())),
             "selection_note": (
-                "n=250 is the corpus reference size (docs/METHOD.md). Seed 8 is "
-                "the lowest seed at n=250 whose corpus calibration keeps the "
-                "golden-fixture detector false-positive gate green (test_fixture_"
-                "sweep). Flagged for the owner: fixture 09's 13-turn billing_"
-                "dispute narrative is corpus-atypical (corpus p75 ~10 turns); "
-                "under most seeds the corpus-calibrated baselines make D4 fire "
-                "on fixture 09 too, which the fixture manifest (owner lane) "
-                "does not declare. See calibrate_baselines.py's docstring."
+                "Canonical corpus reference parameters: n=250, seed=0 (the same "
+                "parameters behind docs/METHOD.md's 0.57% headline run) -- no "
+                "seed selection. Corpus-calibrated D4 fires on fixture 09 (a "
+                "13-turn billing_dispute; corpus p75 ~10), which is CORRECT: "
+                "fixture 09 is genuinely turn-inflated and its manifest now "
+                "declares target_detector '4,9'. See calibrate_baselines.py's "
+                "docstring."
             ),
         }, indent=2) + "\n",
         encoding="utf-8",

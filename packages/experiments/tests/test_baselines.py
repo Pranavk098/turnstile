@@ -89,10 +89,11 @@ def test_sample_baselines_provenance_records_the_selection():
     provenance = json.loads(PROVENANCE_PATH.read_text(encoding="utf-8"))
     for key in ("n", "seed", "generated_utc", "calibration", "per_intent_sample_counts"):
         assert key in provenance, key
-    # The seed-selection rule (and the fixture-09 conflict it reconciles) must
-    # be stated, not hidden.
-    assert "test_fixture_sweep" in provenance["selection_note"]
+    # Canonical parameters (n=250, seed=0 -- no seed selection), and the
+    # fixture-09/D4 reconciliation, must be stated, not hidden.
+    assert provenance["seed"] == 0
     assert "fixture 09" in provenance["selection_note"]
+    assert "4,9" in provenance["selection_note"] or "D4" in provenance["selection_note"]
     # Every calibrated scenario traces to actual corpus samples.
     counts = provenance["per_intent_sample_counts"]
     baselines = json.loads(BASELINES_PATH.read_text(encoding="utf-8"))["per_intent"]
