@@ -15,9 +15,9 @@ from turnstile_schema import VariantSpec
 
 from turnstile_experiments import REPRICING_VARIANTS, RESERVED_VARIANTS, VARIANTS
 from turnstile_experiments.guard import (
+    RESERVED_VARIANT_FIELDS,
     assert_backend_executable,
     assert_variant_executable,
-    unimplemented_fields,
 )
 
 
@@ -37,9 +37,11 @@ def test_every_executable_variant_is_actually_executable():
 
 def test_repricing_variants_have_a_transform_but_no_backend_path():
     assert set(REPRICING_VARIANTS) == {
-        "context_window_8", "prefix_caching_on", "tool_batching_on",
-        "escalation_threshold_0_85", "retrieval_threshold_0_8"}
+        "context_window_8", "context_summarize_2000", "prefix_caching_on",
+        "tool_batching_on", "escalation_threshold_0_85", "retrieval_threshold_0_8"}
     assert REPRICING_VARIANTS["context_window_8"] == VariantSpec(context_strategy="window:8")
+    assert REPRICING_VARIANTS["context_summarize_2000"] == VariantSpec(
+        context_strategy="summarize:2000")
     assert REPRICING_VARIANTS["prefix_caching_on"] == VariantSpec(prefix_caching=True)
     assert REPRICING_VARIANTS["tool_batching_on"] == VariantSpec(tool_batching=True)
     assert REPRICING_VARIANTS["escalation_threshold_0_85"] == VariantSpec(
@@ -52,11 +54,12 @@ def test_repricing_variants_have_a_transform_but_no_backend_path():
             assert_backend_executable(name, variant)  # ...but never run it here
 
 
-def test_reserved_variants_are_the_pending_remedies():
-    assert set(RESERVED_VARIANTS) == {"tts_chunking_sentence"}
-    # Each reserved variant sets a field no runner can execute yet.
-    for name, variant in RESERVED_VARIANTS.items():
-        assert unimplemented_fields(variant), f"{name} should set an unimplemented field"
+def test_reserved_variants_are_empty_but_tts_chunking_stays_reserved():
+    # Section A is complete: every token/cost-path remedy executes. Only
+    # tts_chunking stays reserved at the FIELD level -- the barge-in acoustic
+    # track owns it, not the deterministic cost path.
+    assert RESERVED_VARIANTS == {}
+    assert RESERVED_VARIANT_FIELDS == {"tts_chunking"}
 
 
 def test_every_variant_isolates_exactly_one_knob():

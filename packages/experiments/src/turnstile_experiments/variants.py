@@ -20,11 +20,11 @@ would replay as the zero-delta no-op ``guard.assert_backend_executable``
 refuses.
 
 ``RESERVED_VARIANTS`` are honestly-specified specs with NO execution path
-yet. Each mirrors a detector's ``proposed_variant`` remedy, so they are kept
-here as the concrete to-do list for promoting those findings from Tier-2
-(detected + quantified) to executable:
-
-  * tts_chunking                    -> D6 (dead tokens), D7 (barge-in)
+yet; they mirror detector ``proposed_variant`` remedies still awaiting their
+deterministic transform. After Section A the dict is EMPTY: every token/cost
+path remedy now executes. The ``tts_chunking`` FIELD remains reserved
+(guard.RESERVED_VARIANT_FIELDS) -- D6/D7 belong to the barge-in acoustic
+track, deliberately out of the deterministic cost path's scope.
 
 They are deliberately NOT in ``VARIANTS`` or ``REPRICING_VARIANTS``: running
 one would be a zero-delta no-op that looks measured but proves nothing, and
@@ -49,6 +49,7 @@ VARIANTS: dict[str, VariantSpec] = {
 # bucket, never in gated proven_savings.
 REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "context_window_8": VariantSpec(context_strategy="window:8"),
+    "context_summarize_2000": VariantSpec(context_strategy="summarize:2000"),
     "prefix_caching_on": VariantSpec(prefix_caching=True),
     "tool_batching_on": VariantSpec(tool_batching=True),
     "escalation_threshold_0_85": VariantSpec(escalation_policy="threshold:0.85"),
@@ -56,7 +57,9 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
 }
 
 # Reserved -- valid remedies with NO execution path yet (see module
-# docstring). Documented, NOT run by any runner.
-RESERVED_VARIANTS: dict[str, VariantSpec] = {
-    "tts_chunking_sentence": VariantSpec(tts_chunking="sentence"),
-}
+# docstring). Now EMPTY at the variant level: every token/cost-path remedy
+# has a deterministic transform. ``tts_chunking`` stays reserved at the FIELD
+# level (guard.RESERVED_VARIANT_FIELDS) on purpose -- it interacts with the
+# barge-in acoustic track, not the deterministic cost path (batch doc:
+# "Skip tts_chunking here").
+RESERVED_VARIANTS: dict[str, VariantSpec] = {}

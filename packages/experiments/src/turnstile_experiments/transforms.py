@@ -123,15 +123,105 @@ def _transform_prefix_caching(pt: PricedTrace, _value: object) -> Trace:
 
 
 _WINDOW_POLICY_RE = re.compile(r"^window:(\d+)$")
+_SUMMARIZE_POLICY_RE = re.compile(r"^summarize:(\d+)$")
 
 
 @_register("context_strategy")
-def _transform_context_window(pt: PricedTrace, value: object) -> Trace:
+def _transform_context_strategy(pt: PricedTrace, value: object) -> Trace:
+    """Dispatch the ``context_strategy`` policy to its deterministic
+    transform. Implemented policies: ``window:<N>`` (D2's remedy -- last N
+    turns of history kept) and ``summarize:<B>`` (D4's remedy -- history
+    capped at a stated token budget). Anything else raises
+    ``NotImplementedError`` -- never a silent identity."""
+    value = str(value)
+    match = _WINDOW_POLICY_RE.match(value)
+    if match:
+        n_turns = int(match.group(1))
+        if n_turns < 1:
+            raise NotImplementedError(
+                f"context_strategy={value!r}: window must keep >= 1 turn")
+        return _apply_window(pt, n_turns)
+    match = _SUMMARIZE_POLICY_RE.match(value)
+    if match:
+        budget = int(match.group(1))
+        if budget < 1:
+            raise NotImplementedError(
+                f"context_strategy={value!r}: summary budget must be >= 1 token")
+        return _apply_summarize(pt, budget)
+    raise NotImplementedError(
+        f"context_strategy={value!r} has no deterministic re-pricing "
+        f"transform yet (implemented policies: window:<N>, summarize:<B>)."
+    )
+
+
+def _apply_summarize(pt: PricedTrace, budget: int) -> Trace:
+    """Cap each decision's history at a stated token budget
+    (``context_strategy="summarize:<B>"``, D4's remedy: a summary replaces
+    the accumulated history).
+
+    Model (STATED LOUDLY -- the batch doc flags this remedy as the fuzziest):
+    a summary can never need more tokens than the history it summarizes, so
+    the modeled summary size is ``min(history_tokens, B)`` and the saving is
+    exactly the history ABOVE the budget. This deliberately does NOT adopt
+    the corpus generator's own summarize assumption (compress to 35% of
+    accumulated history, capped at 1200 -- generate.py's
+    ``_effective_history_tokens``): a specific compression ratio is a second,
+    independent modeling claim, and this transform asserts only the policy's
+    stated cap. The result is therefore a LOWER BOUND on what a real
+    summarizer that also compressed below the budget would save.
+
+    Mechanics: per turn with its own ContextAssemble (history is only
+    observable through it -- turns without one are left unchanged, stated):
+    removed = history - min(history, B); the reduced input is floored at
+    system + retrieved tokens (neither is part of history), cache
+    read/write are clamped to the reduced input, and the context span's
+    history/context token counts are reduced to match.
+
+    CONDITIONAL saving: a summary preserves the outcome only if it retains
+    whatever the conversation needed from its history -- unmeasurable on the
+    synthetic corpus (H-1); report under the conditional label, never as
+    measured.
+    """
+    trace = pt.trace
+    new_turns = []
+    any_changed = False
+    for turn in trace.turns:
+        context = turn.context
+        removed = 0
+        if context is not None:
+            removed = context.history_tokens - min(context.history_tokens, budget)
+        if removed <= 0 or not turn.llm:
+            new_turns.append(turn)
+            continue
+        floor = context.system_tokens + context.retrieved_tokens
+        new_llm = []
+        turn_changed = False
+        for span in turn.llm:
+            new_input = max(span.input_tokens - removed, floor)
+            if new_input != span.input_tokens:
+                span = span.model_copy(update={
+                    "input_tokens": new_input,
+                    "cache_read_tokens": min(span.cache_read_tokens, new_input),
+                    "cache_write_tokens": min(span.cache_write_tokens, new_input),
+                })
+                turn_changed = True
+            new_llm.append(span)
+        new_context = context.model_copy(update={
+            "history_tokens": context.history_tokens - removed,
+            "context_tokens": context.context_tokens - removed,
+        })
+        any_changed = any_changed or turn_changed
+        new_turns.append(turn.model_copy(
+            update={"llm": new_llm, "context": new_context}) if turn_changed else turn)
+
+    if not any_changed:
+        return trace
+    return trace.model_copy(update={"turns": new_turns})
+
+
+def _apply_window(pt: PricedTrace, n_turns: int) -> Trace:
     """Truncate each decision's input to the last N turns of history
-    (``context_strategy="window:N"``, D2/D4's remedy). N is the policy,
-    stated in the variant string itself (e.g. ``window:8``); any other
-    policy string (e.g. ``summarize:2000``) has no transform yet and raises
-    ``NotImplementedError`` -- never a silent identity.
+    (D2's remedy).
 
     Model (corpus-native, stated): a decision's input is
     ``system_tokens + history_tokens + retrieved_tokens`` (the corpus's own
@@ -164,16 +254,6 @@ def _transform_context_window(pt: PricedTrace, value: object) -> Trace:
     history was not needed for it -- unmeasurable on the synthetic corpus
     (H-1); report under the conditional label, never as measured.
     """
-    match = _WINDOW_POLICY_RE.match(str(value))
-    if not match:
-        raise NotImplementedError(
-            f"context_strategy={value!r} has no deterministic re-pricing "
-            f"transform yet (implemented policies: window:<N>)."
-        )
-    n_turns = int(match.group(1))
-    if n_turns < 1:
-        raise NotImplementedError(f"context_strategy={value!r}: window must keep >= 1 turn")
-
     trace = pt.trace
     # (turn_index, history_tokens) of every context-bearing turn, in order.
     history_by_turn: list[tuple[int, int]] = []

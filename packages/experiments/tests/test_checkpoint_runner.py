@@ -9,12 +9,11 @@ import json
 import pytest
 
 from turnstile_replay import MockBackend, reset_backend
-from turnstile_schema import Trial
+from turnstile_schema import Trial, VariantSpec
 from turnstile_schema.enums import DecisionKind
 
 from turnstile_experiments import (
     REPRICING_VARIANTS,
-    RESERVED_VARIANTS,
     VARIANTS,
     CheckpointStore,
     run_matrix,
@@ -86,11 +85,15 @@ def test_partial_checkpoint_resumes_the_rest(tmp_path):
 
 
 def test_reserved_variant_fails_loudly(tmp_path):
+    # tts_chunking is the one field still without an execution path (the
+    # barge-in acoustic track owns it) -- the checkpointed runner must refuse
+    # it like run_matrix does.
     reset_backend()
     corpus = _corpus()
-    for name, variant in RESERVED_VARIANTS.items():
-        with pytest.raises(NotImplementedError):
-            run_matrix_checkpointed(corpus, {name: variant}, tmp_path / f"{name}.jsonl")
+    with pytest.raises(NotImplementedError):
+        run_matrix_checkpointed(
+            corpus, {"tts_chunking_sentence": VariantSpec(tts_chunking="sentence")},
+            tmp_path / "tts.jsonl")
     reset_backend()
 
 

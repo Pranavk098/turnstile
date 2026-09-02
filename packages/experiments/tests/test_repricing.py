@@ -36,6 +36,7 @@ MINI = RATES.llm["openai/gpt-5-mini"]
 PREFIX_CACHING = REPRICING_VARIANTS["prefix_caching_on"]
 TOOL_BATCHING = REPRICING_VARIANTS["tool_batching_on"]
 WINDOW_8 = REPRICING_VARIANTS["context_window_8"]
+SUMMARIZE_2000 = REPRICING_VARIANTS["context_summarize_2000"]
 ESCALATION = REPRICING_VARIANTS["escalation_threshold_0_85"]
 RETRIEVAL = REPRICING_VARIANTS["retrieval_threshold_0_8"]
 
@@ -313,10 +314,97 @@ def test_context_window_turn_without_context_span_truncates_with_zero_floor():
 
 def test_context_window_refuses_unknown_policies():
     pt = _windowed_corpus_pt(n_turns=3)
-    for policy in ("summarize:2000", "window", "window:0", "window:abc"):
+    for policy in ("semantic:1200", "window", "window:0", "window:abc"):
         with pytest.raises(NotImplementedError, match="context_strategy"):
             run_repricing_experiment(
                 [pt], VariantSpec(context_strategy=policy), rates=RATES)
+
+
+# --------------------------------------------------------------------------- #
+# A6: context_strategy="summarize:2000" -> D4 (history capped at a budget)     #
+# --------------------------------------------------------------------------- #
+
+def _summarized_corpus_pt(n_turns=5, history_step=600):
+    # Corpus-shaped monotone history: H_i = 600 x (i+1); system 100, no
+    # retrieval. With a 2000 budget, turns 0..2 are unchanged (H <= 2000);
+    # turn 3 sheds 400 tokens, turn 4 sheds 1000.
+    turns = []
+    for i in range(n_turns):
+        hist = history_step * (i + 1)
+        t = turn(i, llm_spans=[llm(f"l{i}", model="gpt-5",
+                                   input_tokens=100 + hist, output_tokens=10)])
+        turns.append(t.model_copy(update={
+            "context": context(f"c{i}", history_tokens=hist)}))
+    return priced(*turns)
+
+
+def test_context_summarize_delta_hand_computed_from_rates():
+    pt = _summarized_corpus_pt()
+    result = run_repricing_experiment([pt], SUMMARIZE_2000, rates=RATES)
+    # summary = min(H_i, 2000): turn 3 (H=2400) sheds 400, turn 4 (H=3000)
+    # sheds 1000; turns 0..2 (H <= 2000) are unchanged -- a summary never
+    # needs more tokens than the history it summarizes.
+    expected = -((400 + 1000) / 1e6) * GPT5.input
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_context_summarize_updates_context_bookkeeping():
+    tr = apply_variant_transform(_summarized_corpus_pt(), SUMMARIZE_2000, rates=RATES)
+    assert tr.turns[2].llm[0].input_tokens == 100 + 1800  # H_2 = 1800 <= 2000
+    assert tr.turns[3].llm[0].input_tokens == 100 + 2000  # capped
+    assert tr.turns[3].context.history_tokens == 2000
+    assert tr.turns[3].context.context_tokens == 100 + 2000  # system + summary
+    assert tr.turns[4].llm[0].input_tokens == 100 + 2000
+
+
+def test_context_summarize_clamps_cache_tokens():
+    turns = []
+    for i in range(5):
+        hist = 600 * (i + 1)
+        llm_span = llm(f"l{i}", model="gpt-5", input_tokens=100 + hist,
+                       output_tokens=10, cache_read_tokens=100 + hist)
+        turns.append(turn(i, llm_spans=[llm_span]).model_copy(update={
+            "context": context(f"c{i}", history_tokens=hist)}))
+    pt = priced(*turns)
+    tr = apply_variant_transform(pt, SUMMARIZE_2000, rates=RATES)
+    # turn 3: input capped 2500 -> 2100; the full cache hit clamps to 2100
+    assert tr.turns[3].llm[0].cache_read_tokens == 2100
+    result = run_repricing_experiment([pt], SUMMARIZE_2000, rates=RATES)
+    expected = -((400 + 1000) / 1e6) * GPT5.cache_read
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_context_summarize_turn_without_context_span_is_unchanged():
+    # History is only observable through the turn's own ContextAssemble; a
+    # turn without one cannot be decomposed, so it is left untouched (stated
+    # in the transform's docstring).
+    turns = []
+    for i in range(5):
+        hist = 600 * (i + 1)
+        t = turn(i, llm_spans=[llm(f"l{i}", model="gpt-5",
+                                   input_tokens=100 + hist, output_tokens=10)])
+        if i != 4:
+            t = t.model_copy(update={"context": context(f"c{i}", history_tokens=hist)})
+        turns.append(t)
+    pt = priced(*turns)
+    result = run_repricing_experiment([pt], SUMMARIZE_2000, rates=RATES)
+    expected = -(400 / 1e6) * GPT5.input  # only turn 3 (H=2400) sheds
+    assert result.delta_cost_mean == pytest.approx(expected)
+
+
+def test_context_summarize_is_pure_and_deterministic_over_corpus():
+    pt = _summarized_corpus_pt()
+    before = pt.trace.model_dump()
+    apply_variant_transform(pt, SUMMARIZE_2000, rates=RATES)
+    assert pt.trace.model_dump() == before
+
+    corpus = [price_trace(t, RATES) for t in generate_corpus(10, 0)]
+    first = run_repricing_matrix(
+        corpus, {"context_summarize_2000": SUMMARIZE_2000}, rates=RATES)
+    second = run_repricing_matrix(
+        corpus, {"context_summarize_2000": SUMMARIZE_2000}, rates=RATES)
+    assert first == second
+    assert first["context_summarize_2000"].delta_cost_mean <= 0.0
 
 
 def test_context_window_over_corpus_deterministic_never_positive():

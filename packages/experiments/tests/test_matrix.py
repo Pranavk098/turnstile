@@ -6,14 +6,9 @@ import pytest
 from turnstile_corpus import generate_corpus
 from turnstile_pricing import price_trace
 from turnstile_replay import MockBackend, get_backend, reset_backend, set_backend
-from turnstile_schema import ExperimentResult, load_rates
+from turnstile_schema import ExperimentResult, VariantSpec, load_rates
 
-from turnstile_experiments import (
-    REPRICING_VARIANTS,
-    RESERVED_VARIANTS,
-    VARIANTS,
-    run_matrix,
-)
+from turnstile_experiments import REPRICING_VARIANTS, VARIANTS, run_matrix
 
 RATES = load_rates("pricing/rates.yaml")
 
@@ -66,14 +61,13 @@ def test_custom_backend_is_actually_used():
 
 
 def test_reserved_variants_fail_loudly_instead_of_running_as_no_ops():
-    """The replay engine applies only model_routing; a reserved variant would
-    replay as a zero-delta no-op (and, on --paid, spend real credit doing so).
-    run_matrix must refuse it at experiment start, not silently return an
-    identity result."""
+    """A variant whose field no runner executes (tts_chunking -- the barge-in
+    acoustic track owns it) would replay as a zero-delta no-op (and, on
+    --paid, spend real credit doing so). run_matrix must refuse it at
+    experiment start, not silently return an identity result."""
     corpus = _small_corpus(n=5)
-    for name, variant in RESERVED_VARIANTS.items():
-        with pytest.raises(NotImplementedError):
-            run_matrix(corpus, {name: variant})
+    with pytest.raises(NotImplementedError):
+        run_matrix(corpus, {"tts_chunking_sentence": VariantSpec(tts_chunking="sentence")})
     reset_backend()
 
 
