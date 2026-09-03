@@ -9,11 +9,14 @@ main() runs, and TURNSTILE_ALLOW_PAID / OPENAI_API_KEY are inert test values.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 import pytest
 from turnstile_replay import MockBackend
+
+from turnstile_experiments import CONDITIONAL_SAVINGS_LABEL, REPRICING_VARIANTS
 
 _CLI = Path(__file__).resolve().parents[1] / "run_experiments.py"
 
@@ -179,3 +182,47 @@ def test_probe_does_not_truncate_existing_results(monkeypatch, tmp_path):
             "--checkpoint", str(tmp_path / "ck.jsonl"),
         ])
     assert existing.read_text(encoding="utf-8") == "PRIOR RUN CONTENTS"
+
+
+# --------------------------------------------------------------------------- #
+# T7: the CLI surfaces BOTH margin buckets distinctly -- the gated proven     #
+# number and the Section-A conditional bucket (labeled, never folded in).     #
+# Default MockBackend path: no spend, no network.                             #
+# --------------------------------------------------------------------------- #
+
+def test_cli_prints_and_stores_both_margin_buckets(monkeypatch, tmp_path, capsys):
+    cli = _load_cli()
+    out = tmp_path / "results.json"
+    cli.main([
+        "--n", "3", "--seed", "0",
+        "--out", str(out),
+        "--checkpoint", str(tmp_path / "ck.jsonl"),
+    ])
+    printed = capsys.readouterr().out
+    assert "recoverable margin:" in printed
+    assert "conditional re-pricing savings" in printed
+    assert "NOT in the margin above" in printed
+    assert CONDITIONAL_SAVINGS_LABEL in printed
+
+    results = json.loads(out.read_text(encoding="utf-8"))
+    margin = results["recoverable_margin"]
+    # Both buckets present, each under its own key.
+    assert "proven_savings_usd" in margin
+    assert "conditional_savings" in margin
+    cond = margin["conditional_savings"]
+    assert cond["label"] == CONDITIONAL_SAVINGS_LABEL
+    assert set(cond["variants"]) == set(REPRICING_VARIANTS)
+    assert cond["total_savings_usd"] == pytest.approx(
+        sum(v["savings_usd"] for v in cond["variants"].values()))
+    assert "preservation unverified" in cond["label"]
+    assert "NOT in proven_savings_usd" in cond["note"]
+
+    # Distinctness, end-to-end from the stored artifacts: the gated margin %
+    # is proven-savings-only -- the conditional total contributes NOTHING to
+    # it, even though it sits in the same results file.
+    routing = results["matrix"]["model_routing_gpt5_nano"]
+    expected_proven = -routing["delta_cost_mean"] * routing["n"]
+    assert margin["proven_savings_usd"] == pytest.approx(expected_proven)
+    assert margin["recoverable_margin_pct"] == pytest.approx(
+        margin["proven_savings_usd"] / margin["total_cost_usd"] * 100.0)
+    assert cond["total_savings_usd"] != pytest.approx(margin["proven_savings_usd"])
