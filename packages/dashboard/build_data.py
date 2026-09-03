@@ -31,6 +31,11 @@ from turnstile_verdict import adjudicate
 from turnstile_detectors import detect
 from turnstile_replay import experiment
 from turnstile_corpus.distributions import BARGE_IN_RATE
+from turnstile_experiments import (
+    CONDITIONAL_SAVINGS_LABEL,
+    REPRICING_VARIANTS,
+    run_repricing_matrix,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLDEN = ROOT / "fixtures" / "golden"
@@ -302,6 +307,63 @@ def load_bargein_report(path: Path = BARGEIN_REPORT_PATH) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# 6. conditional.sample.json -- the Section-A re-pricing remedies, in their    #
+#    OWN clearly-labeled bucket ("detected + quantified, not proven")          #
+# --------------------------------------------------------------------------- #
+
+# Which detector each re-pricing remedy answers (documentation for the panel
+# row; the mapping mirrors variants.py's registry docstrings).
+REPRICING_DETECTOR = {
+    "context_window_8": "D2 (context bloat) / D4 (turn inflation)",
+    "context_summarize_2000": "D4 (turn inflation)",
+    "prefix_caching_on": "D2 (context bloat)",
+    "tool_batching_on": "D10 (tool thrash)",
+    "escalation_threshold_0_85": "D9 (escalation debt)",
+    "retrieval_threshold_0_8": "D3 (redundant retrieval)",
+}
+
+CONDITIONAL_PROVENANCE = (
+    "DETERMINISTIC CONDITIONAL SAVINGS — " + CONDITIONAL_SAVINGS_LABEL + ". "
+    "Deterministic re-pricing over the 23 golden fixtures via "
+    "run_repricing_matrix (no backend, no spend); the transform reduces or "
+    "re-rates work, so preservation of the outcome is UNMEASURABLE on the "
+    "synthetic corpus (H-1). These numbers are NEVER added to the gated "
+    "recoverable margin (the 0.57% proven number) and must not be presented "
+    "as measured or proven savings. Verified in Wave-2 or not at all."
+)
+
+
+def build_conditional_savings(rates, corpus) -> dict:
+    """Run the Section-A deterministic re-pricing remedies over the corpus
+    (the same 23 golden fixtures every other panel uses) and package the
+    conditional bucket. The numbers ARE ``run_repricing_matrix``'s output —
+    this function only maps remedy rows to their detectors and carries the
+    verbatim label; nothing is recomputed, and nothing here mixes with the
+    gated proven savings."""
+    results = run_repricing_matrix(corpus, REPRICING_VARIANTS, rates=rates)
+    variants = {
+        name: {
+            "detector": REPRICING_DETECTOR[name],
+            "n": r.n,
+            "delta_cost_mean": r.delta_cost_mean,
+            "delta_cost_ci95": list(r.delta_cost_ci95),
+            "savings_usd": -r.delta_cost_mean,
+            "savings_usd_ci95": [-r.delta_cost_ci95[1], -r.delta_cost_ci95[0]],
+            "label": r.label,
+        }
+        for name, r in results.items()
+    }
+    return {
+        "label": "Section-A re-pricing remedies — deterministic conditional savings",
+        "label_verbatim": CONDITIONAL_SAVINGS_LABEL,
+        "variants": variants,
+        "total_savings_usd": sum(v["savings_usd"] for v in variants.values()),
+        "n_fixtures": len(corpus),
+        "_provenance": CONDITIONAL_PROVENANCE,
+    }
+
+
+# --------------------------------------------------------------------------- #
 # index.html embedded-fallback sync                                           #
 # --------------------------------------------------------------------------- #
 
@@ -311,6 +373,7 @@ _EMBED_IDS = {
     "data-findings": "findings.sample.json",
     "data-experiments": "experiments.sample.json",
     "data-bargein": "bargein.sample.json",
+    "data-conditional": "conditional.sample.json",
 }
 
 
@@ -348,6 +411,8 @@ def main() -> None:
     findings = build_findings(rates, baselines)
     priced_trace = build_priced_trace(rates)
     bargein = build_bargein(load_bargein_report())
+    corpus = [price_trace(load_trace(p), rates) for p in _golden_fixtures()]
+    conditional = build_conditional_savings(rates, corpus)
 
     SAMPLE_DIR.mkdir(exist_ok=True)
     (SAMPLE_DIR / "priced_trace.json").write_text(json.dumps(priced_trace, indent=2), encoding="utf-8")
@@ -355,6 +420,7 @@ def main() -> None:
     (SAMPLE_DIR / "findings.sample.json").write_text(json.dumps(findings, indent=2), encoding="utf-8")
     (SAMPLE_DIR / "experiments.sample.json").write_text(json.dumps(experiments, indent=2), encoding="utf-8")
     (SAMPLE_DIR / "bargein.sample.json").write_text(json.dumps(bargein, indent=2), encoding="utf-8")
+    (SAMPLE_DIR / "conditional.sample.json").write_text(json.dumps(conditional, indent=2), encoding="utf-8")
 
     sync_embedded_json({
         "data-priced": priced_trace,
@@ -362,6 +428,7 @@ def main() -> None:
         "data-findings": findings,
         "data-experiments": experiments,
         "data-bargein": bargein,
+        "data-conditional": conditional,
     })
 
     print(f"wrote {SAMPLE_DIR / 'priced_trace.json'}  (hero fixture: {HERO_FIXTURE})")
@@ -372,6 +439,9 @@ def main() -> None:
     print(f"wrote {SAMPLE_DIR / 'bargein.sample.json'}  headline: "
           f"{headline['waste_share_of_tts_spend']:.2%} of TTS spend unheard at "
           f"barge-in rate {headline['barge_in_rate']} (harness n={bargein['n']})")
+    print(f"wrote {SAMPLE_DIR / 'conditional.sample.json'}  "
+          f"total conditional savings ${conditional['total_savings_usd']:.4f} "
+          f"({CONDITIONAL_SAVINGS_LABEL}) -- NOT the gated margin")
     print(f"synced embedded fallback JSON in {INDEX_HTML}")
 
 

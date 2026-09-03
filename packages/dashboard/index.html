@@ -156,6 +156,21 @@
     <h2>Replay-evidence panel <small>mechanism demo — MockBackend, not measured <span class="mono">(experiments.sample.json)</span></small></h2>
     <div class="grid" id="replay-grid"></div>
   </section>
+
+  <!-- ============ 5. CONDITIONAL SAVINGS (separate bucket — NOT proven) ==== -->
+  <section id="conditional">
+    <h2>Conditional savings — re-pricing remedies <small>deterministic conditional saving — preservation unverified (Wave-2) — NOT the proven margin <span class="mono">(conditional.sample.json)</span></small></h2>
+    <div class="card" style="overflow-x:auto">
+      <table id="conditional-table">
+        <thead>
+          <tr><th>Remedy</th><th>Detector</th><th>n</th><th>Δcost mean</th><th>Savings (USD)</th><th>Savings CI95</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="conditional-total" class="hero-total" style="font-size:1.1em"></div>
+      <div id="conditional-provenance" class="check"></div>
+    </div>
+  </section>
 </main>
 
 <footer>Turnstile Wave-1 demo. The page presents pre-computed JSON only; it computes no cost or metric itself.</footer>
@@ -178,6 +193,10 @@
 
 <script type="application/json" id="data-bargein">
 {"label":"D7 barge-in unheard waste \u2014 measured on the barge-in harness","n":150,"seed":0,"lead_cap_s":2.0,"headline":{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},"rate_sweep":[{"barge_in_rate":0.05,"n_calls":150,"barge_in_calls":10,"d7_findings":10,"d7_waste_usd_total":0.017575,"d7_waste_usd_mean_per_call":0.00011716666666666666,"d7_waste_usd_ci95":[2.9000000000000004e-05,0.0002288416666666666],"tts_spend_usd_total":1.0007749999999993,"waste_share_of_tts_spend":0.017561389922809836,"generated_chars_total":40031,"wasted_chars_total":703,"wasted_char_share":0.017561389922809822,"mean_gen_rate_realtime_x":40.813512561506144,"mean_achieved_lead_s":3.822055948485932},{"barge_in_rate":0.1,"n_calls":150,"barge_in_calls":18,"d7_findings":18,"d7_waste_usd_total":0.030575,"d7_waste_usd_mean_per_call":0.00020383333333333335,"d7_waste_usd_ci95":[9.583333333333335e-05,0.00033516666666666666],"tts_spend_usd_total":0.9896749999999991,"waste_share_of_tts_spend":0.03089398034708367,"generated_chars_total":39587,"wasted_chars_total":1223,"wasted_char_share":0.030893980347083638,"mean_gen_rate_realtime_x":42.162665113634446,"mean_achieved_lead_s":3.75006200693902},{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},{"barge_in_rate":0.2,"n_calls":150,"barge_in_calls":29,"d7_findings":29,"d7_waste_usd_total":0.048675,"d7_waste_usd_mean_per_call":0.00032450000000000003,"d7_waste_usd_ci95":[0.00019683333333333337,0.0004671666666666667],"tts_spend_usd_total":0.981774999999999,"waste_share_of_tts_spend":0.049578569427822114,"generated_chars_total":39271,"wasted_chars_total":1947,"wasted_char_share":0.04957856942782206,"mean_gen_rate_realtime_x":40.02827834436394,"mean_achieved_lead_s":3.6301634492400394},{"barge_in_rate":0.3,"n_calls":150,"barge_in_calls":45,"d7_findings":45,"d7_waste_usd_total":0.07572500000000001,"d7_waste_usd_mean_per_call":0.0005048333333333335,"d7_waste_usd_ci95":[0.00033050000000000006,0.0006988375000000001],"tts_spend_usd_total":0.9618499999999994,"waste_share_of_tts_spend":0.07872849196860224,"generated_chars_total":38474,"wasted_chars_total":3029,"wasted_char_share":0.07872849196860217,"mean_gen_rate_realtime_x":41.78386492304996,"mean_achieved_lead_s":3.609190667176017}],"lead_cap_sweep":{"parameter":"streaming buffer-lead policy lead_cap_s (modeled input, swept over a stated plausible policy band -- not a claim about any vendor's pipeline)","barge_in_rate_held_at":0.15,"points":[{"lead_cap_s":0.5,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":1.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":2.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":3.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.043375,"d7_waste_usd_mean_per_call":0.00028916666666666663,"d7_waste_usd_ci95":[0.0001621666666666667,0.0004306708333333333],"tts_spend_usd_total":0.9855999999999994,"waste_share_of_tts_spend":0.044008725649350676,"generated_chars_total":39424,"wasted_chars_total":1735,"wasted_char_share":0.04400872564935065,"mean_gen_rate_realtime_x":40.76529309445457,"mean_achieved_lead_s":3.775340282737814},{"lead_cap_s":4.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.046125,"d7_waste_usd_mean_per_call":0.0003075,"d7_waste_usd_ci95":[0.0001743291666666667,0.00045134166666666666],"tts_spend_usd_total":0.9883499999999994,"waste_share_of_tts_spend":0.0466686902413113,"generated_chars_total":39534,"wasted_chars_total":1845,"wasted_char_share":0.046668690241311275,"mean_gen_rate_realtime_x":40.7419443004339,"mean_achieved_lead_s":4.008468627409017}]},"granularity_sweep":{"parameter":"TTS chunk granularity -- the atomic cancellation unit (sentence = today's streaming default and D6/D7's proposed remedy; clause/word split finer). MEASURED at each granularity: every readback re-synthesizes through real Piper at that granularity (per-chunk chars/audio/wall), never modeled; barge-in rate held at the cited default, buffer lead held at the stated 2s, caller behavior shared across points via a common seed","barge_in_rate_held_at":0.15,"lead_cap_s_held_at":2.0,"points":[{"granularity":"sentence","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.04075,"d7_waste_usd_mean_per_call":0.0002716666666666667,"d7_waste_usd_ci95":[0.0001466666666666667,0.0004105124999999999],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041469495751284814,"generated_chars_total":39306,"wasted_chars_total":1630,"wasted_char_share":0.04146949575128479,"mean_gen_rate_realtime_x":41.02914261306263,"mean_achieved_lead_s":3.5386094321876618},{"granularity":"clause","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.021825,"d7_waste_usd_mean_per_call":0.0001455,"d7_waste_usd_ci95":[8.783333333333335e-05,0.0002065],"tts_spend_usd_total":0.9491750000000004,"waste_share_of_tts_spend":0.022993652382332017,"generated_chars_total":37967,"wasted_chars_total":873,"wasted_char_share":0.022993652382332024,"mean_gen_rate_realtime_x":34.74056867235993,"mean_achieved_lead_s":1.8383645198526009},{"granularity":"word","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.009725000000000003,"d7_waste_usd_mean_per_call":6.483333333333336e-05,"d7_waste_usd_ci95":[4.116666666666667e-05,8.917083333333328e-05],"tts_spend_usd_total":0.7944750000000006,"waste_share_of_tts_spend":0.012240787941722515,"generated_chars_total":31779,"wasted_chars_total":389,"wasted_char_share":0.01224078794172252,"mean_gen_rate_realtime_x":27.054788213816604,"mean_achieved_lead_s":1.9193544248224899}]},"floor_annotation":{"from":0.5,"to":2.0,"value":0.041138757441611995,"note":"waste is flat across these lead caps -- the measured synthesis-chunk floor (the in-flight chunk is atomic)"},"provenance":"Real Piper TTS generation-ahead behavior, measured on-device (per-chunk audio duration and wall-clock synthesis time); barge-in RATE modeled and swept over the cited range (turnstile_corpus.distributions.BARGE_IN_RATE, telli.com 2026, default 0.15); barge-in POSITION modeled as uniform over the utterance's audio (stated null model -- no citable position distribution); N controlled harness calls with a scripted confirmation-readback scenario -- NOT production traffic, not real-time conversation, no ASR/LLM.","report_source":"experiments/bargein_report.json, generated by packages/experiments/run_bargein_harness.py (real Piper TTS synthesis; barge-in rate and position modeled and swept). The dashboard renders this report; it computes no harness number."}
+</script>
+
+<script type="application/json" id="data-conditional">
+{"label":"Section-A re-pricing remedies \u2014 deterministic conditional savings","label_verbatim":"deterministic conditional saving \u2014 preservation unverified (Wave-2)","variants":{"context_window_8":{"detector":"D2 (context bloat) / D4 (turn inflation)","n":23,"delta_cost_mean":-1.3043478260869486e-05,"delta_cost_ci95":[-3.913043478260846e-05,0.0],"savings_usd":1.3043478260869486e-05,"savings_usd_ci95":[-0.0,3.913043478260846e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"context_summarize_2000":{"detector":"D4 (turn inflation)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"prefix_caching_on":{"detector":"D2 (context bloat)","n":23,"delta_cost_mean":-0.0006950543478260872,"delta_cost_ci95":[-0.001147698097826088,-0.0003404323369565221],"savings_usd":0.0006950543478260872,"savings_usd_ci95":[0.0003404323369565221,0.001147698097826088],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"tool_batching_on":{"detector":"D10 (tool thrash)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"escalation_threshold_0_85":{"detector":"D9 (escalation debt)","n":23,"delta_cost_mean":-0.0006244057971014492,"delta_cost_ci95":[-0.0018160362318840578,0.0],"savings_usd":0.0006244057971014492,"savings_usd_ci95":[-0.0,0.0018160362318840578],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"retrieval_threshold_0_8":{"detector":"D3 (redundant retrieval)","n":23,"delta_cost_mean":-1.3043478260869412e-05,"delta_cost_ci95":[-3.2608695652173565e-05,0.0],"savings_usd":1.3043478260869412e-05,"savings_usd_ci95":[-0.0,3.2608695652173565e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"}},"total_savings_usd":0.0013455471014492753,"n_fixtures":23,"_provenance":"DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (the 0.57% proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."}
 </script>
 
 <script>
@@ -491,22 +510,49 @@ function renderReplay(experiments) {
 }
 
 /* ------------------------------------------------------------------ *
+ * 5. Conditional savings — the Section-A re-pricing bucket. Numbers come
+ *    from run_repricing_matrix verbatim; the label is carried verbatim.
+ *    Rendered separately from the gated recoverable margin on purpose.
+ * ------------------------------------------------------------------ */
+function renderConditional(c) {
+  const body = document.querySelector("#conditional-table tbody");
+  Object.entries(c.variants).forEach(([name, v]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td class='mono'>" + esc(name) + "</td>" +
+      "<td class='muted'>" + esc(v.detector) + "</td>" +
+      "<td>" + v.n + "</td>" +
+      "<td>" + fmtUsd(v.delta_cost_mean) + "</td>" +
+      "<td class='money'><span class='badge'>" + fmtUsd(v.savings_usd) + "</span></td>" +
+      "<td class='muted'>[$" + v.savings_usd_ci95[0].toFixed(5) + ", $" + v.savings_usd_ci95[1].toFixed(5) + "]</td>";
+    body.appendChild(tr);
+  });
+  document.getElementById("conditional-total").innerHTML =
+    "total conditional savings: <b>" + fmtUsd(c.total_savings_usd) + "</b> over " +
+    c.n_fixtures + " fixtures — <b>" + esc(c.label_verbatim) + "</b>";
+  document.getElementById("conditional-provenance").innerHTML =
+    "provenance — " + esc(c._provenance);
+}
+
+/* ------------------------------------------------------------------ *
  * Boot
  * ------------------------------------------------------------------ */
 (async function main() {
   try {
-    const [bargein, priced, fleet, findings, experiments] = await Promise.all([
+    const [bargein, priced, fleet, findings, experiments, conditional] = await Promise.all([
       loadJSON("data-bargein", "sample/bargein.sample.json"),
       loadJSON("data-priced", "sample/priced_trace.json"),
       loadJSON("data-fleet", "sample/fleet.json"),
       loadJSON("data-findings", "sample/findings.sample.json"),
       loadJSON("data-experiments", "sample/experiments.sample.json"),
+      loadJSON("data-conditional", "sample/conditional.sample.json"),
     ]);
     renderBargein(bargein);
     renderFlame(priced);
     renderFleet(fleet);
     renderFindings(findings);
     renderReplay(experiments);
+    renderConditional(conditional);
   } catch (err) {
     document.querySelector("main").innerHTML =
       '<div class="card">Failed to load sample data: ' + esc(err.message) + "</div>";

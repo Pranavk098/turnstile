@@ -1,0 +1,99 @@
+{
+  "label": "Section-A re-pricing remedies \u2014 deterministic conditional savings",
+  "label_verbatim": "deterministic conditional saving \u2014 preservation unverified (Wave-2)",
+  "variants": {
+    "context_window_8": {
+      "detector": "D2 (context bloat) / D4 (turn inflation)",
+      "n": 23,
+      "delta_cost_mean": -1.3043478260869486e-05,
+      "delta_cost_ci95": [
+        -3.913043478260846e-05,
+        0.0
+      ],
+      "savings_usd": 1.3043478260869486e-05,
+      "savings_usd_ci95": [
+        -0.0,
+        3.913043478260846e-05
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    },
+    "context_summarize_2000": {
+      "detector": "D4 (turn inflation)",
+      "n": 23,
+      "delta_cost_mean": 0.0,
+      "delta_cost_ci95": [
+        0.0,
+        0.0
+      ],
+      "savings_usd": -0.0,
+      "savings_usd_ci95": [
+        -0.0,
+        -0.0
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    },
+    "prefix_caching_on": {
+      "detector": "D2 (context bloat)",
+      "n": 23,
+      "delta_cost_mean": -0.0006950543478260872,
+      "delta_cost_ci95": [
+        -0.001147698097826088,
+        -0.0003404323369565221
+      ],
+      "savings_usd": 0.0006950543478260872,
+      "savings_usd_ci95": [
+        0.0003404323369565221,
+        0.001147698097826088
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    },
+    "tool_batching_on": {
+      "detector": "D10 (tool thrash)",
+      "n": 23,
+      "delta_cost_mean": 0.0,
+      "delta_cost_ci95": [
+        0.0,
+        0.0
+      ],
+      "savings_usd": -0.0,
+      "savings_usd_ci95": [
+        -0.0,
+        -0.0
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    },
+    "escalation_threshold_0_85": {
+      "detector": "D9 (escalation debt)",
+      "n": 23,
+      "delta_cost_mean": -0.0006244057971014492,
+      "delta_cost_ci95": [
+        -0.0018160362318840578,
+        0.0
+      ],
+      "savings_usd": 0.0006244057971014492,
+      "savings_usd_ci95": [
+        -0.0,
+        0.0018160362318840578
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    },
+    "retrieval_threshold_0_8": {
+      "detector": "D3 (redundant retrieval)",
+      "n": 23,
+      "delta_cost_mean": -1.3043478260869412e-05,
+      "delta_cost_ci95": [
+        -3.2608695652173565e-05,
+        0.0
+      ],
+      "savings_usd": 1.3043478260869412e-05,
+      "savings_usd_ci95": [
+        -0.0,
+        3.2608695652173565e-05
+      ],
+      "label": "deterministic conditional saving \u2014 preservation unverified (Wave-2)"
+    }
+  },
+  "total_savings_usd": 0.0013455471014492753,
+  "n_fixtures": 23,
+  "_provenance": "DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (the 0.57% proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."
+}

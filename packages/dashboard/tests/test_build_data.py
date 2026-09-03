@@ -113,3 +113,72 @@ def test_sync_embedded_json_updates_the_bargein_block(tmp_path):
         .split("\n</script>")[0]
     )
     assert synced == {"label": "x", "v": 1}
+
+
+# --------------------------------------------------------------------------- #
+# T4: the conditional-savings panel — run_repricing_matrix's output, verbatim #
+# label, never mixed with the gated proven margin.                            #
+# --------------------------------------------------------------------------- #
+
+def test_conditional_panel_traces_to_run_repricing_matrix():
+    from turnstile_experiments import REPRICING_VARIANTS, run_repricing_matrix
+
+    rates = build_data.load_rates(build_data.RATES_PATH)
+    corpus = [build_data.price_trace(build_data.load_trace(p), rates)
+              for p in build_data._golden_fixtures()]
+    panel = build_data.build_conditional_savings(rates, corpus)
+    # The rows ARE the runner's own output (nothing recomputed or massaged):
+    # recompute here and require exact equality.
+    expected = run_repricing_matrix(corpus, REPRICING_VARIANTS, rates=rates)
+    assert set(panel["variants"]) == set(REPRICING_VARIANTS)
+    for name, r in expected.items():
+        row = panel["variants"][name]
+        assert row["n"] == r.n
+        assert row["delta_cost_mean"] == pytest.approx(r.delta_cost_mean)
+        assert row["savings_usd"] == pytest.approx(-r.delta_cost_mean)
+        assert row["label"] == r.label
+    assert panel["total_savings_usd"] == pytest.approx(
+        sum(-r.delta_cost_mean for r in expected.values()))
+    assert panel["n_fixtures"] == len(corpus)
+
+
+def test_conditional_panel_carries_the_label_verbatim_and_stays_separate():
+    from turnstile_experiments import CONDITIONAL_SAVINGS_LABEL
+
+    rates = build_data.load_rates(build_data.RATES_PATH)
+    corpus = [build_data.price_trace(build_data.load_trace(p), rates)
+              for p in build_data._golden_fixtures()]
+    panel = build_data.build_conditional_savings(rates, corpus)
+    # The label verbatim, in the panel data AND on every row.
+    assert panel["label_verbatim"] == (
+        "deterministic conditional saving — preservation unverified (Wave-2)")
+    assert panel["label_verbatim"] == CONDITIONAL_SAVINGS_LABEL
+    assert all(v["label"] == CONDITIONAL_SAVINGS_LABEL
+               for v in panel["variants"].values())
+    # Textually separate from the gated proven margin: the panel carries no
+    # recoverable-margin field, and its provenance forbids the mixing.
+    assert "recoverable_margin" not in json.dumps(panel)
+    assert "0.57" in panel["_provenance"] and "NEVER" in panel["_provenance"]
+    assert "H-1" in panel["_provenance"]
+
+
+def test_conditional_panel_covers_every_remedy_detector():
+    rates = build_data.load_rates(build_data.RATES_PATH)
+    corpus = [build_data.price_trace(build_data.load_trace(p), rates)
+              for p in build_data._golden_fixtures()]
+    panel = build_data.build_conditional_savings(rates, corpus)
+    detectors = {v["detector"] for v in panel["variants"].values()}
+    for marker in ("D2", "D3", "D4", "D9", "D10"):
+        assert any(marker in d for d in detectors), marker
+
+
+def test_index_html_carries_the_conditional_panel_and_embed():
+    html = build_data.INDEX_HTML.read_text(encoding="utf-8")
+    assert 'id="conditional"' in html
+    assert 'id="data-conditional"' in html
+    assert "renderConditional(" in html
+    assert "sample/conditional.sample.json" in html
+    assert "data-conditional" in build_data._EMBED_IDS
+    # Visually + textually separated: the heading itself carries the label.
+    assert "preservation unverified (Wave-2)" in html
+    assert "NOT the proven margin" in html
