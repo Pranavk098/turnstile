@@ -11,13 +11,17 @@ explicitly split into two tiers, labeled on the slide, and never blurs them.
 **① The headline — barge-in waste (a number nobody has published).** We ran
 **750 real Piper TTS synthesis calls** through the instrument and measured the
 fraction of synthesized, *billed* speech a caller never hears when they barge in.
-At a cited **15% barge-in rate** and a **2-second streaming buffer**: **4.2% of
+At a cited **15% barge-in rate** and a **2-second streaming buffer**: **~4% of
 TTS spend is generated, billed, and never heard** — about one buffer-lead of
-audio per interruption. The mechanism: local streaming TTS generates **~40×
-realtime** (measured), so the whole readback exists before the caller has heard a
-quarter of it; generation always wins the race — the only question is how far
-ahead you buffer. Swept over barge-in rate 5%→30% = 1.9%→7.9%, and over buffer
-policy 0.5s→4s = 4.2%→4.7% — with a **floor**: below ~one synthesis chunk you
+audio per interruption (the exact figure is a live Piper measurement, ~4.1% ±
+run-to-run timing variance, so we say **~4%**, not a false-precise number). The
+mechanism: local streaming TTS generates **~40× realtime** (measured), so the
+whole readback exists before the caller has heard a quarter of it; generation
+always wins the race — the only question is how far ahead you buffer. **And it's
+a fixable number**: chunk the TTS finer and the waste falls — sentence→clause→word
+= **~4%→2.3%→1.2%** (measured, real Piper), at a modest synthesis-speed cost
+(gen-rate 41×→27×). Swept over barge-in rate 5%→30% = 1.9%→7.9%, and over buffer
+policy 0.5s→4s = ~4%→4.7% — with a **floor**: below ~one synthesis chunk you
 can't buffer the waste away (TTS commits whole sentences), so it's flat, then
 rises. Provenance stated on the slide: real
 generation-ahead behavior **measured**; barge-in rate/position **modeled, swept,
@@ -44,7 +48,7 @@ G2 gate stays live — see `docs/GATES.md`.)
 ## The spine (PRD Appendix A), tagged by tier
 
 1. **0:00 — one call, cost flame graph.** "This call cost $X; here is where it went." Label the LLM stage **[measured]** and the ASR/TTS/telephony stages **[modeled acoustics]**. Don't let the flame graph imply the audio stages are measured.
-2. **0:45 — Detector 7, barge-in — THE measured headline (Tier 1).** Lead with the number nobody has: *"I ran 750 real TTS synthesis calls and measured how much synthesized, billed speech your callers never hear when they interrupt. At a 15% barge-in rate on a 2-second buffer: **4.2% of your TTS spend — generated, billed, and never heard.** Streaming TTS runs ~40× realtime, so the whole readback exists before they've heard a quarter of it."* Show both sweep tables (barge-in rate 1.9%→7.9%, and the buffer-policy sweep 4.2%→4.7% — which has a **floor** you can't buffer under: TTS commits whole sentences) as the honesty exhibit, and state the provenance out loud (generation-ahead **measured**; barge-in rate/position **modeled + swept**; controlled harness, not production). This is the reaction you want — not "nice tool," but *"wait, what's OUR number?"*
+2. **0:45 — Detector 7, barge-in — THE measured headline (Tier 1).** Lead with the number nobody has: *"I ran real TTS synthesis and measured how much synthesized, billed speech your callers never hear when they interrupt. At a 15% barge-in rate on a 2-second buffer: **~4% of your TTS spend — generated, billed, and never heard.** Streaming TTS runs ~40× realtime, so the whole readback exists before they've heard a quarter of it. And it's not fixed: chunk the TTS finer and you recover most of it — clause-level **2.3%**, word-level **1.2%** (measured), at a modest synthesis-speed cost."* Show the three sweep tables (barge-in rate 1.9%→7.9%; buffer policy ~4%→4.7%, with a **floor** you can't buffer under — TTS commits whole sentences; and the chunk-granularity remedy sentence→clause→word) as the honesty exhibit, and state the provenance out loud (generation-ahead + per-granularity chars **measured** on real Piper; barge-in rate/position **modeled + swept**; controlled harness, not production, so the headline is **~4%**, not a false-precise figure). This is the reaction you want — not "nice tool," but *"wait, what's OUR number?"*
 3. **1:30 — fleet view (Tier 1).** "Most vendors quote CPRC-naive, the left number. The right one, CPRC-loaded, is your real margin — you pay for the calls that fail too." (Loaded is computed over verdict-adjudicated resolutions.)
 4. **2:15 — Detector 9, escalation debt (Tier 1 once the verdict fix lands).** "Escalation was predictable at turn 3. We spent nine more turns and $X getting there." And the tier-2 rejected-handoff number: full conversation cost, stranded caller.
 5. **3:00 — routing margin, then the ask (Tier 1 supporting → the close).** "And a deterministic one, exact from the rate card: routing eligible `route` decisions to a cheaper model recovers **0.57% [0.49, 0.66]**, ~$126/yr at 1M calls, gated and reproducible from the manifest. Small — it's the *only* remedy replay-executable today; the rest are detected and quantified, not yet replay-proven, and I label them that way. What I am **not** showing you is a preservation rate — that needs real traffic, and I won't fake it on synthetic audio." Then the FDE close, unprompted: *"This is what I can prove on public data and a controlled harness. The barge-in number becomes **yours** the moment you point this at your traffic — your buffer policy, your barge-in rate, your real dollars. That's the engagement."* *(Owner: delivery is yours — the numbers and the honesty lines are fixed.)*
