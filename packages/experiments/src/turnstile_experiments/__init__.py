@@ -32,7 +32,12 @@ from turnstile_experiments.repricing import (
 )
 from turnstile_experiments.sweeps import run_d7_barge_in_sweep, run_d8_silence_sweep, run_sweeps
 from turnstile_experiments.transforms import REPRICING_TRANSFORMS, apply_variant_transform
-from turnstile_experiments.variants import REPRICING_VARIANTS, RESERVED_VARIANTS, VARIANTS
+from turnstile_experiments.variants import (
+    HARNESS_VARIANTS,
+    REPRICING_VARIANTS,
+    RESERVED_VARIANTS,
+    VARIANTS,
+)
 
 __all__ = [
     "compute_baselines",
@@ -41,6 +46,7 @@ __all__ = [
     "run_bargein_report",
     "VARIANTS",
     "REPRICING_VARIANTS",
+    "HARNESS_VARIANTS",
     "RESERVED_VARIANTS",
     "run_matrix",
     "run_repricing_experiment",

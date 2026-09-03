@@ -20,7 +20,13 @@ from __future__ import annotations
 from typing import TypedDict
 
 from turnstile_agent import TtsEngine
-from turnstile_agent.harness import PROVENANCE, run_calls, run_leadcap_sweep
+from turnstile_agent.harness import (
+    PROVENANCE,
+    run_calls,
+    run_granularity_sweep,
+    run_leadcap_sweep,
+)
+from turnstile_agent.tts import GRANULARITIES
 from turnstile_detectors import detect
 from turnstile_pricing import price_trace
 from turnstile_replay._rates import get_rates
@@ -190,6 +196,56 @@ def _run_leadcap(
     ]
 
 
+class GranularityPoint(TypedDict):
+    """One point of the chunk-granularity sweep: the atomic cancellation
+    unit (sentence / clause / word), with the barge-in rate HELD at the
+    cited default and the buffer lead HELD at the default 2s. Each point
+    re-synthesizes every readback through the real engine at that
+    granularity -- MEASURED chars/audio/wall per finer chunk, never
+    modeled."""
+
+    granularity: str
+    n_calls: int
+    barge_in_calls: int
+    d7_findings: int
+    d7_waste_usd_total: float
+    d7_waste_usd_mean_per_call: float
+    d7_waste_usd_ci95: tuple[float, float]
+    tts_spend_usd_total: float
+    waste_share_of_tts_spend: float
+    generated_chars_total: int
+    wasted_chars_total: int
+    wasted_char_share: float
+    mean_gen_rate_realtime_x: float
+    mean_achieved_lead_s: float
+
+
+def _run_granularity(
+    engine: TtsEngine,
+    *,
+    n: int,
+    seed: int,
+    granularities: list[str],
+    lead_cap_s: float,
+    rates_table: RateTable,
+    rate: float = LEAD_CAP_SWEEP_RATE,
+) -> list[GranularityPoint]:
+    """One sweep of the chunk-granularity knob at fixed rate + lead cap.
+    Every point runs with the same seed, so the modeled caller behavior is
+    shared across granularities; only the measured schedules differ."""
+    sweep = run_granularity_sweep(
+        engine, n=n, seed=seed, granularities=granularities,
+        rate=rate, lead_cap_s=lead_cap_s,
+    )
+    return [
+        GranularityPoint(
+            granularity=g,
+            **_aggregate(sweep[g], n=n, rates_table=rates_table),
+        )
+        for g in granularities
+    ]
+
+
 def run_bargein_report(
     engine: TtsEngine | None = None,
     *,
@@ -198,13 +254,18 @@ def run_bargein_report(
     seed: int = DEFAULT_SEED,
     lead_cap_s: float = 2.0,
     lead_caps: list[float] | None = None,
+    granularities: list[str] | None = None,
     rates_table: RateTable | None = None,
 ) -> dict:
-    """Run BOTH 1-D sweeps and package the measured D7 number with its
+    """Run ALL THREE 1-D sweeps and package the measured D7 number with its
     provenance:
 
     * the barge-in RATE sweep (modeled input; buffer held at ``lead_cap_s``),
-    * the buffer-LEAD sweep (stated policy band; rate held at the cited 0.15).
+    * the buffer-LEAD sweep (stated policy band; rate held at the cited 0.15),
+    * the chunk-GRANULARITY sweep (the atomic cancellation unit, D6/D7's
+      remedy; rate held at the cited 0.15, lead held at 2.0) -- each point
+      re-synthesizes through the real engine at that granularity: a MEASURED
+      remedy comparison.
 
     Every call goes through the built instrument unchanged. ``engine``
     defaults to the real :class:`PiperEngine` (requires the piper extra + a
@@ -229,6 +290,12 @@ def run_bargein_report(
         rates_table=rates_table,
     )
 
+    granularities = granularities if granularities is not None else list(GRANULARITIES)
+    granularity_points = _run_granularity(
+        engine, n=n, seed=seed, granularities=granularities,
+        lead_cap_s=lead_cap_s, rates_table=rates_table,
+    )
+
     return {
         "provenance": PROVENANCE,
         "n": n,
@@ -245,5 +312,20 @@ def run_bargein_report(
             ),
             "barge_in_rate_held_at": LEAD_CAP_SWEEP_RATE,
             "points": leadcap_points,
+        },
+        "granularity_sweep": {
+            "parameter": (
+                "TTS chunk granularity -- the atomic cancellation unit "
+                "(sentence = today's streaming default and D6/D7's proposed "
+                "remedy; clause/word split finer). MEASURED at each "
+                "granularity: every readback re-synthesizes through real "
+                "Piper at that granularity (per-chunk chars/audio/wall), "
+                "never modeled; barge-in rate held at the cited default, "
+                "buffer lead held at the stated 2s, caller behavior shared "
+                "across points via a common seed"
+            ),
+            "barge_in_rate_held_at": LEAD_CAP_SWEEP_RATE,
+            "lead_cap_s_held_at": lead_cap_s,
+            "points": granularity_points,
         },
     }

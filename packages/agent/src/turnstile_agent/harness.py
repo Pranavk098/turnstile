@@ -64,14 +64,16 @@ def run_calls(
     rate: float,
     seed: int,
     lead_cap_s: float = DEFAULT_LEAD_CAP_S,
+    granularity: str = "sentence",
     record: bool = True,
 ) -> list[HarnessCall]:
     """Run ``n`` calls at the given modeled barge-in ``rate`` (deterministic
     per ``(n, rate, seed)``). The readback utterance cycles through
     ``READBACKS``; whether the caller interrupts is sampled per call; where
     is sampled uniform over the utterance's measured audio duration. The
-    chunk schedule is measured ONCE per utterance occurrence and reused for
-    that call's replay."""
+    chunk schedule is measured ONCE per utterance occurrence -- at the
+    stated chunk ``granularity`` (the atomic cancellation unit) -- and
+    reused for that call's replay."""
     rng = np.random.default_rng(seed)
     schedules: dict[str, list] = {}
     calls: list[HarnessCall] = []
@@ -80,7 +82,7 @@ def run_calls(
         if utterance not in schedules:
             # Phase 1 (measurement) -- once per utterance, before any barge-in
             # behavior for this call is drawn.
-            schedules[utterance] = measure_utterance(engine, utterance)
+            schedules[utterance] = measure_utterance(engine, utterance, granularity)
         schedule = schedules[utterance]
         total_audio_s = sum(c.audio_seconds for c in schedule)
 
@@ -123,6 +125,7 @@ def run_leadcap_sweep(
     rate: float,
     seed: int,
     lead_caps: list[float],
+    granularity: str = "sentence",
     record: bool = True,
 ) -> dict[float, list[HarnessCall]]:
     """Sweep the streaming BUFFER-LEAD POLICY (``lead_cap_s``) -- the one
@@ -143,7 +146,7 @@ def run_leadcap_sweep(
     for i in range(n):
         utterance = READBACKS[i % len(READBACKS)]
         if utterance not in schedules:
-            schedules[utterance] = measure_utterance(engine, utterance)
+            schedules[utterance] = measure_utterance(engine, utterance, granularity)
         schedule = schedules[utterance]
         total_audio_s = sum(c.audio_seconds for c in schedule)
         barges = bool(rng.random() < rate)
@@ -180,3 +183,38 @@ def run_leadcap_sweep(
             )
         results[cap] = calls
     return results
+
+
+def run_granularity_sweep(
+    engine: TtsEngine,
+    *,
+    n: int,
+    seed: int,
+    granularities: list[str],
+    rate: float,
+    lead_cap_s: float = DEFAULT_LEAD_CAP_S,
+    record: bool = True,
+) -> dict[str, list[HarnessCall]]:
+    """Sweep the TTS chunk GRANULARITY -- the atomic cancellation unit (a
+    barge-in can only cancel unbilled work at a chunk boundary) -- at a
+    FIXED barge-in rate and lead cap. Each granularity re-synthesizes every
+    readback through the real engine at that granularity (MEASURED per-chunk
+    chars/audio/wall -- never modeled), so finer granularities have their own
+    measured schedules, not resampled ones.
+
+    Anti-tuning guarantee, same rule as the other sweeps: within each
+    granularity the phase-1 schedule is measured ONCE per utterance BEFORE
+    any barge-in draw, and every point runs with the SAME ``seed``, so the
+    modeled caller behavior (which calls barge in, and the underlying
+    uniform position draws) is shared across granularities -- positions land
+    at the same relative spot on each granularity's own measured timeline.
+    Only the granularity (and the measured schedule it produces) varies.
+
+    Returns ``{granularity: [HarnessCall, ...]}`` in the given order."""
+    return {
+        g: run_calls(
+            engine, n=n, rate=rate, seed=seed, lead_cap_s=lead_cap_s,
+            granularity=g, record=record,
+        )
+        for g in granularities
+    }

@@ -1,4 +1,4 @@
-"""Unit tests for the streaming timeline + barge-in model
+﻿"""Unit tests for the streaming timeline + barge-in model
 (turnstile_agent.sim) on the deterministic FakeEngine.
 
 The FakeEngine synthesizes each sentence chunk with
@@ -118,7 +118,7 @@ def test_schedule_is_reused_and_never_remeasured_per_call():
 
 def test_engine_producing_nothing_is_an_error():
     class _Dead:
-        def synthesize_stream(self, text):
+        def synthesize_stream(self, text, granularity="sentence"):
             return iter(())
 
     with pytest.raises(ValueError):

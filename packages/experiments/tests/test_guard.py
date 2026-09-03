@@ -26,14 +26,51 @@ def test_model_routing_is_executable():
     assert_backend_executable("model_routing_gpt5_nano", v)  # does not raise
 
 
-@pytest.mark.parametrize("field, value", [
-    ("tts_chunking", "sentence"),
-])
+@pytest.mark.parametrize("field, value", [])
 def test_reserved_fields_raise(field, value):
     v = VariantSpec(**{field: value})
     assert unimplemented_fields(v) == {field}
     with pytest.raises(NotImplementedError, match=field):
         assert_variant_executable("reserved", v)
+
+
+def test_no_reserved_fields_remain():
+    # Batch 2 T1: tts_chunking gained a measured execution path on the
+    # barge-in harness -- every VariantSpec field now executes somewhere, so
+    # the reserved set is empty and nothing can silently no-op.
+    assert RESERVED_VARIANT_FIELDS == set()
+    one_knob_specs = {
+        "model_routing": VariantSpec(model_routing={"route": "gpt-5-nano"}),
+        "context_strategy": VariantSpec(context_strategy="window:8"),
+        "prefix_caching": VariantSpec(prefix_caching=True),
+        "tool_batching": VariantSpec(tool_batching=True),
+        "escalation_policy": VariantSpec(escalation_policy="threshold:0.85"),
+        "retrieval_policy": VariantSpec(retrieval_policy="threshold:0.8"),
+        "tts_chunking": VariantSpec(tts_chunking="clause"),
+    }
+    assert set(one_knob_specs) == set(VariantSpec.model_fields)
+    for field, v in one_knob_specs.items():
+        assert_variant_executable(field, v)  # does not raise
+
+
+def test_mixed_variant_still_refuses_the_backend_path():
+    # With every field implemented somewhere, a variant mixing the backend
+    # knob with a non-backend field must still refuse the BACKEND path
+    # wholesale -- no partial execution.
+    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, tts_chunking="clause")
+    with pytest.raises(NotImplementedError, match="tts_chunking"):
+        assert_backend_executable("mixed", v)
+
+
+def test_tts_chunking_executes_via_the_harness_not_the_backend():
+    # D6/D7's remedy runs on the barge-in harness (measured, real Piper) --
+    # never the replay backend, where it would be a silent zero-delta no-op.
+    v = VariantSpec(tts_chunking="clause")
+    assert applied_fields(v) == {"tts_chunking"}
+    assert unimplemented_fields(v) == set()
+    assert_variant_executable("tts_chunking_clause", v)  # does not raise
+    with pytest.raises(NotImplementedError, match="barge-in harness"):
+        assert_backend_executable("tts_chunking_clause", v)
 
 
 def test_prefix_caching_implemented_via_repricing_not_on_the_backend():
@@ -49,30 +86,13 @@ def test_prefix_caching_implemented_via_repricing_not_on_the_backend():
         assert_backend_executable("prefix_caching_on", v)
 
 
-def test_mixed_variant_raises_on_the_unsupported_field():
-    # Even with an executable model_routing present, an unsupported field must
-    # still fail loudly rather than partially run.
-    v = VariantSpec(model_routing={"route": "gpt-5-nano"}, tts_chunking="sentence")
-    assert applied_fields(v) == {"model_routing"}
-    assert unimplemented_fields(v) == {"tts_chunking"}
-    with pytest.raises(NotImplementedError, match="tts_chunking"):
-        assert_variant_executable("mixed", v)
-    with pytest.raises(NotImplementedError, match="tts_chunking"):
-        assert_backend_executable("mixed", v)
-
-
 def test_empty_variant_raises():
     with pytest.raises(NotImplementedError, match="no fields"):
         assert_variant_executable("empty", VariantSpec())
 
 
 def test_field_sets_partition_the_schema():
-    assert IMPLEMENTED_VARIANT_FIELDS == {
-        "model_routing", "context_strategy", "prefix_caching",
-        "tool_batching", "escalation_policy", "retrieval_policy"}
+    assert IMPLEMENTED_VARIANT_FIELDS == set(VariantSpec.model_fields)
     assert BACKEND_APPLIED_VARIANT_FIELDS == {"model_routing"}
     assert BACKEND_APPLIED_VARIANT_FIELDS < IMPLEMENTED_VARIANT_FIELDS
-    for field in ("context_strategy", "prefix_caching", "tool_batching",
-                  "escalation_policy", "retrieval_policy"):
-        assert field not in RESERVED_VARIANT_FIELDS
-    assert IMPLEMENTED_VARIANT_FIELDS.isdisjoint(RESERVED_VARIANT_FIELDS)
+    assert RESERVED_VARIANT_FIELDS == set()

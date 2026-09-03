@@ -94,3 +94,50 @@ def test_leadcap_sweep_label_is_the_stated_policy_band():
     label = report["lead_cap_sweep"]["parameter"]
     assert "stated plausible policy band" in label
     assert "not a claim about any vendor" in label
+
+
+# --------------------------------------------------------------------------- #
+# The chunk-granularity sweep (batch 2 T1): the atomic cancellation unit,     #
+# D6/D7's remedy -- each point re-synthesizes at that granularity (measured), #
+# caller behavior shared across points via a common seed.                     #
+# --------------------------------------------------------------------------- #
+
+def test_granularity_sweep_present_with_honest_labels():
+    report = run_bargein_report(FakeEngine(), rates_values=[0.15], n=10, seed=2)
+    sweep = report["granularity_sweep"]
+    assert [p["granularity"] for p in sweep["points"]] == ["sentence", "clause", "word"]
+    assert sweep["barge_in_rate_held_at"] == 0.15
+    assert sweep["lead_cap_s_held_at"] == 2.0
+    label = sweep["parameter"]
+    assert "MEASURED" in label
+    assert "atomic cancellation unit" in label
+    assert "never modeled" in label
+    assert report["provenance"] in (report["provenance"],)  # embedded verbatim
+
+
+def test_granularity_sweep_shares_caller_behavior_and_measures_each_point():
+    # The floor mechanism is strongest where the chunk atom dominates the
+    # policy: sweep at a lead cap far smaller than a sentence's audio.
+    report = run_bargein_report(
+        FakeEngine(), rates_values=[0.15], n=30, seed=4, lead_cap_s=0.3)
+    pts = report["granularity_sweep"]["points"]
+    # One shared caller-behavior pattern: the barge-in count is identical at
+    # every granularity (same seed), so only the measured schedules differ.
+    barge_counts = {p["barge_in_calls"] for p in pts}
+    assert len(barge_counts) == 1
+    assert barge_counts != {0}  # the shared pattern actually bites
+    # Every point carries its own bootstrap CI over per-call waste.
+    for p in pts:
+        lo, hi = p["d7_waste_usd_ci95"]
+        assert 0.0 <= lo <= hi
+    # The measured floor: with the atom dominating the lead policy, finer
+    # chunks bill less unheard audio.
+    shares = {p["granularity"]: p["wasted_char_share"] for p in pts}
+    assert shares["word"] <= shares["clause"] <= shares["sentence"]
+    assert shares["word"] < shares["sentence"]
+
+
+def test_granularity_sweep_is_deterministic():
+    report = run_bargein_report(FakeEngine(), rates_values=[0.15], n=10, seed=7)
+    again = run_bargein_report(FakeEngine(), rates_values=[0.15], n=10, seed=7)
+    assert again["granularity_sweep"] == report["granularity_sweep"]

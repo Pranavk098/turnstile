@@ -56,3 +56,32 @@ def test_piper_engine_measures_real_generation_ahead_behavior():
     assert sum(c.chars for c in schedule) == sum(
         len(s) for s in split_sentences(utterance.strip())
     )
+
+
+def test_piper_granularity_knob_measures_finer_real_chunks():
+    """T1's measured remedy mechanism, on the REAL engine: clause/word
+    granularities produce more, smaller synthesis chunks (the atomic
+    cancellation unit shrinks), with the char accounting exact at every
+    granularity and the per-granularity audio/wall facts MEASURED, never
+    modeled."""
+    from turnstile_agent.tts import GRANULARITIES, PiperEngine, split_chunks
+
+    engine = PiperEngine(_MODEL)
+    utterance = (
+        "Let me confirm your order: one large pepperoni pizza, and two "
+        "medium soft drinks. Your total is twenty three fifty."
+    )
+    chunk_counts = {}
+    for g in GRANULARITIES:
+        schedule = measure_utterance(engine, utterance, g)
+        chunk_counts[g] = len(schedule)
+        # G2 at the engine boundary at EVERY granularity: billed chars ==
+        # the text as actually chunked at that granularity.
+        assert sum(c.chars for c in schedule) == sum(
+            len(s) for s in split_chunks(utterance.strip(), g)
+        ), g
+        assert all(c.audio_seconds > 0.0 for c in schedule), g
+        assert all(c.wall_seconds > 0.0 for c in schedule), g
+    # Monotone granularity: finer policies yield at least as many chunks.
+    assert chunk_counts["word"] >= chunk_counts["clause"] >= chunk_counts["sentence"]
+    assert chunk_counts["word"] > chunk_counts["sentence"]

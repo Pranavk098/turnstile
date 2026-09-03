@@ -32,11 +32,13 @@ from __future__ import annotations
 from turnstile_schema import VariantSpec
 
 # VariantSpec fields with a deterministic execution path: "model_routing" on
-# the replay backends; the rest by the re-pricing runner -- each only once
-# its transform exists.
+# the replay backends; the Section-A remedy fields by the re-pricing runner;
+# "tts_chunking" by the barge-in harness (its values are chunk granularities
+# measured through real Piper -- see HARNESS_VARIANTS). Every schema field
+# now has a path; the reserved set is empty.
 IMPLEMENTED_VARIANT_FIELDS: frozenset[str] = frozenset(
     {"model_routing", "context_strategy", "prefix_caching", "tool_batching",
-     "escalation_policy", "retrieval_policy"}
+     "escalation_policy", "retrieval_policy", "tts_chunking"}
 )
 
 # The subset of IMPLEMENTED the replay BACKEND actually applies. The backend
@@ -95,18 +97,22 @@ def assert_variant_executable(name: str, variant: VariantSpec) -> None:
 def assert_backend_executable(name: str, variant: VariantSpec) -> None:
     """Raise ``NotImplementedError`` if ``variant`` sets any field the replay
     backend does not apply. Such a field may still be IMPLEMENTED (a
-    deterministic re-pricing transform exists) -- but handing it to the
-    backend path would replay it as the silent zero-delta no-op this module
-    exists to prevent. Run it via ``turnstile_experiments.run_repricing_matrix``
-    instead: its savings are conditional (preservation unverified) and land
-    in the margin's conditional bucket, never in ``proven_savings``."""
+    deterministic re-pricing transform or the measured barge-in harness) --
+    but handing it to the backend path would replay it as the silent
+    zero-delta no-op this module exists to prevent. Run re-pricing fields via
+    ``turnstile_experiments.run_repricing_matrix``; run ``tts_chunking`` via
+    the barge-in harness (``run_bargein_report``'s granularity sweep): its
+    savings are MEASURED harness results, reported in the barge-in report --
+    in neither the conditional bucket nor ``proven_savings``."""
     not_backend = set_fields(variant) - BACKEND_APPLIED_VARIANT_FIELDS
     if not_backend:
         raise NotImplementedError(
             f"variant {name!r} sets field(s) {sorted(not_backend)} that the "
             f"replay backend does not apply (it applies "
             f"{sorted(BACKEND_APPLIED_VARIANT_FIELDS)}), so replaying them "
-            f"here would be a zero-delta no-op that proves nothing. These "
-            f"fields execute via the deterministic re-pricing runner -- use "
-            f"turnstile_experiments.run_repricing_matrix."
+            f"here would be a zero-delta no-op that proves nothing. "
+            f"Re-pricing fields execute via "
+            f"turnstile_experiments.run_repricing_matrix (conditional, "
+            f"preservation unverified); tts_chunking executes via the "
+            f"barge-in harness's granularity sweep (measured)."
         )

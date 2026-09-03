@@ -113,12 +113,15 @@ class CallAccounting:
         return self.generated_chars - self.played_chars
 
 
-def measure_utterance(engine: TtsEngine, utterance: str) -> list[SynthChunk]:
+def measure_utterance(
+    engine: TtsEngine, utterance: str, granularity: str = "sentence"
+) -> list[SynthChunk]:
     """Phase 1: synthesize the FULL utterance, recording each chunk's real
-    audio duration and wall time. This is the measurement pass -- it runs
-    once per call, before any barge-in behavior is sampled, so the schedule
-    the accounting replays is independent of the modeled interruption."""
-    return list(engine.synthesize_stream(utterance))
+    audio duration and wall time, at the stated chunk granularity (the
+    atomic cancellation unit). This is the measurement pass -- it runs once
+    per call, before any barge-in behavior is sampled, so the schedule the
+    accounting replays is independent of the modeled interruption."""
+    return list(engine.synthesize_stream(utterance, granularity))
 
 
 def simulate_call(
@@ -135,8 +138,9 @@ def simulate_call(
     caller interrupts after ``barge_in_at_audio_s`` of HEARD audio (None =
     never). Generation ahead of playback is capped at ``lead_cap_s``; a
     barge-in cancels all further generation, so chunks past the cancellation
-    point are never synthesized and never billed (a chunk is atomic -- Piper
-    synthesizes whole sentences -- mirroring a real pipeline's cancellation
+    point are never synthesized and never billed (a chunk is atomic -- the
+    engine synthesizes whole chunks at the stated granularity, the measured
+    schedule's own unit -- mirroring a real pipeline's cancellation
     granularity)."""
     if schedule is None:
         schedule = measure_utterance(engine, utterance)

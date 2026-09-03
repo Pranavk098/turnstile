@@ -45,6 +45,12 @@ def main(argv: list[str] | None = None) -> None:
         help="streaming buffer policy: max generated-but-unheard audio seconds",
     )
     parser.add_argument(
+        "--granularities", nargs="*", default=None,
+        help="TTS chunk-granularity sweep values (default: sentence clause "
+             "word), swept with the barge-in rate held at 0.15 and the buffer "
+             "lead held at --lead-cap-s",
+    )
+    parser.add_argument(
         "--out", type=str, default="experiments/bargein_report.json",
         help="output JSON path",
     )
@@ -54,6 +60,7 @@ def main(argv: list[str] | None = None) -> None:
         report = run_bargein_report(
             rates_values=args.rates, n=args.n, seed=args.seed,
             lead_cap_s=args.lead_cap_s, lead_caps=args.lead_caps,
+            granularities=args.granularities,
         )
     except RuntimeError as exc:
         print(f"Cannot start the harness: {exc}", file=sys.stderr)
@@ -82,6 +89,22 @@ def main(argv: list[str] | None = None) -> None:
         lo, hi = p["d7_waste_usd_ci95"]
         print(
             f"{p['lead_cap_s']:>11.1f} {p['d7_waste_usd_total']:>10.4f} "
+            f"{p['d7_waste_usd_mean_per_call']:>10.5f} "
+            f"{p['waste_share_of_tts_spend']:>10.2%} "
+            f"[{lo:.5f}, {hi:.5f}]"
+        )
+    print("\nchunk-granularity sweep (the atomic cancellation unit; barge-in "
+          f"rate held at the cited "
+          f"{report['granularity_sweep']['barge_in_rate_held_at']}, buffer "
+          f"lead held at {report['granularity_sweep']['lead_cap_s_held_at']}s "
+          "-- each point re-synthesizes through real Piper at that "
+          "granularity):")
+    print(f"{'granularity':>12} {'D7 $':>10} {'$/call':>10} {'%TTS spend':>11} "
+          f"{'CI95 $/call':>22}")
+    for p in report["granularity_sweep"]["points"]:
+        lo, hi = p["d7_waste_usd_ci95"]
+        print(
+            f"{p['granularity']:>12} {p['d7_waste_usd_total']:>10.4f} "
             f"{p['d7_waste_usd_mean_per_call']:>10.5f} "
             f"{p['waste_share_of_tts_spend']:>10.2%} "
             f"[{lo:.5f}, {hi:.5f}]"

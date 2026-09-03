@@ -13,7 +13,12 @@ import pytest
 
 from turnstile_schema import VariantSpec
 
-from turnstile_experiments import REPRICING_VARIANTS, RESERVED_VARIANTS, VARIANTS
+from turnstile_experiments import (
+    HARNESS_VARIANTS,
+    REPRICING_VARIANTS,
+    RESERVED_VARIANTS,
+    VARIANTS,
+)
 from turnstile_experiments.guard import (
     RESERVED_VARIANT_FIELDS,
     assert_backend_executable,
@@ -54,12 +59,26 @@ def test_repricing_variants_have_a_transform_but_no_backend_path():
             assert_backend_executable(name, variant)  # ...but never run it here
 
 
-def test_reserved_variants_are_empty_but_tts_chunking_stays_reserved():
-    # Section A is complete: every token/cost-path remedy executes. Only
-    # tts_chunking stays reserved at the FIELD level -- the barge-in acoustic
-    # track owns it, not the deterministic cost path.
+def test_reserved_variants_are_empty_but_tts_chunking_now_has_a_path():
+    # Batch 2 T1: tts_chunking gained a MEASURED execution path on the
+    # barge-in harness, so the reserved set is empty at BOTH levels.
     assert RESERVED_VARIANTS == {}
-    assert RESERVED_VARIANT_FIELDS == {"tts_chunking"}
+    assert RESERVED_VARIANT_FIELDS == set()
+
+
+def test_harness_variants_have_a_measured_path_but_no_backend_path():
+    # D6/D7's remedy executes on the barge-in harness (real Piper at each
+    # granularity) -- its savings are MEASURED, reported in the barge-in
+    # report, in neither the conditional bucket nor proven_savings.
+    assert set(HARNESS_VARIANTS) == {
+        "tts_chunking_sentence", "tts_chunking_clause", "tts_chunking_word"}
+    assert HARNESS_VARIANTS["tts_chunking_sentence"] == VariantSpec(tts_chunking="sentence")
+    assert HARNESS_VARIANTS["tts_chunking_clause"] == VariantSpec(tts_chunking="clause")
+    assert HARNESS_VARIANTS["tts_chunking_word"] == VariantSpec(tts_chunking="word")
+    for name, variant in HARNESS_VARIANTS.items():
+        assert_variant_executable(name, variant)  # harness path exists...
+        with pytest.raises(NotImplementedError, match="barge-in harness"):
+            assert_backend_executable(name, variant)  # ...never the backend
 
 
 def test_every_variant_isolates_exactly_one_knob():
@@ -67,6 +86,8 @@ def test_every_variant_isolates_exactly_one_knob():
         "model_routing", "context_strategy", "prefix_caching",
         "retrieval_policy", "tts_chunking", "escalation_policy", "tool_batching",
     ]
-    for name, variant in {**VARIANTS, **REPRICING_VARIANTS, **RESERVED_VARIANTS}.items():
+    for name, variant in {
+        **VARIANTS, **REPRICING_VARIANTS, **HARNESS_VARIANTS, **RESERVED_VARIANTS
+    }.items():
         set_fields = [f for f in knob_fields if getattr(variant, f) is not None]
         assert len(set_fields) == 1, f"{name} sets {set_fields}, expected exactly one"

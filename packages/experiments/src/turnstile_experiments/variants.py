@@ -19,12 +19,21 @@ in the separate conditional bucket). They are deliberately NOT in
 would replay as the zero-delta no-op ``guard.assert_backend_executable``
 refuses.
 
+``HARNESS_VARIANTS`` (batch 2, T1) is the last remedy lever: ``tts_chunking``
+-- D6/D7's proposed remedy -- now has a MEASURED execution path on the
+barge-in harness (``turnstile_agent`` synthesis granularity knob, driven by
+``run_bargein_report``'s granularity sweep). Each granularity re-synthesizes
+every readback through real Piper, so its numbers are MEASURED harness
+results with bootstrap CIs -- reported in the barge-in report, in NEITHER
+the conditional re-pricing bucket (there is no deterministic trace transform
+for it) NOR the gated backend bucket (the replay backend does not read the
+field). ``guard.assert_backend_executable`` refuses it on the backend path
+like the re-pricing fields.
+
 ``RESERVED_VARIANTS`` are honestly-specified specs with NO execution path
-yet; they mirror detector ``proposed_variant`` remedies still awaiting their
-deterministic transform. After Section A the dict is EMPTY: every token/cost
-path remedy now executes. The ``tts_chunking`` FIELD remains reserved
-(guard.RESERVED_VARIANT_FIELDS) -- D6/D7 belong to the barge-in acoustic
-track, deliberately out of the deterministic cost path's scope.
+yet. It is now EMPTY at both levels: every VariantSpec field executes
+somewhere (backend / re-pricing / harness). The empty dict is kept as the
+place reserved-but-unexecuted remedies would land.
 
 They are deliberately NOT in ``VARIANTS`` or ``REPRICING_VARIANTS``: running
 one would be a zero-delta no-op that looks measured but proves nothing, and
@@ -56,10 +65,17 @@ REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "retrieval_threshold_0_8": VariantSpec(retrieval_policy="threshold:0.8"),
 }
 
-# Reserved -- valid remedies with NO execution path yet (see module
-# docstring). Now EMPTY at the variant level: every token/cost-path remedy
-# has a deterministic transform. ``tts_chunking`` stays reserved at the FIELD
-# level (guard.RESERVED_VARIANT_FIELDS) on purpose -- it interacts with the
-# barge-in acoustic track, not the deterministic cost path (batch doc:
-# "Skip tts_chunking here").
+# Harness-executed -- the tts_chunking remedy (D6/D7): a MEASURED path on the
+# barge-in harness (real Piper synthesis at each granularity), NOT a
+# deterministic trace transform. Savings are measured harness results with
+# CIs, reported in the barge-in report -- in neither the conditional bucket
+# nor gated proven_savings. Never passed to the backend.
+HARNESS_VARIANTS: dict[str, VariantSpec] = {
+    "tts_chunking_sentence": VariantSpec(tts_chunking="sentence"),
+    "tts_chunking_clause": VariantSpec(tts_chunking="clause"),
+    "tts_chunking_word": VariantSpec(tts_chunking="word"),
+}
+
+# Reserved -- valid remedies with NO execution path yet. EMPTY since batch 2
+# T1: every VariantSpec field now executes (backend / re-pricing / harness).
 RESERVED_VARIANTS: dict[str, VariantSpec] = {}
