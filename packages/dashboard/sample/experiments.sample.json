@@ -8,14 +8,14 @@
     },
     "n": 6,
     "outcome_preservation_rate": 1.0,
-    "delta_cost_mean": -0.00041340000000000013,
+    "delta_cost_mean": -0.0004134,
     "delta_cost_ci95": [
       -0.0007300666666666668,
-      -0.00015453333333333356
+      -0.00015453333333333334
     ],
     "delta_latency_p50": 0.0,
     "delta_latency_p95": 0.0,
     "divergent_exemplars": [],
-    "_provenance": "mechanism demo -- MockBackend, not measured. MockBackend's safe-reroute path returns the identical output_text/decision_chosen for a cheaper same-family model, so outcome_preservation_rate=1.0 here is a property of the mock (cheaper==same outcome by construction), not an observed production result. Real Tier-1 outcome-preservation/delta-cost numbers require a live backend (docs/CORPUS.md's planned OpenAI replay backend)."
+    "_provenance": "mechanism demo -- MockBackend, not measured. MockBackend's safe-reroute path returns the identical output_text/decision_chosen for a cheaper same-family model, so outcome_preservation_rate=1.0 here is a property of the mock (cheaper==same outcome by construction), not an observed production result. Outcome-preservation is NOT measurable on a synthetic corpus (canned inputs/outputs, pinned tools -> structural); it needs authored utterances then real traffic (Wave-2). delta_cost is deterministic rate arbitrage, needing no live backend (docs/LIMITATIONS.md)."
   }
 ]

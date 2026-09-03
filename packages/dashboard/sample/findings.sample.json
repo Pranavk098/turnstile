@@ -46,6 +46,7 @@
       "retrieval_policy": "threshold:0.8"
     },
     "evidence": {
+      "half": "doc_id",
       "doc_id": "doc_refund_policy_7",
       "first_retrieved_turn": 0,
       "retrieved_tokens": 600,
@@ -57,7 +58,7 @@
     "class_id": 4,
     "turn_index": 13,
     "span_id": "l13",
-    "waste_usd": 0.0072,
+    "waste_usd": 0.025083836829268298,
     "confidence": 0.85,
     "proposed_variant": {
       "context_strategy": "summarize:2000"
@@ -65,9 +66,9 @@
     "evidence": {
       "scenario_id": "order_status",
       "turns_to_resolution": 14,
-      "p50_turns": 8.0,
-      "p75_turns": 10.0,
-      "mean_cost_per_turn": 0.0012
+      "p50_turns": 5.0,
+      "p75_turns": 7.25,
+      "mean_cost_per_turn": 0.002787092981029811
     }
   },
   {
@@ -142,6 +143,23 @@
     }
   },
   {
+    "class_id": 4,
+    "turn_index": 12,
+    "span_id": "l12",
+    "waste_usd": 0.01669359684745763,
+    "confidence": 0.85,
+    "proposed_variant": {
+      "context_strategy": "summarize:2000"
+    },
+    "evidence": {
+      "scenario_id": "billing_dispute",
+      "turns_to_resolution": 13,
+      "p50_turns": 7.0,
+      "p75_turns": 10.0,
+      "mean_cost_per_turn": 0.002782266141242938
+    }
+  },
+  {
     "class_id": 9,
     "turn_index": 3,
     "span_id": "l3",
@@ -154,7 +172,7 @@
       "tier": 1,
       "turn_of_no_return": 3,
       "conversation_end_turn": 12,
-      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier; see module docstring's KNOWN WEAKNESS)."
+      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
     }
   },
   {
@@ -273,7 +291,7 @@
       "tool_batching": true
     },
     "evidence": {
-      "tool_name": "update_address",
+      "tool_name": "process_refund",
       "args_hash": "sha256:dupAddr9",
       "turn_cost_usd": 0.0010452040816326532,
       "tool_cost_usd": 0.0
@@ -289,6 +307,7 @@
       "retrieval_policy": "threshold:0.8"
     },
     "evidence": {
+      "half": "doc_id",
       "doc_id": "doc_order_faq_3",
       "first_retrieved_turn": 0,
       "retrieved_tokens": 600,
@@ -300,7 +319,7 @@
     "class_id": 4,
     "turn_index": 13,
     "span_id": "l13",
-    "waste_usd": 0.0072,
+    "waste_usd": 0.025083836829268298,
     "confidence": 0.85,
     "proposed_variant": {
       "context_strategy": "summarize:2000"
@@ -308,9 +327,9 @@
     "evidence": {
       "scenario_id": "order_status",
       "turns_to_resolution": 14,
-      "p50_turns": 8.0,
-      "p75_turns": 10.0,
-      "mean_cost_per_turn": 0.0012
+      "p50_turns": 5.0,
+      "p75_turns": 7.25,
+      "mean_cost_per_turn": 0.002787092981029811
     }
   },
   {
@@ -344,7 +363,7 @@
       "tier": 1,
       "turn_of_no_return": 3,
       "conversation_end_turn": 3,
-      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier; see module docstring's KNOWN WEAKNESS)."
+      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
     }
   },
   {
@@ -360,7 +379,7 @@
       "tier": 1,
       "turn_of_no_return": 6,
       "conversation_end_turn": 7,
-      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier; see module docstring's KNOWN WEAKNESS)."
+      "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
     }
   },
   {

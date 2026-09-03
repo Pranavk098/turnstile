@@ -7,9 +7,9 @@
   "resolved_cost_usd": 0.12353383333333336,
   "cprc_loaded": 0.01339622619047619,
   "cprc_naive": 0.00882384523809524,
-  "recoverable_margin_pct": 1.322547305877722,
+  "recoverable_margin_pct": 1.3225473058777217,
   "_provenance": {
     "n": 23,
-    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/DEMO.md and docs/CORPUS.md for the two-tier split. Real Tier-1 replay numbers come later from the OpenAI backend on the full corpus."
+    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."
   }
 }
