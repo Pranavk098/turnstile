@@ -30,16 +30,32 @@ from turnstile_verdict.adjudicate import UNKNOWN_CONFIDENCE_CAP
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 MANIFEST = GOLDEN / "manifest.yaml"
 
-# Fixtures whose expected_verdict is spec-derivable (acceptance criteria). The
-# rest of the manifest's expected_verdicts are best-judgment placeholders -- for
-# those we only assert a valid label is returned.
+# ALL 23 golden fixtures are now spec-pinned to their adjudicated label (the
+# drift report was applied: every manifest expected_verdict == adjudicate()'s
+# output). Pinning the full set makes any future drift -- an adjudication change
+# OR a manifest edit -- fail loudly here, which is the point.
 PINNED = {
     "00_baseline_clean": VerdictLabel.RESOLVED,
+    "01_over_model": VerdictLabel.RESOLVED,
+    "02_context_bloat": VerdictLabel.RESOLVED,
+    "03_redundant_retrieval": VerdictLabel.RESOLVED,
+    "04_turn_inflation": VerdictLabel.RESOLVED,
+    "05_reprompt_loop": VerdictLabel.ABANDONED,
+    "06_dead_tokens": VerdictLabel.RESOLVED,
+    "07_barge_in_waste": VerdictLabel.RESOLVED,
+    "08_silence_tax": VerdictLabel.RESOLVED,
     "09_escalation_debt": VerdictLabel.ESCALATED,
+    "10_tool_thrash": VerdictLabel.RESOLVED,
+    "11_multi_waste_a": VerdictLabel.RESOLVED,
+    "12_multi_waste_b": VerdictLabel.RESOLVED,
+    "13_multi_waste_c": VerdictLabel.RESOLVED,
     "14_escalation_early": VerdictLabel.ESCALATED,
     "15_escalation_late": VerdictLabel.ESCALATED,
     "16_abandoned": VerdictLabel.ABANDONED,
     "17_false_resolve": VerdictLabel.FALSE_RESOLVE,
+    "18_edge_single_turn": VerdictLabel.RESOLVED,
+    "19_edge_40_turn": VerdictLabel.RESOLVED,
+    "20_unknown_mutation": VerdictLabel.UNRESOLVED,
     "21_handoff_rejected": VerdictLabel.UNRESOLVED,
     "22_handoff_pending": VerdictLabel.UNRESOLVED,
 }

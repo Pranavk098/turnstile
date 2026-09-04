@@ -8,15 +8,15 @@ fixtures:
   - { id: "02_context_bloat",     category: detector,     target_detector: 2,    expected_verdict: RESOLVED, description: "input_tokens grow >400/turn, cache_read/input<0.5." }
   - { id: "03_redundant_retrieval", category: detector,   target_detector: 3,    expected_verdict: RESOLVED, description: "retrieval tool returns a doc already in prior context." }
   - { id: "04_turn_inflation",    category: detector,     target_detector: 4,    expected_verdict: RESOLVED, description: "14 turns for an intent whose baseline p50 is 8." }
-  - { id: "05_reprompt_loop",     category: detector,     target_detector: 5,    expected_verdict: RESOLVED, description: "Same slot_fill decision_kind twice, no fill between." }
-  - { id: "06_dead_tokens",       category: detector,     target_detector: 6,    expected_verdict: PARTIALLY_RESOLVED, description: "llm output_text with no matching tts.synthesize." }
-  - { id: "07_barge_in_waste",    category: detector,     target_detector: 7,    expected_verdict: PARTIALLY_RESOLVED, description: "chars_synthesized > chars_played; caller interrupted." }
-  - { id: "08_silence_tax",       category: detector,     target_detector: 8,    expected_verdict: PARTIALLY_RESOLVED, description: "Active-span union << billed wall; telephony meter runs through dead air." }
+  - { id: "05_reprompt_loop",     category: detector,     target_detector: 5,    expected_verdict: ABANDONED, description: "Same slot_fill decision_kind twice, no fill between; slot never completed -> ABANDONED." }
+  - { id: "06_dead_tokens",       category: detector,     target_detector: 6,    expected_verdict: RESOLVED, description: "llm output_text with no matching tts.synthesize." }
+  - { id: "07_barge_in_waste",    category: detector,     target_detector: 7,    expected_verdict: RESOLVED, description: "chars_synthesized > chars_played; caller interrupted." }
+  - { id: "08_silence_tax",       category: detector,     target_detector: 8,    expected_verdict: RESOLVED, description: "Active-span union << billed wall; telephony meter runs through dead air." }
   - { id: "09_escalation_debt",   category: detector,     target_detector: "4,9", expected_verdict: ESCALATED, description: "Escalated; predictable at turn 3, ran 9 more turns (13 turns total -> turn-inflated, D4). handoff.effect=committed." }
-  - { id: "10_tool_thrash",       category: detector,     target_detector: 10,   expected_verdict: PARTIALLY_RESOLVED, description: "Duplicate args_hash for same tool within conversation; both calls effect=committed." }
-  - { id: "11_multi_waste_a",     category: multi_waste,  target_detector: "1,2,8", expected_verdict: PARTIALLY_RESOLVED, description: "over_model + context_bloat + silence_tax." }
+  - { id: "10_tool_thrash",       category: detector,     target_detector: 10,   expected_verdict: RESOLVED, description: "Duplicate args_hash for same tool within conversation; both calls effect=committed." }
+  - { id: "11_multi_waste_a",     category: multi_waste,  target_detector: "1,2,8", expected_verdict: RESOLVED, description: "over_model + context_bloat + silence_tax." }
   - { id: "12_multi_waste_b",     category: multi_waste,  target_detector: "6,7,10", expected_verdict: RESOLVED, description: "dead_tokens + barge_in + tool_thrash. Duplicate process_refund pair = D10 thrash (refund scenario, right-tool committed -> RESOLVED)." }
-  - { id: "13_multi_waste_c",     category: multi_waste,  target_detector: "3,4,5", expected_verdict: PARTIALLY_RESOLVED, description: "redundant_retrieval + turn_inflation + reprompt_loop." }
+  - { id: "13_multi_waste_c",     category: multi_waste,  target_detector: "3,4,5", expected_verdict: RESOLVED, description: "redundant_retrieval + turn_inflation + reprompt_loop." }
   - { id: "14_escalation_early",  category: escalation,   target_detector: 9,    expected_verdict: ESCALATED, description: "Escalated; turn_of_no_return at turn 3. handoff.effect=committed, debt=0." }
   - { id: "15_escalation_late",   category: escalation,   target_detector: 9,    expected_verdict: ESCALATED, description: "Escalated near end; low escalation debt (control). handoff.effect=committed." }
   - { id: "16_abandoned",         category: abandoned,    target_detector: none, expected_verdict: ABANDONED, description: "caller_hangup mid-flow; verdict ABANDONED." }

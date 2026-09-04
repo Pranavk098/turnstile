@@ -49,13 +49,11 @@ def test_regeneration_is_read_only_over_fixtures_and_reproducible():
     assert f"**{len(drifters)} of {len(rows)} fixtures drift**" in committed
 
 
-def test_known_drifters_are_the_expected_set():
-    # The drift set is deterministic given the instrument; pin today's so any
-    # future verdict change shows up here first (and in the owner's diff).
+def test_no_drift_after_application():
+    # The drift report was applied: the manifest's expected_verdict was aligned
+    # to adjudicate()'s output for all 23 fixtures (and test_adjudicate.py now
+    # pins the full set). So the drift set is EMPTY -- any future verdict or
+    # manifest change surfaces here as a new drifter (and fails test_adjudicate).
     mod = _load()
     drifters = {r["id"] for r in mod._drift_rows() if not r["match"]}
-    assert drifters == {
-        "05_reprompt_loop", "06_dead_tokens", "07_barge_in_waste",
-        "08_silence_tax", "10_tool_thrash", "11_multi_waste_a",
-        "13_multi_waste_c",
-    }
+    assert drifters == set()

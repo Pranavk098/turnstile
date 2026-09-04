@@ -9,28 +9,41 @@ counterfactually replaying the call on a cheaper path.
 The point of the tool is **refusing to overstate.** Every number below is labeled
 by how much it is actually measured.
 
-## The headline we stand behind
+## The headline — a number nobody has published
 
-**Recoverable margin: 0.57% [0.49, 0.66]** — routing eligible `route` decisions to
-a cheaper model (gpt-5 → gpt-5-nano), computed as deterministic *rate arbitrage*
-on the original token workload against the dated rate card, PRD §8.3-gated
-(preservation ≥ 0.95 **and** bootstrap CI-upper < 0), reported with its CI and the
-absolute dollars (~$126/yr at 1M calls on a $5.07-per-250-call basis). It is
-exact arithmetic, reproducible from each run's manifest — and deliberately small,
-because `route` is the *only* remedy that is replay-executable today.
+**~4% of TTS spend is generated, billed, and never heard.** When a caller barges in
+mid-utterance, streaming TTS has already synthesized (and billed) audio the caller
+never hears — because local TTS generates **~40× realtime**, so the whole readback
+exists before a quarter of it has played. Measured on **real Piper synthesis** at a
+cited 15% barge-in rate and a 2s buffer (the exact figure is a live measurement,
+~4.1% ± run-to-run timing variance, so we say **~4%**). And it's **fixable**: chunk
+the TTS finer and the waste falls — sentence→clause→word = **~4% → 2.3% → 1.2%**
+(measured), at a modest synthesis-speed cost. Swept, never a single tuned figure;
+the barge-in rate/position are modeled + swept, the generation-ahead is measured.
+
+## The second number — deterministic, exact
+
+**Recoverable margin: 0.57% [0.49, 0.66]** — routing eligible `route` decisions to a
+cheaper model (gpt-5 → gpt-5-nano), computed as deterministic *rate arbitrage* on the
+original token workload against the dated rate card, PRD §8.3-gated (preservation ≥
+0.95 **and** bootstrap CI-upper < 0), reported with its CI and the absolute dollars
+(~$126/yr at 1M calls). Exact arithmetic, reproducible from each run's manifest —
+deliberately small, because `route` is the only remedy *replay-executable* today.
 
 ## Three honesty tiers
 
-- **Proven** — the deterministic recoverable margin above. Exact, gated, CI'd.
-- **Instrumented, not measured** — voice-stack cost decomposition and the acoustic
-  detectors (D7 barge-in, D8 silence tax). The mechanism is demonstrated; the
-  *magnitude* is not claimed on synthetic acoustics. D8's ~82%-of-findings figure
-  is presented as a hypothesis plus a sensitivity sweep, never a bare fact.
-- **Not yet measured** — outcome-preservation of the cheaper model. On a synthetic
-  corpus this is unmeasurable (the divergence gate compares real output to canned
-  text; verdict-preservation is structural because tools are pinned; and the
-  corpus's caller *inputs* are placeholders). It requires real utterances, then
-  real traffic — Wave-2. We do **not** quote a preservation rate we can't defend.
+- **Measured** — the barge-in waste (real Piper) and the deterministic recoverable
+  margin (exact arithmetic). Numbers we stand behind, with CIs and stated provenance.
+- **Instrumented, not measured** — the rest of the voice-stack decomposition and D8
+  (silence tax) on *synthetic* acoustics: mechanism demonstrated, magnitude not
+  claimed. D8's ~82%-of-findings figure is a hypothesis + a sensitivity sweep, never
+  a bare fact. The detector remedies (D2/D3/D4/D9/D10) carry a *conditional* saving —
+  deterministic re-pricing, preservation unverified — reported in a separate bucket.
+- **Not yet measured** — outcome-preservation of the cheaper model on live calls. On
+  a synthetic corpus this is unmeasurable (the divergence gate compares real output to
+  canned text; verdict-preservation is structural because tools are pinned; the
+  corpus's caller *inputs* are placeholders). It requires real traffic — Wave-3. We do
+  **not** quote a preservation rate we can't defend.
 
 See [`docs/METHOD.md`](docs/METHOD.md) and [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md)
 for the precise boundaries, and [`docs/DEMO.md`](docs/DEMO.md) for the walkthrough.
