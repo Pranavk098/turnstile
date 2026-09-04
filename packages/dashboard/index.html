@@ -261,7 +261,7 @@ function renderBargein(b) {
     fmtPct(h.waste_share_of_tts_spend) + " of TTS spend billed-but-never-heard";
   document.getElementById("bargein-meta").innerHTML =
     "<span>at barge-in rate <b>" + fmtPct(h.barge_in_rate) + "</b> (cited default)</span>" +
-    "<span>buffer lead <b>" + h.lead_cap_s.toFixed(1) + "s</b></span>" +
+    "<span>buffer lead <b>" + b.lead_cap_s.toFixed(1) + "s</b></span>" +
     "<span>n = <b>" + b.n + "</b> harness calls</span>" +
     "<span>$" + h.d7_waste_usd_mean_per_call.toFixed(5) + "/call, CI95 [$" +
     h.d7_waste_usd_ci95[0].toFixed(5) + ", $" + h.d7_waste_usd_ci95[1].toFixed(5) + "]</span>";
