@@ -185,14 +185,16 @@ def build_fleet(rates, baselines, experiment_result: dict) -> dict:
 
     # Recoverable Margin % = Sum(proven_savings) / CPRC_loaded (PRD Sec.4.3).
     # proven_savings counts only interventions where replay achieved
-    # outcome-preservation >= 0.95 with the bootstrap CI confirming a real
-    # (non-zero-crossing) effect. Our only replay evidence this wave is the
+    # outcome-preservation >= 0.95 with the bootstrap 95% CI UPPER bound on
+    # delta_cost strictly < 0 -- i.e. a proven saving, never a proven cost
+    # increase. This is the canonical turnstile_experiments.recoverable_margin
+    # gate (_passes_gate); the ingest pipeline converged onto it in Item 5.4 and
+    # this was the last divergent copy. Our only replay evidence this wave is the
     # MockBackend mechanism-demo experiment below -- see its own provenance
     # note; this metric inherits that same "mechanism, not measured" caveat.
     proven_savings_total = 0.0
-    ci_lo, ci_hi = experiment_result["delta_cost_ci95"]
-    ci_confirms_effect = (ci_lo < 0 and ci_hi < 0) or (ci_lo > 0 and ci_hi > 0)
-    if experiment_result["outcome_preservation_rate"] >= 0.95 and ci_confirms_effect:
+    _ci_lo, ci_hi = experiment_result["delta_cost_ci95"]
+    if experiment_result["outcome_preservation_rate"] >= 0.95 and ci_hi < 0.0:
         proven_savings_total = -experiment_result["delta_cost_mean"] * experiment_result["n"]
     recoverable_margin_pct = (
         (proven_savings_total / total_cost_usd * 100.0) if total_cost_usd else 0.0
