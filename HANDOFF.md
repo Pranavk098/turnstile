@@ -5,8 +5,15 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `64803ce` · 140 commits ·
-**781 passed / 4 skipped**, `ruff check packages/` clean. Wave-3 core COMPLETE:
+**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `2d8bbb9` · 147 commits ·
+**795 passed / 4 skipped**, `ruff check packages/` clean. Branches CONSOLIDATED:
+the Wave-2 stack (Item 1 = route/compose parser + elicitation contract + reasoning/
+truncation capture) and the preservation recorder-wiring are merged in; only doc-only
+`opencode/perf-audit` remains stray. **Wave-2 Item 2 (per-kind decision-equality gate)
+is briefed + owner-GO'd** in `docs/superpowers/briefs/glm-wave2-structured-divergence.md`
+— delegated, awaiting the executor. Measured fact: full-text difflib divergence gate
+nulls on the real backend (paid n=250: 217/217 divergent, margin 0.00%); Item 2 replaces
+it with label comparison for bounded kinds (slot_fill unchanged). Wave-3 core COMPLETE:
 W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
 with honest D6/D7/D8 absence) merged; all three recoverable-margin gates converged on
 the canonical `ci_upper < 0`. W3-C preservation-measurement **scaffolding** merged
