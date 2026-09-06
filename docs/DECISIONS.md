@@ -71,8 +71,10 @@ zero-delta paid no-op). Sets: `VARIANTS` (backend-executable), `REPRICING_VARIAN
   its data. Rule: **every surface stamps its margin with (n, dataset), and no text
   cites a different dataset's number than the one it displays.** The demo headline
   is the number for the data being shown; ultimately "your margin on your calls."
-  The §8.3 gate itself lives once in `turnstile_experiments.recoverable_margin`;
-  the dashboard/ingest re-derivations should converge on it (Task-2 consolidation).
+  The §8.3 gate itself lives once in `turnstile_experiments.recoverable_margin`
+  (`ci_upper < 0`). `turnstile_ingest.pipeline._recoverable_margin` converged onto it
+  (2026-09-06, Item 5.4); `dashboard.build_data.build_fleet` still uses the looser
+  both-CI-same-sign check — the last divergent copy, to converge next (Task-2).
 
 ## Where truth lives (stop re-deriving)
 | Question | Authoritative source |

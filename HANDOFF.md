@@ -5,8 +5,11 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-05 · branch `wave0-foundation` · tip `a35347c` · 114 commits ·
-**727 passed / 2 skipped**, `ruff check packages/` clean.
+**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `e62ac76` · 136 commits ·
+**770 passed / 4 skipped**, `ruff check packages/` clean. Wave-3 core COMPLETE:
+W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
+with honest D6/D7/D8 absence) all merged. Product ingests real-format call logs and
+renders them honestly, end to end.
 
 ---
 
@@ -43,14 +46,19 @@ does not).
 
 ## 4. IMMEDIATE next actions — Wave 3 (owner-chosen 2026-09)
 Goal reframed: **no demo video** — build the product into a live CTO walkthrough.
-- **W3-A — real-data ingestion** (`turnstile_ingest`, new package): map a real
-  voice-AI call-log format → v1.1 `Trace` so the whole pipeline runs on non-synthetic
-  data (the FDE "point it at your calls" motion). Needs a target-format decision.
-- **W3-B — explorable product UI:** (1) decouple `build_data.py` from `index.html`
-  (it currently clobbers the panel containers — blocks all UI work); (2) finish the
-  landing page + a navigable dashboard (call list → drill into one call); (3) fold in
-  the design-audit P0/P1 fixes (contrast done in home.html; verify <680 render;
-  tabular numbers; arrow affordance; "no measured effect" styling).
+- **W3-A — real-data ingestion** (`turnstile_ingest`) — **DONE** (merged): real
+  call-log → v1.1 `Trace`; the FDE "point it at your calls" motion. 7-call sample.
+- **W3-B — explorable product UI** — **DONE** (merged): `build_data.py` decoupled
+  from `index.html`; landing page + navigable dashboard (call list → per-call drill).
+- **W3 Item 5 — wire ingest into the dashboard** — **DONE** (merged `e62ac76`): the
+  ingest report renders end-to-end via `sample/manifest.json` + a golden/ingest source
+  switch; D6/D7/D8 shown ABSENT ("no data for this input") never zeroed; margins
+  dataset-stamped (2.69% · 7 ingest calls); ingest `_recoverable_margin` converged onto
+  the canonical §8.3 gate (`ci_upper < 0`). Verified: render (DOM: 3 absent rows), tests
+  (`test_ingest_wire.py`), 770/4, ruff clean.
+- **OPEN (Task-2 residue):** `build_data.build_fleet`'s margin still uses the looser
+  both-CI-same-sign gate — the 2nd of the 3 divergent gate copies (ingest is now the
+  canonical one). Agrees with canonical on current data; converge it when next in that file.
 - **Deferred:** live conversational agent (Pipecat/WSL2); measurement completion
   (W3-C: authored utterances → structured divergence → real preservation number).
 - **Process (audit Task-1):** trivial changes (<~50 lines, no schema/contract) skip
