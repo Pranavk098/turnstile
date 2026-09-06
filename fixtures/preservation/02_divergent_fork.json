@@ -1,0 +1,199 @@
+{
+  "conversation": {
+    "conversation_id": "w3c-divergent-01",
+    "agent_version": "agent@abc123",
+    "scenario_id": "library_program_info",
+    "started_at": "2026-08-30T00:00:00Z",
+    "ended_at": "2026-08-30T00:02:00Z",
+    "end_reason": "caller_hangup",
+    "turnstile.schema_version": "1.1"
+  },
+  "turns": [
+    {
+      "turn_index": 0,
+      "speaker_first": "caller",
+      "wall_start_ms": 0,
+      "wall_end_ms": 3100,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l0",
+          "turnstile.start_offset_ms": 0,
+          "turnstile.duration_ms": 600,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 600,
+          "gen_ai.usage.output_tokens": 12,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "route",
+          "turnstile.decision_chosen": "library_program",
+          "turnstile.decision_candidates": [
+            "library_program",
+            "billing"
+          ],
+          "turnstile.output_text": "Thanks for calling the Central Library - I will find the summer program schedule for you.",
+          "turnstile.latency_ms": 600,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t00",
+          "turnstile.start_offset_ms": 300,
+          "turnstile.duration_ms": 1400,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 89,
+          "turnstile.audio_seconds_generated": 6.8,
+          "turnstile.text": "Thanks for calling the Central Library - I will find the summer program schedule for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p00",
+          "turnstile.start_offset_ms": 1700,
+          "turnstile.duration_ms": 1400,
+          "turnstile.chars_played": 89,
+          "turnstile.audio_seconds_played": 6.8,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 1,
+      "speaker_first": "agent",
+      "wall_start_ms": 3100,
+      "wall_end_ms": 8300,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l1",
+          "turnstile.start_offset_ms": 3400,
+          "turnstile.duration_ms": 900,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 900,
+          "gen_ai.usage.output_tokens": 20,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "compose",
+          "turnstile.decision_chosen": "report_detail",
+          "turnstile.decision_candidates": [
+            "report_detail"
+          ],
+          "turnstile.output_text": "I found the summer reading program listing - let me gather the full details for you.",
+          "turnstile.latency_ms": 900,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [
+        {
+          "span_id": "tool1",
+          "turnstile.start_offset_ms": 3100,
+          "turnstile.duration_ms": 300,
+          "turnstile.tool_name": "lookup_program",
+          "turnstile.args_hash": "sha256:d1",
+          "turnstile.args_json": "{}",
+          "turnstile.result_hash": "sha256:r",
+          "turnstile.latency_ms": 300,
+          "turnstile.cost_usd": 0.0,
+          "turnstile.tool_kind": "lookup",
+          "turnstile.tool_status": "ok",
+          "turnstile.effect": "none"
+        }
+      ],
+      "tts": [
+        {
+          "span_id": "t10",
+          "turnstile.start_offset_ms": 300,
+          "turnstile.duration_ms": 1400,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 84,
+          "turnstile.audio_seconds_generated": 6.5,
+          "turnstile.text": "I found the summer reading program listing - let me gather the full details for you."
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p10",
+          "turnstile.start_offset_ms": 1700,
+          "turnstile.duration_ms": 1400,
+          "turnstile.chars_played": 84,
+          "turnstile.audio_seconds_played": 6.5,
+          "turnstile.truncated_by": null
+        }
+      ]
+    },
+    {
+      "turn_index": 2,
+      "speaker_first": "caller",
+      "wall_start_ms": 8300,
+      "wall_end_ms": 12000,
+      "barge_in": false,
+      "vad": [],
+      "asr": [],
+      "context": null,
+      "llm": [
+        {
+          "span_id": "l2",
+          "turnstile.start_offset_ms": 8300,
+          "turnstile.duration_ms": 500,
+          "gen_ai.system": "openai",
+          "gen_ai.request.model": "gpt-5-mini",
+          "gen_ai.usage.input_tokens": 700,
+          "gen_ai.usage.output_tokens": 10,
+          "turnstile.cache_read_tokens": 0,
+          "turnstile.cache_write_tokens": 0,
+          "turnstile.reasoning_tokens": 0,
+          "turnstile.decision_kind": "slot_fill",
+          "turnstile.decision_chosen": "confirm_followup",
+          "turnstile.decision_candidates": [
+            "confirm_followup"
+          ],
+          "turnstile.output_text": "The summer reading program at the central library runs through the end of August with story hour every Wednesday morning at ten o clock, and each child who finishes five books earns a small prize at the front desk, so have a great day and goodbye!",
+          "turnstile.latency_ms": 500,
+          "turnstile.retry_of": null
+        }
+      ],
+      "tools": [],
+      "tts": [
+        {
+          "span_id": "t20",
+          "turnstile.start_offset_ms": 300,
+          "turnstile.duration_ms": 1400,
+          "gen_ai.system": "piper",
+          "turnstile.chars_synthesized": 247,
+          "turnstile.audio_seconds_generated": 19.0,
+          "turnstile.text": "The summer reading program at the central library runs through the end of August with story hour every Wednesday morning at ten o clock, and each child who finishes five books earns a small prize at the front desk, so have a great day and goodbye!"
+        }
+      ],
+      "playback": [
+        {
+          "span_id": "p20",
+          "turnstile.start_offset_ms": 1700,
+          "turnstile.duration_ms": 1400,
+          "turnstile.chars_played": 247,
+          "turnstile.audio_seconds_played": 19.0,
+          "turnstile.truncated_by": null
+        }
+      ]
+    }
+  ],
+  "telephony": {
+    "span_id": "leg",
+    "turnstile.start_offset_ms": 0,
+    "turnstile.duration_ms": 12000,
+    "turnstile.provider": "twilio",
+    "turnstile.direction": "inbound",
+    "turnstile.billable_seconds": 12
+  }
+}
