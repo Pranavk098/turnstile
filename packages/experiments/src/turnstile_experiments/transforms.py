@@ -29,7 +29,6 @@ enforces the separate bucket).
 """
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Callable
 
@@ -38,6 +37,10 @@ from turnstile_schema.enums import ToolKind, VerdictLabel
 from turnstile_schema.spans import ToolCall
 from turnstile_pricing import price_trace
 from turnstile_verdict import adjudicate
+# D3's re-pricing remedy reuses the D3 DETECTOR's doc-id extraction -- same
+# logic, single source of truth (audit Task-2 D; experiments already depends
+# on detectors via coverage/sweeps/bargein_report).
+from turnstile_detectors.d03_redundant_retrieval import _doc_ids_from_args
 
 RATES_PATH = "pricing/rates.yaml"
 
@@ -569,24 +572,6 @@ def _apply_retrieval_threshold(trace: Trace) -> tuple[Trace, float]:
         return trace, dropped_cost
     return trace.model_copy(update={"turns": new_turns}), dropped_cost
 
-
-def _doc_ids_from_args(args_json: str) -> set[str]:
-    """Mirrors d03_redundant_retrieval._doc_ids_from_args (private there;
-    duplicated here rather than imported -- keep in sync)."""
-    try:
-        args = json.loads(args_json)
-    except (json.JSONDecodeError, TypeError):
-        return set()
-    if not isinstance(args, dict):
-        return set()
-    ids: set[str] = set()
-    doc_id = args.get("doc_id")
-    if isinstance(doc_id, str):
-        ids.add(doc_id)
-    doc_ids = args.get("doc_ids")
-    if isinstance(doc_ids, list):
-        ids.update(d for d in doc_ids if isinstance(d, str))
-    return ids
 
 
 def apply_variant_transform(
