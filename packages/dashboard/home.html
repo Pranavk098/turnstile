@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Design status: approved baseline (Wave-1). Intentionally frozen as-is;
+     future development extends this design rather than replacing it. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turnstile · Voice-AI margin profiler</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root {
+  --bg: #08090a; --line: rgba(244, 244, 241, .08); --line-2: rgba(244, 244, 241, .17);
+  --ink: #f4f4f1; --muted: #a7abb3; --faint: #8a8f98;
+  --accent: #4d5eff; --save: #3ecf8e; --warn: #e0a848;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 14px/1.7 var(--sans); letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 40px 72px; }
+.kicker { font: 500 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+.mono { font-family: var(--mono); }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+
+.mast { display: flex; align-items: center; gap: 14px; padding: 26px 0 46px; }
+.mark { width: 30px; height: 30px; display: grid; place-items: center;
+  border: 1px solid var(--line-2); flex: none; }
+.brand-name { font: 500 12px/1 var(--mono); letter-spacing: .22em; }
+.mast .meta { margin-left: auto; }
+
+h1 { margin: 10px 0 26px; font: 400 clamp(40px, 6vw, 84px)/1.03 var(--serif); letter-spacing: -.01em; }
+h1 em { font-style: italic; color: var(--accent); }
+.lede { max-width: 640px; color: var(--muted); font-size: 15px; margin: 0 0 34px; }
+
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.rule-2 { border-top-color: var(--line-2); }
+
+.numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 44px 0 0;
+  border-top: 1px solid var(--line-2); }
+.n { padding: 26px 26px 26px 0; border-bottom: 1px solid var(--line); }
+.n + .n { padding-left: 26px; border-left: 1px solid var(--line); }
+.n .k { font: 500 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; }
+.n .k.proven { color: var(--save); }
+.n .k.measured { color: #5e87ff; }
+.n .k.conditional { color: var(--warn); }
+.n .v { font: 400 64px/1 var(--serif); font-variant-numeric: tabular-nums; }
+.n .v small { font-size: .38em; color: var(--faint); }
+.n .d { color: var(--muted); font-size: 13px; margin-top: 10px; max-width: 260px; }
+
+section { border-top: 1px solid var(--line-2); padding: 30px 0 40px; }
+section h2 { margin: 0 0 22px; font: 400 28px/1.1 var(--serif); }
+.cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.cols .c .t { font: 400 18px/1.4 var(--serif); margin-bottom: 8px; }
+.cols .c p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+.tiers { border-top: 1px solid var(--line); }
+.tiers .row { display: grid; grid-template-columns: 130px 1fr; gap: 26px; padding: 16px 0;
+  border-bottom: 1px solid var(--line); align-items: baseline; }
+.tiers .name { font: 500 10.5px/1.8 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.tiers .name.proven { color: var(--save); }
+.tiers .name.measured { color: #5e87ff; }
+.tiers .name.conditional { color: var(--warn); }
+.tiers p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+.cta-row { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; margin-top: 8px; }
+.cta {
+  display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+  background: var(--ink); color: var(--bg); padding: 14px 24px;
+  font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+  transition: background .18s ease;
+}
+.cta:hover { background: var(--accent); color: #fff; }
+.cta svg { transition: transform .18s ease; }
+.cta:hover svg { transform: translateX(3px); }
+.ghost { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--faint); border-bottom: 1px solid var(--line-2); padding-bottom: 3px; }
+.ghost:hover { color: var(--ink); }
+
+footer { border-top: 1px solid var(--line-2); padding-top: 22px; }
+.fine { font: 400 11px/1.9 var(--mono); color: var(--faint); letter-spacing: .04em; margin: 0; }
+
+@media (max-width: 860px) {
+  .wrap { padding: 0 22px 56px; }
+  .numbers, .cols { grid-template-columns: 1fr; }
+  .n + .n { padding-left: 0; border-left: 0; }
+  .n .v { font-size: 52px; }
+  .tiers .row { grid-template-columns: 1fr; gap: 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cta, .ghost, .n { transition: background .2s ease, color .2s ease, border-color .2s ease; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V10a7 7 0 0 1 14 0v11"/><path d="M9.5 21v-6.5a2.5 2.5 0 0 1 5 0V21"/><path d="M3 21h18"/></svg></div>
+    <span class="brand-name">TURNSTILE</span>
+    <span class="kicker" style="margin-left:auto">Voice-AI margin profiler</span>
+  </header>
+
+  <main>
+    <h1>The margin a voice call makes, the part that leaks, and what you can <em>prove</em> back.</h1>
+    <p class="lede">Turnstile prices a voice call end to end, decides whether the call actually resolved, and finds where the money leaks. Every number is labeled by how much of it is actually measured. It refuses to overstate, on purpose.</p>
+
+    <div class="numbers">
+      <div class="n">
+        <div class="k proven">Proven recoverable</div>
+        <div class="v num">1.32<small>%</small></div>
+        <div class="d">of fleet spend, confirmed by replaying the call on a cheaper model path.</div>
+      </div>
+      <div class="n">
+        <div class="k measured">Measured waste</div>
+        <div class="v num">4.1<small>%</small></div>
+        <div class="d">of TTS spend goes to audio the caller interrupts away. Measured on real Piper synthesis.</div>
+      </div>
+      <div class="n">
+        <div class="k conditional">Conditional savings</div>
+        <div class="v num">$0.00135</div>
+        <div class="d">per fleet run from 6 re-pricing remedies. Quantified, not yet proven.</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>What it does</h2>
+      <div class="cols">
+        <div class="c">
+          <div class="t">Prices every span</div>
+          <p>ASR, LLM, tools, TTS and telephony are priced span by span from a dated rate card, per call and per turn.</p>
+        </div>
+        <div class="c">
+          <div class="t">Finds ten waste classes</div>
+          <p>Named detectors flag over-modeling, context bloat, reprompt loops, barge-in waste, silence, late escalation and more.</p>
+        </div>
+        <div class="c">
+          <div class="t">Proves the fix</div>
+          <p>The one remedy it can execute is replayed on a cheaper path. A saving only counts if the outcome is preserved.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Three honesty tiers</h2>
+      <div class="tiers">
+        <div class="row">
+          <span class="name proven">Proven</span>
+          <p>Savings the replay engine confirms: the cheaper path produced the same outcome, so the saving is real. This is the only number that counts as recovered.</p>
+        </div>
+        <div class="row">
+          <span class="name measured">Measured</span>
+          <p>Numbers from real synthesis or exact arithmetic, with confidence intervals. Strong evidence, stated with its provenance.</p>
+        </div>
+        <div class="row">
+          <span class="name conditional">Conditional</span>
+          <p>Waste we detected and priced, where the fix has not been verified to preserve the outcome yet. Never mixed into the proven number.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="border-top:0;padding-top:6px">
+      <div class="cta-row">
+        <a class="cta" href="index.html">Open the dashboard <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+        <a class="ghost" href="../../docs/METHOD.md">Read the method</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="fine">Static, offline, no backend, no network. The dashboard renders pre-computed JSON and computes no cost or metric itself. Docs: METHOD.md and LIMITATIONS.md spell out exactly what is measured, what is modeled, and what is not yet measured.</p>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,188 +1,553 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Design status: approved baseline (Wave-1). Intentionally frozen as-is;
+     future development extends this design rather than replacing it. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Turnstile — Cost &amp; Recoverable-Margin Dashboard</title>
+<title>Turnstile: Voice-AI margin instrument</title>
+<link rel="stylesheet" href="fonts.css">
 <style>
-  :root {
-    --bg: #0d1117; --panel: #161b22; --panel-2: #1c222b; --ink: #e6edf3;
-    --muted: #8b949e; --line: #30363d; --accent: #58a6ff;
-    --asr: #e3b341; --llm: #58a6ff; --tts: #3fb950; --tel: #f778ba;
-    --pos: #3fb950; --neg: #f85149;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 14px/1.5 system-ui, "Segoe UI", sans-serif; }
-  header { padding: 22px 28px 6px; }
-  header h1 { margin: 0; font-size: 22px; }
-  header p { margin: 4px 0 0; color: var(--muted); }
-  main { padding: 14px 28px 40px; max-width: 1200px; margin: 0 auto; }
-  section { margin-top: 26px; }
-  section > h2 { font-size: 16px; margin: 0 0 10px; border-bottom: 1px solid var(--line);
-                 padding-bottom: 6px; color: var(--accent); }
-  section > h2 small { color: var(--muted); font-weight: 400; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-          padding: 16px; }
-  .grid { display: grid; gap: 12px; }
-  .muted { color: var(--muted); }
-  .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+/* ============ tokens ============ */
+:root {
+  --bg: #08090a; --well: #0e1013; --well-2: #13161b;
+  --line: rgba(244, 244, 241, .08); --line-2: rgba(244, 244, 241, .17);
+  --ink: #f4f4f1; --muted: #a7abb3; --faint: #8a8f98;
+  --accent: #4d5eff; --accent-soft: rgba(77, 94, 255, .12);
+  --save: #3ecf8e; --warn: #e0a848;
+  --asr: #d9a441; --llm: #5e87ff; --tts: #3ecf8e; --tel: #b57fd9;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 13.5px/1.65 var(--sans); letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px 72px; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--accent); color: #fff; }
 
-  /* ---- hero ---- */
-  .hero-total { font-size: 34px; font-weight: 700; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 18px; color: var(--muted); margin: 6px 0 14px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 12px 0 8px; }
-  .legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
-  .flame { margin-top: 6px; }
-  .flame .row { display: flex; width: 100%; }
-  .flame .row + .row { margin-top: 5px; }
-  .conv-bar { flex: 1 1 0; background: linear-gradient(90deg, #2f81f7, #58a6ff);
-              border-radius: 6px; padding: 8px 12px; font-weight: 600; }
-  .turn-grid { display: flex; width: 100%; gap: 3px; }
-  .turn-cell { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .turn-bar { background: var(--panel-2); border: 1px solid var(--line);
-              border-radius: 6px; padding: 6px 8px; white-space: nowrap;
-              overflow: hidden; text-overflow: ellipsis; }
-  .stage-bar, .span-bar { display: flex; width: 100%; gap: 2px; }
-  .seg { border-radius: 4px; overflow: hidden; white-space: nowrap; padding: 4px 6px;
-         font-size: 11px; color: rgba(13,17,23,.92); cursor: default;
-         text-overflow: ellipsis; }
-  .seg.hide-label { color: transparent; }
-  .stage-asr    { background: var(--asr); }
-  .stage-llm    { background: var(--llm); }
-  .stage-tts    { background: var(--tts); }
-  .stage-telephony { background: var(--tel); }
-  .stage-asr.outline, .stage-llm.outline, .stage-tts.outline, .stage-telephony.outline { box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
-  .check { margin-top: 12px; font-size: 12px; color: var(--muted); }
-  .check b { color: var(--pos); }
+.kicker {
+  font: 500 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--faint);
+}
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
 
-  /* ---- fleet ---- */
-  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-  .metric { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-  .metric.loaded { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .metric .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-  .metric .v { font-size: 26px; font-weight: 700; margin-top: 4px; }
-  .metric .v .unit { font-size: 14px; color: var(--muted); font-weight: 400; }
-  .metric .d { color: var(--muted); font-size: 12px; margin-top: 4px; }
+/* ============ masthead ============ */
+.masthead { padding-top: 24px; padding-bottom: 26px; }
+.mast-top { display: flex; align-items: center; gap: 14px; }
+.mark {
+  width: 30px; height: 30px; display: grid; place-items: center; color: var(--ink);
+  border: 1px solid var(--line-2); border-radius: 0; flex: none;
+}
+.brand-block { display: flex; flex-direction: column; gap: 3px; }
+.brand-name { font: 500 12px/1 var(--mono); letter-spacing: .22em; color: var(--ink); }
+.brand-sub { font: 400 15px/1 var(--serif); color: var(--muted); }
+.about-link { margin-left: 28px; font: 500 10.5px/1 var(--mono); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint); border-bottom: 1px solid var(--line-2);
+  padding-bottom: 2px; transition: color .15s ease, border-color .15s ease; }
+.about-link:hover { color: var(--accent); border-color: var(--accent); }
+.mast-top .meta { margin-left: auto; display: flex; gap: 22px; }
+.mast-top .meta span { font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--faint); text-transform: uppercase; }
+.mast-top .meta b { color: var(--muted); font-weight: 500; }
 
-  /* ---- table ---- */
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  th { color: var(--muted); font-weight: 600; }
-  tbody tr:hover { background: var(--panel-2); }
-  .badge { display: inline-block; min-width: 26px; text-align: center; padding: 2px 7px;
-           border-radius: 999px; font-size: 12px; font-weight: 600; background: #30363d; }
-  .badge.waste { color: #f0b429; }
-  .money { font-variant-numeric: tabular-nums; }
-  .pos { color: var(--pos); } .neg { color: var(--neg); }
+/* ============ section chrome ============ */
+section { border-top: 1px solid var(--line-2); padding: 26px 0 36px; }
+.sec-head { display: grid; grid-template-columns: 64px 1fr auto; gap: 18px; align-items: baseline;
+            margin-bottom: 26px; }
+.sec-head .idx { font: 400 13px/1.4 var(--mono); color: var(--faint); }
+.sec-head h2 { margin: 0; font: 400 30px/1.05 var(--serif); letter-spacing: .005em; }
+.sec-head .tag { font: 400 11px/1.6 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+                 color: var(--faint); text-align: right; }
+.sec-head .tag b { color: var(--save); font-weight: 500; }
+.sec-head .tag b.warn { color: var(--warn); }
 
-  /* ---- replay ---- */
-  .exp { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--panel); }
-  .exp .head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-  .exp .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
-  .exp .stat .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-  .exp .stat .v { font-size: 17px; font-weight: 600; margin-top: 2px; }
-  .divergents { margin-top: 10px; font-size: 12px; color: var(--muted); }
-  .divergents .list { color: var(--ink); }
+/* ============ 01 verdict index ============ */
+.tier-row { display: grid; grid-template-columns: 64px 128px 1fr 300px 36px;
+            align-items: center; gap: 20px; padding: 22px 0; border-top: 1px solid var(--line);
+            position: relative; transition: background .18s ease; }
+.tier-row:last-of-type { border-bottom: 1px solid var(--line); }
+.tier-row:hover { background: var(--well); }
+.tier-row::before { content: ""; position: absolute; left: -40px; top: 0; bottom: 0; width: 2px;
+                    background: var(--accent); opacity: 0; transition: opacity .18s ease; }
+.tier-row:hover::before { opacity: 1; }
+.tier-row .t-idx { font: 400 12px/1 var(--mono); color: var(--faint); }
+.tier-row .t-chip { justify-self: start; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px;
+  border: 1px solid var(--line-2); border-radius: 999px;
+  font: 500 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+}
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip.save { color: var(--save); border-color: rgba(62, 207, 142, .35); }
+.chip.live { color: var(--llm); border-color: rgba(94, 135, 255, .35); }
+.chip.warn { color: var(--warn); border-color: rgba(224, 168, 72, .35); }
+.tier-row .t-text { min-width: 0; }
+.tier-row .t-name { display: block; font: 400 17px/1.3 var(--serif); color: var(--ink); }
+.tier-row .t-sub { display: block; color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+.tier-row .t-num {
+  font: 400 64px/1 var(--serif); letter-spacing: -.01em; text-align: right;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.tier-row .t-num .unit { font: 400 22px/1 var(--serif); color: var(--faint); margin-left: 4px; }
+.tier-row .t-link { color: var(--faint); display: grid; place-items: center;
+                    transition: color .18s ease, transform .18s ease; }
+.tier-row:hover .t-link { color: var(--accent); transform: translateY(3px); }
 
-  #tooltip { position: fixed; display: none; pointer-events: none; z-index: 20;
-             background: #0b0f14; border: 1px solid var(--line); border-radius: 8px;
-             padding: 9px 11px; font-size: 12px; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
-  #tooltip .t-title { font-weight: 600; margin-bottom: 3px; }
-  #tooltip .t-row { display: flex; justify-content: space-between; gap: 18px; }
-  #tooltip .t-row .k { color: var(--muted); }
+/* ============ shared primitives ============ */
+.split { display: grid; grid-template-columns: 1.25fr .75fr; gap: 56px; }
+.split > * { min-width: 0; }
+#hero .split { grid-template-columns: 1fr; gap: 24px; }
+.block-label {
+  font: 500 10.5px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.block-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
-  footer { color: var(--muted); font-size: 12px; padding: 6px 28px 26px; max-width: 1200px; margin: 0 auto; }
+/* tick-ruler tracks */
+.track { position: relative; height: 12px; background: rgba(244, 244, 241, .045); }
+.track::after {
+  content: ""; position: absolute; inset: -4px 0; pointer-events: none;
+  background-image: repeating-linear-gradient(90deg,
+    rgba(244, 244, 241, .14) 0 1px, transparent 1px 6.25%);
+  background-size: 100% 4px; background-repeat: no-repeat; background-position: bottom;
+}
+.fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; }
+
+/* stage anatomy */
+.stagebar { display: flex; height: 52px; border: 1px solid var(--line-2); gap: 1px;
+           background: var(--bg); }
+.stagebar .seg { position: relative; display: flex; align-items: center; justify-content: center;
+  min-width: 4px; overflow: hidden; white-space: nowrap; cursor: default;
+  font: 500 11px/1 var(--mono); letter-spacing: .06em; color: #08090a; }
+.seg.hide-label { color: transparent; }
+.seg-asr { background: var(--asr); }
+.seg-llm { background: var(--llm); }
+.seg-tts { background: var(--tts); }
+.seg-telephony { background: var(--tel); }
+.stage-legend { display: flex; flex-wrap: wrap; gap: 8px 26px; margin-top: 16px;
+  font: 400 11.5px/1.6 var(--mono); color: var(--muted); }
+.stage-legend .item { display: flex; align-items: center; gap: 8px; }
+.stage-legend .dot { width: 7px; height: 7px; border-radius: 50%; }
+.stage-legend b { color: var(--ink); font-weight: 500; }
+.stage-legend .tier-note { color: var(--faint); }
+.stage-note { margin-top: 14px; font-size: 12px; color: var(--faint); }
+
+/* duo comparison */
+.duo .row { display: grid; grid-template-columns: 168px 1fr 96px; gap: 14px;
+            align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.duo .row:first-child { border-top: 1px solid var(--line); }
+.duo .lab { font-size: 12.5px; color: var(--muted); }
+.duo .lab b { color: var(--ink); font-weight: 500; display: block; font-size: 13px; }
+.duo .val { font: 500 12.5px/1 var(--mono); text-align: right; color: var(--ink); }
+.duo .note { margin-top: 12px; font-size: 12px; color: var(--faint); }
+
+/* waste leaderboard */
+.w-total { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; flex-wrap: wrap; }
+.w-total .big { font: 400 40px/1 var(--serif); }
+.w-total .sub { color: var(--muted); font-size: 12.5px; }
+.w-total .hint { margin-left: auto; color: var(--faint); font: 400 10.5px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.wrow { border-top: 1px solid var(--line); }
+.wrow:last-of-type { border-bottom: 1px solid var(--line); }
+.wrow summary {
+  display: grid; grid-template-columns: 40px 220px 1fr 130px 26px; align-items: center;
+  gap: 18px; padding: 13px 4px; cursor: pointer; list-style: none;
+  transition: background .15s ease;
+}
+.wrow summary::-webkit-details-marker { display: none; }
+.wrow summary:hover { background: var(--well); }
+.wrow .rank { font: 400 11px/1 var(--mono); color: var(--faint); }
+.wrow .wname { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dchip {
+  font: 500 10.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted);
+  border: 1px solid var(--line-2); padding: 3px 7px; border-radius: 4px; flex: none;
+}
+.wrow .wname .t { font: 400 15.5px/1.3 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wrow .wtext { display: flex; flex-direction: column; min-width: 0; }
+.wrow .whint { color: var(--faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wrow .wval { font: 500 13px/1 var(--mono); color: var(--warn); text-align: right; }
+.wrow .wcount { font: 400 10.5px/1 var(--mono); color: var(--faint); letter-spacing: .08em; }
+.wrow .chev { color: var(--faint); transition: transform .2s ease; justify-self: center; }
+.wrow[open] .chev { transform: rotate(180deg); }
+.wrow[open] summary { background: var(--well); }
+.wdetail { padding: 6px 4px 18px; overflow-x: auto; }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; font: 500 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+     color: var(--faint); padding: 8px 10px; border-bottom: 1px solid var(--line-2); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tbody tr:hover { background: var(--well); }
+td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
+
+/* measured headline */
+.hnum { font: 400 clamp(72px, 9vw, 118px)/0.95 var(--serif); letter-spacing: -.01em; }
+.hnum .unit { font-size: .38em; color: var(--faint); }
+.hlab { font: 400 19px/1.4 var(--serif); margin-top: 14px; }
+.hsub { color: var(--muted); font-size: 13px; margin-top: 8px; max-width: 420px; }
+.hchips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.stat-chip {
+  font: 400 11px/1.4 var(--mono); letter-spacing: .04em; color: var(--muted);
+  border: 1px solid var(--line); padding: 6px 10px; border-radius: 4px;
+}
+.stat-chip b { color: var(--ink); font-weight: 500; }
+.remedy-row { display: grid; grid-template-columns: 92px 1fr 64px; align-items: center;
+              gap: 14px; padding: 9px 0; }
+.remedy-row .rlab { font: 400 12px/1.3 var(--serif); color: var(--ink); }
+.remedy-row .rflag { font: 500 12px/1 var(--mono); text-align: right; }
+.remedy-row .today-note { font: 500 9.5px/1 var(--mono); letter-spacing: .14em; color: var(--warn);
+  text-transform: uppercase; display: block; margin-top: 3px; }
+.rfill-tts { background: var(--warn); }
+.rfill-fix { background: var(--llm); }
+
+/* conditional remedies */
+.crow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 168px 26px;
+        align-items: center; gap: 18px; padding: 12px 4px; border-top: 1px solid var(--line); }
+.crow:last-of-type { border-bottom: 1px solid var(--line); }
+.crow .cname { min-width: 0; }
+.crow .cname b { display: block; font: 400 15.5px/1.3 var(--serif); font-weight: 400; }
+.crow .cname small { color: var(--faint); font-size: 11.5px; }
+.crow .cdet { font: 400 10.5px/1.5 var(--mono); color: var(--faint); letter-spacing: .04em; }
+.crow .cval { font: 500 12.5px/1.35 var(--mono); text-align: right; color: var(--ink); }
+.crow .cval small { display: block; color: var(--faint); font-weight: 400; font-size: 10px; }
+.crow.zero .cval { color: var(--faint); font-weight: 400; font-style: italic; letter-spacing: .02em; }
+.crow .chev { color: var(--faint); justify-self: center; }
+.ctotal { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-top: 22px; }
+.ctotal .big { font: 400 34px/1 var(--serif); }
+.ctotal .sub { color: var(--muted); font-size: 12.5px; }
+
+/* replay evidence */
+.rp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line); }
+.rp .cell { padding: 18px 18px 18px 0; border-right: 1px solid var(--line); padding-left: 18px; }
+.rp .cell:first-child { padding-left: 0; }
+.rp .cell:last-child { border-right: 0; }
+.rp .k { font: 500 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+         color: var(--faint); margin-bottom: 8px; }
+.rp .v { font: 400 21px/1.1 var(--serif); }
+.rp .v small { display: block; font: 400 10.5px/1.6 var(--mono); color: var(--faint); margin-top: 3px; }
+.rp-note { margin-top: 14px; color: var(--faint); font-size: 12px; }
+
+/* drawers */
+details.drawer { border-top: 1px solid var(--line); margin-top: 24px; }
+details.drawer summary {
+  display: flex; align-items: center; gap: 9px; padding: 13px 2px; cursor: pointer;
+  list-style: none; font: 500 10.5px/1 var(--mono); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint); transition: color .15s ease;
+}
+details.drawer summary::-webkit-details-marker { display: none; }
+details.drawer summary:hover { color: var(--ink); }
+details.drawer summary .chev { transition: transform .2s ease; }
+details.drawer[open] summary .chev { transform: rotate(180deg); }
+details.drawer .body { padding-bottom: 18px; font-size: 12px; color: var(--muted); max-width: 900px; overflow-x: auto; }
+.prov-line { padding: 9px 0; border-top: 1px dashed var(--line); }
+.prov-line:first-child { border-top: 0; }
+.prov-line b { color: var(--muted); font: 500 10px/1.8 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.t-note { color: var(--faint); font-size: 11.5px; margin-top: 8px; }
+.t-title { font: 500 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+           color: var(--faint); margin: 20px 0 8px; }
+
+/* explore one call */
+#hero details { cursor: default; }
+#hero .flame-summary {
+  display: grid; grid-template-columns: 64px 1fr auto 26px; align-items: baseline; gap: 18px;
+  cursor: pointer; list-style: none; padding: 2px 0;
+}
+#hero .flame-summary::-webkit-details-marker { display: none; }
+#hero .flame-summary h2 { margin: 0; font: 400 30px/1.05 var(--serif); }
+#hero .flame-summary .chev { color: var(--faint); transition: transform .2s ease; justify-self: center; }
+#hero details[open] .flame-summary .chev { transform: rotate(180deg); }
+.flame-body { margin-top: 30px; }
+.flame .row { display: flex; width: 100%; }
+.flame .row + .row { margin-top: 4px; }
+.conv-bar { flex: 0 0 auto; width: 100%; display: flex; align-items: baseline; gap: 12px;
+  border: 1px solid var(--line-2); padding: 10px 14px; cursor: default;
+  font: 400 13px/1 var(--mono); color: var(--muted); }
+.conv-bar b { color: var(--ink); font-weight: 500; }
+.turn-grid { display: flex; width: 100%; gap: 1px; margin-top: 4px; }
+.turn-cell { display: flex; flex-direction: column; gap: 2px; min-width: 2px; }
+.turn-bar { border: 1px solid var(--line); border-radius: 0; padding: 5px 7px; font: 500 10px/1.3 var(--mono);
+  color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default;
+  background: var(--well); }
+.stage-bar, .span-bar { display: flex; width: 100%; gap: 1px; }
+.seg2 { border-radius: 0; overflow: hidden; white-space: nowrap; padding: 4px 6px;
+  font: 500 9.5px/1.4 var(--mono); letter-spacing: .03em; color: #08090a; cursor: default;
+  text-overflow: ellipsis; min-width: 2px; }
+.seg2.hide-label { color: transparent; }
+
+/* tooltip */
+#tooltip {
+  position: fixed; display: none; pointer-events: none; z-index: 30;
+  background: #0c0e11; border: 1px solid var(--line-2); padding: 10px 12px;
+  font: 400 11.5px/1.5 var(--mono); max-width: 380px; color: var(--muted);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .6);
+}
+#tooltip .t-title { font: 500 11px/1.5 var(--mono); color: var(--ink); letter-spacing: .06em; margin: 0 0 4px; }
+#tooltip .t-row { display: flex; justify-content: space-between; gap: 20px; }
+#tooltip .t-row .k { color: var(--faint); }
+
+footer { border-top: 1px solid var(--line-2); padding-top: 26px; }
+footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--faint); letter-spacing: .04em; }
+
+/* motion */
+@media (prefers-reduced-motion: no-preference) {
+  .fill { transition: width .9s cubic-bezier(.22, .7, .25, 1); }
+}
+
+/* print: one-report PDF leave-behind */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #tooltip { display: none !important; }
+  .wrap { max-width: none; padding: 0 24px; }
+  section, .tier-row, .wrow, .crow, .stagebar, .track, table tr, details.drawer { break-inside: avoid; page-break-inside: avoid; }
+  .tier-row:hover::before, .tier-row::before { display: none; }
+  a { color: inherit; }
+}
+/* responsive */
+@media (max-width: 1020px) {
+  .split { grid-template-columns: 1fr; gap: 40px; }
+  .rp { grid-template-columns: repeat(3, 1fr); }
+  .rp .cell { border-bottom: 1px solid var(--line); }
+  .mast-body { grid-template-columns: 1fr; gap: 24px; }
+  .tier-row { grid-template-columns: 40px 110px 1fr 200px 30px; }
+  .tier-row .t-num { font-size: 44px; }
+  .crow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px 24px; }
+  .wrow summary { grid-template-columns: 30px 190px 1fr 110px 24px; }
+  .tier-row::before { left: -16px; }
+}
+@media (max-width: 680px) {
+  .wrap { padding: 0 20px 48px; }
+  .tier-row { grid-template-columns: 26px 1fr 112px 22px; gap: 10px; }
+  .tier-row .chip { display: none; }
+  .tier-row .t-num { font-size: 30px; }
+  #hero .flame-summary { grid-template-columns: 40px 1fr 22px; }
+  #hero .flame-summary .tag { display: none; }
+  #hero .flame-summary h2 { font-size: 22px; }
+  .crow { grid-template-columns: 1fr 110px 22px; }
+  .crow .cdet { display: none; }
+  .crow .track { display: none; }
+  .wrow summary { grid-template-columns: 26px 1fr 110px 20px; gap: 10px; }
+  .wrow .wcount, .wrow .track { display: none; }
+  .rp { grid-template-columns: repeat(2, 1fr); }
+  .rp .cell { border-bottom: 1px solid var(--line); }
+  .sec-head { grid-template-columns: 40px 1fr; }
+  .sec-head .tag { grid-column: 2; text-align: left; }
+  .mast-top .meta { display: none; }
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>Turnstile — Cost &amp; Recoverable-Margin Dashboard</h1>
-  <p>Static, offline, JSON-only. No backend, no network.</p>
-</header>
+<div class="wrap">
 
-<main>
-  <!-- ============ 0. THE HEADLINE: measured barge-in waste ============ -->
-  <section id="bargein">
-    <h2>The headline — barge-in unheard waste <small>measured on the real-Piper harness <span class="mono">(bargein.sample.json)</span></small></h2>
-    <div class="card">
-      <div id="bargein-headline" class="hero-total"></div>
-      <div id="bargein-meta" class="hero-meta"></div>
-      <div id="bargein-tables"></div>
-      <div id="bargein-provenance" class="check"></div>
-    </div>
-  </section>
-
-  <!-- ============ 1. HERO: cost flame graph ============ -->
-  <section id="hero">
-    <h2>Hero — cost flame graph <small>one real priced trace (<span class="mono">priced_trace.json</span>)</small></h2>
-    <div class="card">
-      <div id="hero-total" class="hero-total"></div>
-      <div id="hero-meta" class="hero-meta"></div>
-      <div class="legend">
-        <span><span class="sw" style="background:var(--asr)"></span>ASR <small class="muted">[Tier 2 · modeled acoustics]</small></span>
-        <span><span class="sw" style="background:var(--llm)"></span>LLM <small class="muted">[Tier 1 · measured]</small></span>
-        <span><span class="sw" style="background:var(--tts)"></span>TTS <small class="muted">[Tier 2 · modeled acoustics]</small></span>
-        <span><span class="sw" style="background:var(--tel)"></span>Telephony (attributed) <small class="muted">[Tier 2 · modeled acoustics]</small></span>
+  <!-- ============ masthead ============ -->
+  <header class="masthead">
+    <div class="mast-top">
+      <div class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V10a7 7 0 0 1 14 0v11"/><path d="M9.5 21v-6.5a2.5 2.5 0 0 1 5 0V21"/><path d="M3 21h18"/></svg></div>
+      <div class="brand-block">
+        <span class="brand-name">TURNSTILE</span>
+        <span class="brand-sub">Voice-AI margin dashboard</span>
       </div>
-      <div id="hero-provenance" class="check"></div>
-      <div class="flame" id="flame"></div>
-      <div class="check" id="flame-check"></div>
+      <div class="meta" id="head-meta"></div>
+      <a class="about-link" href="home.html">What is this?</a>
     </div>
-  </section>
+  </header>
 
-  <!-- ============ 2. FLEET VIEW ============ -->
-  <section id="fleet">
-    <h2>Fleet view <small>CPRC — lead with loaded <span class="mono">(sample/fleet.json)</span></small></h2>
-    <div class="fleet-grid" id="fleet-grid"></div>
-    <div class="check" id="fleet-provenance"></div>
-  </section>
+  <main>
+    <!-- ============ 01 the verdict ============ -->
+    <section id="answer" aria-label="The verdict">
+      <div class="sec-head">
+        <span class="idx">01</span>
+        <h2>The verdict</h2>
+        <span class="tag">Three honesty tiers · every number labeled by what it is</span>
+      </div>
 
-  <!-- ============ 3. RANKED RECOVERABLE MARGIN ============ -->
-  <section id="findings">
-    <h2>Ranked recoverable-margin table <small>sorted by waste_usd, descending <span class="mono">(findings.sample.json)</span></small></h2>
-    <div class="card" style="overflow-x:auto">
-      <table id="findings-table">
-        <thead>
-          <tr><th>#</th><th>Class</th><th>Span</th><th>Turn</th><th>Waste (USD)</th><th>Confidence</th><th>Proposed variant</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
+      <a class="tier-row" href="#fleet">
+        <span class="t-idx">i.</span>
+        <span class="chip save"><span class="dot"></span>Proven</span>
+        <span class="t-text">
+          <span class="t-name">Recoverable margin</span>
+          <span class="t-sub" id="v-proven-sub"></span>
+        </span>
+        <span class="t-num num" id="v-proven-num">0<span class="unit">%</span></span>
+        <span class="t-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg></span>
+      </a>
 
-  <!-- ============ 4. REPLAY-EVIDENCE PANEL ============ -->
-  <section id="replay">
-    <h2>Replay-evidence panel <small>mechanism demo — MockBackend, not measured <span class="mono">(experiments.sample.json)</span></small></h2>
-    <div class="grid" id="replay-grid"></div>
-  </section>
+      <a class="tier-row" href="#bargein">
+        <span class="t-idx">ii.</span>
+        <span class="chip live"><span class="dot"></span>Measured</span>
+        <span class="t-text">
+          <span class="t-name">Unheard TTS waste</span>
+          <span class="t-sub" id="v-measured-sub"></span>
+        </span>
+        <span class="t-num num" id="v-measured-num">0<span class="unit">%</span></span>
+        <span class="t-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg></span>
+      </a>
 
-  <!-- ============ 5. CONDITIONAL SAVINGS (separate bucket — NOT proven) ==== -->
-  <section id="conditional">
-    <h2>Conditional savings — re-pricing remedies <small>deterministic conditional saving — preservation unverified (Wave-2) — NOT the proven margin <span class="mono">(conditional.sample.json)</span></small></h2>
-    <div class="card" style="overflow-x:auto">
-      <table id="conditional-table">
-        <thead>
-          <tr><th>Remedy</th><th>Detector</th><th>n</th><th>Δcost mean</th><th>Savings (USD)</th><th>Savings CI95</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="conditional-total" class="hero-total" style="font-size:1.1em"></div>
-      <div id="conditional-provenance" class="check"></div>
-    </div>
-  </section>
-</main>
+      <a class="tier-row" href="#conditional">
+        <span class="t-idx">iii.</span>
+        <span class="chip warn"><span class="dot"></span>Conditional</span>
+        <span class="t-text">
+          <span class="t-name">Additional savings</span>
+          <span class="t-sub" id="v-cond-sub"></span>
+        </span>
+        <span class="t-num num" id="v-cond-num">$0</span>
+        <span class="t-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg></span>
+      </a>
+    </section>
 
-<footer>Turnstile Wave-1 demo. The page presents pre-computed JSON only; it computes no cost or metric itself.</footer>
+    <!-- ============ 02 where the money goes ============ -->
+    <section id="fleet" aria-label="Where the money goes">
+      <div class="sec-head">
+        <span class="idx">02</span>
+        <h2>Where the money goes</h2>
+        <span class="tag" id="fleet-chip">fleet anatomy</span>
+      </div>
+      <div class="split">
+        <div>
+          <div class="block-label">Stage decomposition: share of fleet spend</div>
+          <div class="stagebar" id="fleet-stagebar"></div>
+          <div class="stage-legend" id="fleet-legend"></div>
+          <div class="stage-legend" style="margin-top:6px;color:var(--faint)" id="fleet-tiers"></div>
+        </div>
+        <div class="duo">
+          <div class="block-label">Cost per resolved call</div>
+          <div id="fleet-duo"></div>
+          <div class="note" id="fleet-note"></div>
+        </div>
+      </div>
+      <details class="drawer">
+        <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>Method &amp; provenance</summary>
+        <div class="body" id="fleet-prov"></div>
+      </details>
+    </section>
 
-<div id="tooltip"></div>
+    <!-- ============ 03 where the waste is ============ -->
+    <section id="findings" aria-label="Where the waste is">
+      <div class="sec-head">
+        <span class="idx">03</span>
+        <h2>Where the waste is</h2>
+        <span class="tag">10 named waste classes · click to drill down</span>
+      </div>
+      <div class="w-total">
+        <span class="big num" id="findings-total">0</span>
+        <span class="sub" id="findings-count"></span>
+      </div>
+      <div id="findings-list"></div>
+      <details class="drawer">
+        <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>Method &amp; provenance</summary>
+        <div class="body" id="findings-prov"></div>
+      </details>
+    </section>
+
+    <!-- ============ 04 the measured headline ============ -->
+    <section id="bargein" aria-label="The measured headline">
+      <div class="sec-head">
+        <span class="idx">04</span>
+        <h2>The measured headline</h2>
+        <span class="tag">Real Piper synthesis · <b>n = 150</b> harness calls</span>
+      </div>
+      <div class="split">
+        <div>
+          <div class="block-label">Barge-in waste: synthesized, billed, never heard</div>
+          <div class="hnum num" id="bargein-headline">0<span class="unit">%</span></div>
+          <div class="hlab">of TTS spend goes to audio the caller interrupts away.</div>
+          <p class="hsub" id="bargein-meta"></p>
+          <div class="hchips" id="bargein-chips"></div>
+        </div>
+        <div>
+          <div class="block-label">The fix, measured: chunk the TTS finer</div>
+          <div id="remedy-chart"></div>
+        </div>
+      </div>
+      <details class="drawer">
+        <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>Full sweep data: barge-in rate, buffer policy, floor</summary>
+        <div class="body" id="bargein-tables"></div>
+        <div class="body" id="bargein-provenance"></div>
+      </details>
+    </section>
+
+    <!-- ============ 05 conditional remedies ============ -->
+    <section id="conditional" aria-label="Conditional remedies">
+      <div class="sec-head">
+        <span class="idx">05</span>
+        <h2>Conditional remedies</h2>
+        <span class="tag"><b class="warn">preservation unverified (Wave-2)</b> · NOT the proven margin</span>
+      </div>
+      <div id="conditional-rows"></div>
+      <div class="ctotal">
+        <span class="big num" id="conditional-total"></span>
+        <span class="sub" id="conditional-sub"></span>
+      </div>
+      <details class="drawer">
+        <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>What “conditional” means &amp; provenance</summary>
+        <div class="body" id="conditional-provenance"></div>
+      </details>
+    </section>
+
+    <!-- ============ 06 replay evidence ============ -->
+    <section id="replay" aria-label="Replay evidence">
+      <div class="sec-head">
+        <span class="idx">06</span>
+        <h2>Replay evidence</h2>
+        <span class="tag">mechanism demo · MockBackend · not a measured production rate</span>
+      </div>
+      <div id="replay-grid"></div>
+    </section>
+
+    <!-- ============ 07 explore one call ============ -->
+    <section id="hero" aria-label="Explore one call">
+      <details id="hero-details">
+        <summary class="flame-summary">
+          <span class="idx">07</span>
+          <h2>Explore one call: the flame graph</h2>
+          <span class="tag" id="hero-chip">fixture</span>
+          <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>
+        </summary>
+        <div class="flame-body">
+          <div class="split">
+            <div>
+              <div class="block-label" id="hero-total"></div>
+              <div class="flame" id="flame"></div>
+              <div class="t-note" id="flame-check"></div>
+            </div>
+            <div>
+              <div class="block-label">Stage legend &amp; tiers</div>
+              <div class="stage-legend" id="hero-legend" style="flex-direction:column;align-items:flex-start;gap:10px"></div>
+              <div class="t-note" id="hero-provenance" style="margin-top:16px"></div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <details class="drawer" style="margin-top:0">
+      <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>Provenance &amp; limitations: every panel, verbatim from the pipeline</summary>
+      <div class="body" id="prov-list"></div>
+    </details>
+    <p class="fine">STATIC · OFFLINE · NO BACKEND, NO NETWORK. The page renders pre-computed JSON and computes no cost or metric itself.</p>
+  </footer>
+</div>
+
+<div id="tooltip" role="tooltip"></div>
 
 <!-- ==================== embedded data (file:// fallback) ==================== -->
 <script type="application/json" id="data-priced">
 {"trace":{"conversation":{"conversation_id":"00000000-0000-0000-0000-000000000009","agent_version":"agent@abc123","scenario_id":"billing_dispute","started_at":"2026-08-30T00:00:00Z","ended_at":"2026-08-30T00:02:00Z","end_reason":"escalated","schema_version":"1.1"},"turns":[{"turn_index":0,"speaker_first":"caller","wall_start_ms":0,"wall_end_ms":4100,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l0","start_offset_ms":0,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_0","decision_candidates":["stall_0"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t0","start_offset_ms":500,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p0","start_offset_ms":2300,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":1,"speaker_first":"agent","wall_start_ms":4100,"wall_end_ms":8200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l1","start_offset_ms":4100,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_1","decision_candidates":["stall_1"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t1","start_offset_ms":4600,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p1","start_offset_ms":6400,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":2,"speaker_first":"caller","wall_start_ms":8200,"wall_end_ms":12300,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l2","start_offset_ms":8200,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_2","decision_candidates":["stall_2"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t2","start_offset_ms":8700,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p2","start_offset_ms":10500,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":3,"speaker_first":"caller","wall_start_ms":12300,"wall_end_ms":15600,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l3","start_offset_ms":12300,"duration_ms":700,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":700,"output_tokens":20,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"escalate_check","decision_chosen":"escalate","decision_candidates":["resolve","escalate"],"output_text":"This needs a human.","latency_ms":700,"retry_of":null}],"tools":[],"tts":[{"span_id":"t3","start_offset_ms":13000,"duration_ms":1300,"gen_ai_system":"piper","chars_synthesized":19,"audio_seconds_generated":1.3,"text":"This needs a human."}],"playback":[{"span_id":"p3","start_offset_ms":14300,"duration_ms":1300,"chars_played":19,"audio_seconds_played":1.3,"truncated_by":null}]},{"turn_index":4,"speaker_first":"caller","wall_start_ms":15600,"wall_end_ms":19700,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l4","start_offset_ms":15600,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_4","decision_candidates":["stall_4"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t4","start_offset_ms":16100,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p4","start_offset_ms":17900,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":5,"speaker_first":"agent","wall_start_ms":19700,"wall_end_ms":23800,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l5","start_offset_ms":19700,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_5","decision_candidates":["stall_5"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t5","start_offset_ms":20200,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p5","start_offset_ms":22000,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":6,"speaker_first":"caller","wall_start_ms":23800,"wall_end_ms":27900,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l6","start_offset_ms":23800,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_6","decision_candidates":["stall_6"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t6","start_offset_ms":24300,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p6","start_offset_ms":26100,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":7,"speaker_first":"agent","wall_start_ms":27900,"wall_end_ms":32000,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l7","start_offset_ms":27900,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_7","decision_candidates":["stall_7"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t7","start_offset_ms":28400,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p7","start_offset_ms":30200,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":8,"speaker_first":"caller","wall_start_ms":32000,"wall_end_ms":36100,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l8","start_offset_ms":32000,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_8","decision_candidates":["stall_8"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t8","start_offset_ms":32500,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p8","start_offset_ms":34300,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":9,"speaker_first":"agent","wall_start_ms":36100,"wall_end_ms":40200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l9","start_offset_ms":36100,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_9","decision_candidates":["stall_9"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t9","start_offset_ms":36600,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p9","start_offset_ms":38400,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":10,"speaker_first":"caller","wall_start_ms":40200,"wall_end_ms":44300,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l10","start_offset_ms":40200,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_10","decision_candidates":["stall_10"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t10","start_offset_ms":40700,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p10","start_offset_ms":42500,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":11,"speaker_first":"agent","wall_start_ms":44300,"wall_end_ms":48400,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l11","start_offset_ms":44300,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_11","decision_candidates":["stall_11"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t11","start_offset_ms":44800,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p11","start_offset_ms":46600,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":12,"speaker_first":"agent","wall_start_ms":48400,"wall_end_ms":52200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l12","start_offset_ms":48700,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":650,"output_tokens":18,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"transfer","decision_candidates":["transfer"],"output_text":"Transferring you now.","latency_ms":500,"retry_of":null}],"tools":[{"span_id":"tool12","start_offset_ms":48400,"duration_ms":300,"tool_name":"transfer_to_agent","args_hash":"sha256:xfer12","args_json":"{}","result_hash":"sha256:r","latency_ms":300,"cost_usd":0.0,"tool_kind":"handoff","tool_status":"ok","effect":"committed"}],"tts":[{"span_id":"t12","start_offset_ms":49200,"duration_ms":1500,"gen_ai_system":"piper","chars_synthesized":22,"audio_seconds_generated":1.5,"text":"Transferring you now."}],"playback":[{"span_id":"p12","start_offset_ms":50700,"duration_ms":1500,"chars_played":22,"audio_seconds_played":1.5,"truncated_by":null}]}],"telephony":{"span_id":"leg","start_offset_ms":0,"duration_ms":53000,"provider":"twilio","direction":"inbound","billable_seconds":53}},"span_costs":{"l0":0.00018199999999999998,"t0":0.0007000000000000001,"l1":0.00018199999999999998,"t1":0.0007000000000000001,"l2":0.00018199999999999998,"t2":0.0007000000000000001,"l3":0.000215,"t3":0.000475,"l4":0.00018199999999999998,"t4":0.0007000000000000001,"l5":0.00018199999999999998,"t5":0.0007000000000000001,"l6":0.00018199999999999998,"t6":0.0007000000000000001,"l7":0.00018199999999999998,"t7":0.0007000000000000001,"l8":0.00018199999999999998,"t8":0.0007000000000000001,"l9":0.00018199999999999998,"t9":0.0007000000000000001,"l10":0.00018199999999999998,"t10":0.0007000000000000001,"l11":0.00018199999999999998,"t11":0.0007000000000000001,"l12":0.0001985,"t12":0.00055},"turn_costs":[0.001471734993614304,0.001471734993614304,0.001471734993614304,0.0011646647509578544,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.0012950836526181356],"conv_cost":0.018648833333333333,"stage_costs":{"asr":0.0,"llm":0.0024154999999999992,"tts":0.008725000000000002,"telephony":0.007508333333333334},"_provenance":{"fixture":"09_escalation_debt","stage_tier":{"llm":"tier1_measured","asr":"tier2_modeled_acoustics","tts":"tier2_modeled_acoustics","telephony":"tier2_modeled_acoustics"},"note":"LLM stage cost is computed from this fixture's real token counts (Tier 1, measured). ASR/TTS/telephony stage costs are computed with the same pricing formula but over the fixture generator's modeled acoustics, not a live audio pipeline (Tier 2, mechanism -- not a measured magnitude; see docs/DEMO.md)."}}
 </script>
 <script type="application/json" id="data-fleet">
-{"label":"Wave-1 real fleet (23 golden fixtures)","note":"Real computed aggregate over the 23 golden fixtures -- not a production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3.","n_conversations":23,"n_resolved":14,"total_cost_usd":0.18754716666666665,"resolved_cost_usd":0.12353383333333336,"cprc_loaded":0.01339622619047619,"cprc_naive":0.00882384523809524,"recoverable_margin_pct":1.3225473058777217,"_provenance":{"n":23,"note":"Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."}}
+{"label":"Wave-1 real fleet (23 golden fixtures)","note":"Real computed aggregate over the 23 golden fixtures -- not a production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3.","n_conversations":23,"n_resolved":14,"total_cost_usd":0.18754716666666665,"resolved_cost_usd":0.12353383333333336,"cprc_loaded":0.01339622619047619,"cprc_naive":0.00882384523809524,"recoverable_margin_pct":1.3225473058777217,"stage_costs_usd":{"asr":8.6e-05,"llm":0.03359449999999999,"tts":0.08275000000000003,"telephony":0.07111666666666668},"_provenance":{"n":23,"note":"Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."}}
 </script>
 <script type="application/json" id="data-findings">
 [{"class_id":1,"turn_index":0,"span_id":"l0","waste_usd":0.0007440000000000001,"confidence":0.9,"proposed_variant":{"model_routing":{"route":"gpt-5-nano"}},"evidence":{"decision_kind":"route","model":"gpt-5","output_tokens":15,"actual_cost_usd":0.0007750000000000001,"cheapest_tier_cost_usd":3.1e-05,"cheapest_tier_model":"gpt-5-nano"}},{"class_id":2,"turn_index":4,"span_id":"l4","waste_usd":0.0015,"confidence":0.9,"proposed_variant":{"context_strategy":"window:8","prefix_caching":true},"evidence":{"slope_tok_per_turn":650.0,"cache_ratio":0.0,"baseline_input_tokens":800,"worst_turn_excess_tokens":2600}},{"class_id":3,"turn_index":2,"span_id":"tool2","waste_usd":0.00015,"confidence":0.9,"proposed_variant":{"retrieval_policy":"threshold:0.8"},"evidence":{"half":"doc_id","doc_id":"doc_refund_policy_7","first_retrieved_turn":0,"retrieved_tokens":600,"tool_cost_usd":0.0,"rate_in":0.25}},{"class_id":4,"turn_index":13,"span_id":"l13","waste_usd":0.025083836829268298,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"order_status","turns_to_resolution":14,"p50_turns":5.0,"p75_turns":7.25,"mean_cost_per_turn":0.002787092981029811}},{"class_id":5,"turn_index":1,"span_id":"l1","waste_usd":0.00236748427672956,"confidence":0.95,"proposed_variant":{"model_routing":{"slot_fill":"gpt-5-nano"}},"evidence":{"decision_kind":"slot_fill","decision_chosen":"phone_number","first_turn":0,"reprompt_turn":1}},{"class_id":6,"turn_index":0,"span_id":"l0","waste_usd":4.4e-05,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"output_text":"Here is extra info nobody hears.","tts_texts":[],"voiced_fraction":0.0,"unmatched_output_tokens":22.0}},{"class_id":7,"turn_index":0,"span_id":"t0","waste_usd":0.0040108695652173905,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"chars_synthesized":184,"chars_played":61,"wasted_chars":123,"tts_waste_usd":0.0030749999999999996,"llm_waste_usd":0.0009358695652173913}},{"class_id":8,"turn_index":0,"span_id":"t0","waste_usd":0.0007366666666666667,"confidence":0.9,"proposed_variant":{"model_routing":{"compose":"gpt-5-nano"}},"evidence":{"gap_start_ms":1800,"gap_end_ms":7000,"silence_ms":5200,"billed_wall_ms":7000,"attributed_to":"asr_endpoint","trailing_gap":true}},{"class_id":4,"turn_index":12,"span_id":"l12","waste_usd":0.01669359684745763,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"billing_dispute","turns_to_resolution":13,"p50_turns":7.0,"p75_turns":10.0,"mean_cost_per_turn":0.002782266141242938}},{"class_id":9,"turn_index":3,"span_id":"l3","waste_usd":0.014233628352490422,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":3,"conversation_end_turn":12,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":10,"turn_index":1,"span_id":"tool1","waste_usd":0.0010683333333333335,"confidence":0.95,"proposed_variant":{"tool_batching":true},"evidence":{"tool_name":"update_address","args_hash":"sha256:dupAddr1","turn_cost_usd":0.0010683333333333335,"tool_cost_usd":0.0}},{"class_id":1,"turn_index":0,"span_id":"l0","waste_usd":0.001104,"confidence":0.9,"proposed_variant":{"model_routing":{"route":"gpt-5-nano"}},"evidence":{"decision_kind":"route","model":"gpt-5","output_tokens":15,"actual_cost_usd":0.00115,"cheapest_tier_cost_usd":4.600000000000001e-05,"cheapest_tier_model":"gpt-5-nano"}},{"class_id":2,"turn_index":4,"span_id":"l4","waste_usd":0.0015,"confidence":0.9,"proposed_variant":{"context_strategy":"window:8","prefix_caching":true},"evidence":{"slope_tok_per_turn":650.0,"cache_ratio":0.0,"baseline_input_tokens":800,"worst_turn_excess_tokens":2600}},{"class_id":8,"turn_index":0,"span_id":"l0","waste_usd":0.0006375,"confidence":0.9,"proposed_variant":{"model_routing":{"compose":"gpt-5-nano"}},"evidence":{"gap_start_ms":500,"gap_end_ms":5000,"silence_ms":4500,"billed_wall_ms":5000,"attributed_to":"tts_ttfb","trailing_gap":true}},{"class_id":6,"turn_index":0,"span_id":"l0","waste_usd":4.4e-05,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"output_text":"Here is extra info nobody hears.","tts_texts":[],"voiced_fraction":0.0,"unmatched_output_tokens":22.0}},{"class_id":7,"turn_index":1,"span_id":"t1","waste_usd":0.0040108695652173905,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"chars_synthesized":184,"chars_played":61,"wasted_chars":123,"tts_waste_usd":0.0030749999999999996,"llm_waste_usd":0.0009358695652173913}},{"class_id":10,"turn_index":3,"span_id":"tool3","waste_usd":0.0010452040816326532,"confidence":0.95,"proposed_variant":{"tool_batching":true},"evidence":{"tool_name":"process_refund","args_hash":"sha256:dupAddr9","turn_cost_usd":0.0010452040816326532,"tool_cost_usd":0.0}},{"class_id":3,"turn_index":3,"span_id":"tool3","waste_usd":0.00015,"confidence":0.9,"proposed_variant":{"retrieval_policy":"threshold:0.8"},"evidence":{"half":"doc_id","doc_id":"doc_order_faq_3","first_retrieved_turn":0,"retrieved_tokens":600,"tool_cost_usd":0.0,"rate_in":0.25}},{"class_id":4,"turn_index":13,"span_id":"l13","waste_usd":0.025083836829268298,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"order_status","turns_to_resolution":14,"p50_turns":5.0,"p75_turns":7.25,"mean_cost_per_turn":0.002787092981029811}},{"class_id":5,"turn_index":2,"span_id":"l2","waste_usd":0.014828784237195289,"confidence":0.95,"proposed_variant":{"model_routing":{"slot_fill":"gpt-5-nano"}},"evidence":{"decision_kind":"slot_fill","decision_chosen":"order_number","first_turn":1,"reprompt_turn":2}},{"class_id":9,"turn_index":3,"span_id":"l3","waste_usd":0.0019877653631284915,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":3,"conversation_end_turn":3,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":9,"turn_index":6,"span_id":"l6","waste_usd":0.0024538522607781285,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":6,"conversation_end_turn":7,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":9,"turn_index":3,"span_id":"tool3","waste_usd":0.007993166666666668,"confidence":0.95,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":2,"tool_name":"transfer_to_agent","effect":"rejected","conv_cost_usd":0.007993166666666668,"note":"terminal handoff rejected -- caller stranded after paying full conversation cost."}}]
@@ -190,11 +555,9 @@
 <script type="application/json" id="data-experiments">
 [{"label":"D1 over-model reroute: route -> gpt-5-nano","variant":{"model_routing":{"route":"gpt-5-nano"}},"n":6,"outcome_preservation_rate":1.0,"delta_cost_mean":-0.0004134,"delta_cost_ci95":[-0.0007300666666666668,-0.00015453333333333334],"delta_latency_p50":0.0,"delta_latency_p95":0.0,"divergent_exemplars":[],"_provenance":"mechanism demo -- MockBackend, not measured. MockBackend's safe-reroute path returns the identical output_text/decision_chosen for a cheaper same-family model, so outcome_preservation_rate=1.0 here is a property of the mock (cheaper==same outcome by construction), not an observed production result. Outcome-preservation is NOT measurable on a synthetic corpus (canned inputs/outputs, pinned tools -> structural); it needs authored utterances then real traffic (Wave-2). delta_cost is deterministic rate arbitrage, needing no live backend (docs/LIMITATIONS.md)."}]
 </script>
-
 <script type="application/json" id="data-bargein">
 {"label":"D7 barge-in unheard waste \u2014 measured on the barge-in harness","n":150,"seed":0,"lead_cap_s":2.0,"headline":{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},"rate_sweep":[{"barge_in_rate":0.05,"n_calls":150,"barge_in_calls":10,"d7_findings":10,"d7_waste_usd_total":0.017575,"d7_waste_usd_mean_per_call":0.00011716666666666666,"d7_waste_usd_ci95":[2.9000000000000004e-05,0.0002288416666666666],"tts_spend_usd_total":1.0007749999999993,"waste_share_of_tts_spend":0.017561389922809836,"generated_chars_total":40031,"wasted_chars_total":703,"wasted_char_share":0.017561389922809822,"mean_gen_rate_realtime_x":40.813512561506144,"mean_achieved_lead_s":3.822055948485932},{"barge_in_rate":0.1,"n_calls":150,"barge_in_calls":18,"d7_findings":18,"d7_waste_usd_total":0.030575,"d7_waste_usd_mean_per_call":0.00020383333333333335,"d7_waste_usd_ci95":[9.583333333333335e-05,0.00033516666666666666],"tts_spend_usd_total":0.9896749999999991,"waste_share_of_tts_spend":0.03089398034708367,"generated_chars_total":39587,"wasted_chars_total":1223,"wasted_char_share":0.030893980347083638,"mean_gen_rate_realtime_x":42.162665113634446,"mean_achieved_lead_s":3.75006200693902},{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},{"barge_in_rate":0.2,"n_calls":150,"barge_in_calls":29,"d7_findings":29,"d7_waste_usd_total":0.048675,"d7_waste_usd_mean_per_call":0.00032450000000000003,"d7_waste_usd_ci95":[0.00019683333333333337,0.0004671666666666667],"tts_spend_usd_total":0.981774999999999,"waste_share_of_tts_spend":0.049578569427822114,"generated_chars_total":39271,"wasted_chars_total":1947,"wasted_char_share":0.04957856942782206,"mean_gen_rate_realtime_x":40.02827834436394,"mean_achieved_lead_s":3.6301634492400394},{"barge_in_rate":0.3,"n_calls":150,"barge_in_calls":45,"d7_findings":45,"d7_waste_usd_total":0.07572500000000001,"d7_waste_usd_mean_per_call":0.0005048333333333335,"d7_waste_usd_ci95":[0.00033050000000000006,0.0006988375000000001],"tts_spend_usd_total":0.9618499999999994,"waste_share_of_tts_spend":0.07872849196860224,"generated_chars_total":38474,"wasted_chars_total":3029,"wasted_char_share":0.07872849196860217,"mean_gen_rate_realtime_x":41.78386492304996,"mean_achieved_lead_s":3.609190667176017}],"lead_cap_sweep":{"parameter":"streaming buffer-lead policy lead_cap_s (modeled input, swept over a stated plausible policy band -- not a claim about any vendor's pipeline)","barge_in_rate_held_at":0.15,"points":[{"lead_cap_s":0.5,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":1.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":2.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":3.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.043375,"d7_waste_usd_mean_per_call":0.00028916666666666663,"d7_waste_usd_ci95":[0.0001621666666666667,0.0004306708333333333],"tts_spend_usd_total":0.9855999999999994,"waste_share_of_tts_spend":0.044008725649350676,"generated_chars_total":39424,"wasted_chars_total":1735,"wasted_char_share":0.04400872564935065,"mean_gen_rate_realtime_x":40.76529309445457,"mean_achieved_lead_s":3.775340282737814},{"lead_cap_s":4.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.046125,"d7_waste_usd_mean_per_call":0.0003075,"d7_waste_usd_ci95":[0.0001743291666666667,0.00045134166666666666],"tts_spend_usd_total":0.9883499999999994,"waste_share_of_tts_spend":0.0466686902413113,"generated_chars_total":39534,"wasted_chars_total":1845,"wasted_char_share":0.046668690241311275,"mean_gen_rate_realtime_x":40.7419443004339,"mean_achieved_lead_s":4.008468627409017}]},"granularity_sweep":{"parameter":"TTS chunk granularity -- the atomic cancellation unit (sentence = today's streaming default and D6/D7's proposed remedy; clause/word split finer). MEASURED at each granularity: every readback re-synthesizes through real Piper at that granularity (per-chunk chars/audio/wall), never modeled; barge-in rate held at the cited default, buffer lead held at the stated 2s, caller behavior shared across points via a common seed","barge_in_rate_held_at":0.15,"lead_cap_s_held_at":2.0,"points":[{"granularity":"sentence","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.04075,"d7_waste_usd_mean_per_call":0.0002716666666666667,"d7_waste_usd_ci95":[0.0001466666666666667,0.0004105124999999999],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041469495751284814,"generated_chars_total":39306,"wasted_chars_total":1630,"wasted_char_share":0.04146949575128479,"mean_gen_rate_realtime_x":41.02914261306263,"mean_achieved_lead_s":3.5386094321876618},{"granularity":"clause","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.021825,"d7_waste_usd_mean_per_call":0.0001455,"d7_waste_usd_ci95":[8.783333333333335e-05,0.0002065],"tts_spend_usd_total":0.9491750000000004,"waste_share_of_tts_spend":0.022993652382332017,"generated_chars_total":37967,"wasted_chars_total":873,"wasted_char_share":0.022993652382332024,"mean_gen_rate_realtime_x":34.74056867235993,"mean_achieved_lead_s":1.8383645198526009},{"granularity":"word","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.009725000000000003,"d7_waste_usd_mean_per_call":6.483333333333336e-05,"d7_waste_usd_ci95":[4.116666666666667e-05,8.917083333333328e-05],"tts_spend_usd_total":0.7944750000000006,"waste_share_of_tts_spend":0.012240787941722515,"generated_chars_total":31779,"wasted_chars_total":389,"wasted_char_share":0.01224078794172252,"mean_gen_rate_realtime_x":27.054788213816604,"mean_achieved_lead_s":1.9193544248224899}]},"floor_annotation":{"from":0.5,"to":2.0,"value":0.041138757441611995,"note":"waste is flat across these lead caps -- the measured synthesis-chunk floor (the in-flight chunk is atomic)"},"provenance":"Real Piper TTS generation-ahead behavior, measured on-device (per-chunk audio duration and wall-clock synthesis time); barge-in RATE modeled and swept over the cited range (turnstile_corpus.distributions.BARGE_IN_RATE, telli.com 2026, default 0.15); barge-in POSITION modeled as uniform over the utterance's audio (stated null model -- no citable position distribution); N controlled harness calls with a scripted confirmation-readback scenario -- NOT production traffic, not real-time conversation, no ASR/LLM.","report_source":"experiments/bargein_report.json, generated by packages/experiments/run_bargein_harness.py (real Piper TTS synthesis; barge-in rate and position modeled and swept). The dashboard renders this report; it computes no harness number."}
 </script>
-
 <script type="application/json" id="data-conditional">
 {"label":"Section-A re-pricing remedies \u2014 deterministic conditional savings","label_verbatim":"deterministic conditional saving \u2014 preservation unverified (Wave-2)","variants":{"context_window_8":{"detector":"D2 (context bloat) / D4 (turn inflation)","n":23,"delta_cost_mean":-1.3043478260869486e-05,"delta_cost_ci95":[-3.913043478260846e-05,0.0],"savings_usd":1.3043478260869486e-05,"savings_usd_ci95":[-0.0,3.913043478260846e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"context_summarize_2000":{"detector":"D4 (turn inflation)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"prefix_caching_on":{"detector":"D2 (context bloat)","n":23,"delta_cost_mean":-0.0006950543478260872,"delta_cost_ci95":[-0.001147698097826088,-0.0003404323369565221],"savings_usd":0.0006950543478260872,"savings_usd_ci95":[0.0003404323369565221,0.001147698097826088],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"tool_batching_on":{"detector":"D10 (tool thrash)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"escalation_threshold_0_85":{"detector":"D9 (escalation debt)","n":23,"delta_cost_mean":-0.0006244057971014492,"delta_cost_ci95":[-0.0018160362318840578,0.0],"savings_usd":0.0006244057971014492,"savings_usd_ci95":[-0.0,0.0018160362318840578],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"retrieval_threshold_0_8":{"detector":"D3 (redundant retrieval)","n":23,"delta_cost_mean":-1.3043478260869412e-05,"delta_cost_ci95":[-3.2608695652173565e-05,0.0],"savings_usd":1.3043478260869412e-05,"savings_usd_ci95":[-0.0,3.2608695652173565e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"}},"total_savings_usd":0.0013455471014492753,"n_fixtures":23,"_provenance":"DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (the 0.57% proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."}
 </script>
@@ -219,136 +582,434 @@ async function loadJSON(id, url) {
   }
 }
 
-const fmtUsd = (v) => "$" + Number(v.toFixed(6)).toString();
-const fmtPct = (v) => (v * 100).toFixed(1) + "%";
+/* ---------------------------- formatting --------------------------- */
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 }[c]));
+/* display-only punctuation pass: the pipeline's provenance strings arrive
+   verbatim; long dashes become colons so the page reads plainly */
+const norm = (s) => String(s).replace(/\s*—\s*/g, ": ");
+const fmtUsd = (v) => {
+  const s = Number(v).toFixed(8).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  return "$" + s;
+};
+const fmtPct = (v) => (v * 100).toFixed(1) + "%";
+/* compact money for CI bounds: "$0.00034" */
+const fmtC = (v) => {
+  const r = Math.round(v * 1e5) / 1e5;
+  return "$" + r.toFixed(5).replace(/0+$/, "").replace(/\.$/, "");
+};
 
 const STAGE_ORDER = ["asr", "llm", "tts", "telephony"];
 const STAGE_TITLE = { asr: "ASR", llm: "LLM", tts: "TTS", telephony: "Telephony" };
+const STAGE_COLORS = { asr: "var(--asr)", llm: "var(--llm)", tts: "var(--tts)", telephony: "var(--tel)" };
 
-/* ------------------------------------------------------------------ *
- * Tooltip
- * ------------------------------------------------------------------ */
+const CLASS_META = {
+  1:  { name: "Over-model",          hint: "a premium model doing a cheap task" },
+  2:  { name: "Context bloat",       hint: "context grows, every turn re-pays it" },
+  3:  { name: "Redundant retrieval", hint: "the same documents fetched again" },
+  4:  { name: "Turn inflation",      hint: "the call drags on well past typical" },
+  5:  { name: "Reprompt loop",       hint: "the agent asks for what it already got" },
+  6:  { name: "Dead tokens",         hint: "output generated but never spoken" },
+  7:  { name: "Barge-in waste",      hint: "TTS synthesized and billed, never heard" },
+  8:  { name: "Silence tax",         hint: "paying for the line while nothing is said" },
+  9:  { name: "Escalation debt",     hint: "escalation was predictable, arrived late" },
+  10: { name: "Tool thrash",         hint: "the same tool called again to no effect" },
+};
+
+const REMEDY_NAMES = {
+  context_window_8:          ["Context window → 8 turns",   "cap the rolling context at 8 turns"],
+  context_summarize_2000:    ["Context summarize → 2k",     "summarize stale context past 2k tokens"],
+  prefix_caching_on:         ["Prefix caching → on",        "stop re-paying identical prompt prefixes"],
+  tool_batching_on:          ["Tool batching → on",         "batch parallel tool calls into one turn"],
+  escalation_threshold_0_85: ["Escalation threshold → 0.85", "hand off earlier when confidence is low"],
+  retrieval_threshold_0_8:   ["Retrieval threshold → 0.80",  "skip marginal retrievals below 0.8"],
+};
+
+/* ---------------------------- tooltip ------------------------------ */
 const tip = document.getElementById("tooltip");
 function bindTooltip(el, rows) {
   el.addEventListener("mousemove", (e) => {
     tip.innerHTML = rows;
     tip.style.display = "block";
-    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 360) + "px";
+    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 400) + "px";
     tip.style.top = (e.clientY + 14) + "px";
   });
   el.addEventListener("mouseleave", () => { tip.style.display = "none"; });
 }
 const trow = (k, v) => '<div class="t-row"><span class="k">' + esc(k) + '</span><span>' + esc(v) + "</span></div>";
-const seg = (stage, weight, label, rows) => {
-  const el = document.createElement("div");
-  el.className = "seg stage-" + stage + " outline";
-  el.style.flex = weight + " 1 0px";
-  el.textContent = label;
-  bindTooltip(el, rows);
-  return el;
-};
+
+/* ------------------------- bar animation --------------------------- */
+function animateWidth(el) {
+  const w = el.dataset.w;
+  if (!w) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    el.style.width = w; return;
+  }
+  el.style.width = "0%";
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = w; }));
+}
+
+/* ------------------------- count-up numerals ----------------------- */
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  const dec = parseInt(el.dataset.dec || "2", 10);
+  const prefix = el.dataset.prefix || "";
+  const suffix = el.dataset.suffix || "";
+  const unit = el.querySelector(".unit");
+  const setVal = (v) => {
+    el.childNodes[0].nodeValue = prefix + v.toFixed(dec);
+  };
+  if (!isFinite(target) || reducedMotion()) { setVal(target); return; }
+  const t0 = performance.now(), dur = 1100;
+  const tick = (t) => {
+    const p = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    setVal(target * eased);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 
 /* ------------------------------------------------------------------ *
- * 0. The headline — measured barge-in waste (real-Piper harness).
+ * 01. Verdict index: one row per honesty tier.
+ * ------------------------------------------------------------------ */
+function renderVerdict(fleet, bargein, conditional) {
+  const h = bargein.headline;
+  const provenEl = document.getElementById("v-proven-num");
+  provenEl.dataset.count = fleet.recoverable_margin_pct.toFixed(2);
+  provenEl.dataset.dec = "2";
+  provenEl.dataset.suffix = "%";
+  provenEl.childNodes[0].nodeValue = "0";
+  document.getElementById("v-proven-sub").textContent =
+    "of fleet spend is recoverable by routing eligible decisions to a cheaper model. Replay proves the outcome is preserved.";
+
+  const measEl = document.getElementById("v-measured-num");
+  measEl.dataset.count = (h.waste_share_of_tts_spend * 100).toFixed(1);
+  measEl.dataset.dec = "1";
+  measEl.dataset.suffix = "%";
+  document.getElementById("v-measured-sub").textContent =
+    "of TTS spend is billed but never heard. Measured at a " + fmtPct(h.barge_in_rate) +
+    " barge-in rate and a " + bargein.lead_cap_s.toFixed(1) + "s buffer, across " + h.n_calls +
+    " controlled calls on real Piper synthesis.";
+
+  const condEl = document.getElementById("v-cond-num");
+  condEl.dataset.count = conditional_total(conditional);
+  condEl.dataset.dec = "5";
+  condEl.dataset.prefix = "$";
+  document.getElementById("v-cond-sub").textContent =
+    Object.keys(conditional.variants).length + " re-pricing remedies over the " +
+    conditional.n_fixtures + "-call fleet. " + norm(conditional.label_verbatim) + ".";
+}
+function conditional_total(c) { return c.total_savings_usd; }
+
+/* ------------------------------------------------------------------ *
+ * Masthead stats + chips
+ * ------------------------------------------------------------------ */
+function renderMasthead(fleet) {
+  document.getElementById("head-meta").innerHTML =
+    "<span><b>" + fleet.n_conversations + "</b> FIXTURES</span>" +
+    "<span><b>" + fleet.n_resolved + "</b> RESOLVED</span>";
+}
+
+/* ------------------------------------------------------------------ *
+ * 02. Where the money goes: stage anatomy + CPRC comparison.
+ * ------------------------------------------------------------------ */
+function renderFleet(f) {
+  document.getElementById("fleet-chip").innerHTML =
+    "n = " + f.n_conversations + " · " + f.n_resolved + " resolved · CPRC per PRD §4.3";
+
+  const stages = STAGE_ORDER.filter((st) => (f.stage_costs_usd[st] || 0) > 0);
+  const total = stages.reduce((a, st) => a + f.stage_costs_usd[st], 0);
+
+  const bar = document.getElementById("fleet-stagebar");
+  const legend = document.getElementById("fleet-legend");
+  const tiers = document.getElementById("fleet-tiers");
+  tiers.innerHTML = '<span class="item" style="color:var(--faint)">LLM: measured (token counts × rate card) · ASR / TTS / Telephony: modeled acoustics (Tier 2)</span>';
+  stages.forEach((st) => {
+    const c = f.stage_costs_usd[st];
+    const share = c / total;
+    const seg = document.createElement("div");
+    seg.className = "seg seg-" + st;
+    seg.dataset.w = (share * 100).toFixed(2) + "%";
+    if (share < 0.02) seg.classList.add("hide-label");
+    seg.textContent = STAGE_TITLE[st] + " " + (share < 0.02 ? "<2%" : fmtPct(share));
+    bindTooltip(seg,
+      '<div class="t-title">' + STAGE_TITLE[st] + ": " + fmtUsd(c) + "</div>" +
+      trow("share of fleet spend", fmtPct(share)) +
+      trow("tier", st === "llm" ? "measured: token counts × rate card" : "modeled acoustics"));
+    bar.appendChild(seg);
+    legend.insertAdjacentHTML("beforeend",
+      '<span class="item"><span class="dot" style="background:' + STAGE_COLORS[st] + '"></span>' +
+      STAGE_TITLE[st] + ' <b class="num">' + fmtC(c) + "</b> · " +
+      (share < 0.001 ? "&lt;0.1%" : fmtPct(share)) + "</span>");
+  });
+
+  const duo = document.getElementById("fleet-duo");
+  const row = (name, lab, v, w, color, note) => {
+    const el = document.createElement("div");
+    el.className = "row";
+    el.innerHTML =
+      '<span class="lab"><b>' + esc(name) + "</b>" + esc(lab) + "</span>" +
+      '<span class="track"><span class="fill" data-w="' + w + '%" style="background:' + color + '"></span></span>' +
+      '<span class="val num">' + fmtC(v) + "</span>";
+    bindTooltip(el, '<div class="t-title">' + esc(name) + "</div>" +
+      trow("per resolved call", fmtUsd(v)) + (note ? trow("note", note) : ""));
+    duo.appendChild(el);
+  };
+  row("CPRC naive", "the vendor quote: resolved calls only", f.cprc_naive,
+      (f.cprc_naive / f.cprc_loaded) * 100, "rgba(167,171,179,.55)", "the flattering number");
+  row("CPRC loaded", "the real margin: failures included", f.cprc_loaded, 100, "var(--accent)",
+      "every conversation ÷ resolved calls");
+  document.getElementById("fleet-note").innerHTML =
+    "Fleet total <span class='num' style='color:var(--ink)'>" + fmtC(f.total_cost_usd) +
+    "</span> across " + f.n_conversations + " conversations: resolved leg " + fmtC(f.resolved_cost_usd) + ".";
+
+  document.getElementById("fleet-prov").innerHTML =
+    '<div class="prov-line"><b>n = ' + f._provenance.n + "</b> · " + esc(norm(f._provenance.note)) + "</div>";
+}
+
+/* ------------------------------------------------------------------ *
+ * 03. Where the waste is: ranked class leaderboard with drill-down.
+ * ------------------------------------------------------------------ */
+function prettyVariant(pv) {
+  return Object.entries(pv || {})
+    .map(([k, v]) => {
+      const inner = (v && typeof v === "object")
+        ? Object.entries(v).map(([a, b]) => a + " → " + b).join(", ") : String(v);
+      return k + " → " + inner;
+    })
+    .join(" · ");
+}
+
+function renderFindings(findings) {
+  const byClass = new Map();
+  findings.forEach((f) => {
+    if (!byClass.has(f.class_id)) byClass.set(f.class_id, { total: 0, items: [] });
+    const g = byClass.get(f.class_id);
+    g.total += f.waste_usd;
+    g.items.push(f);
+  });
+  const rows = [...byClass.entries()]
+    .map(([cid, g]) => ({ cid, total: g.total, items: g.items.sort((a, b) => b.waste_usd - a.waste_usd) }))
+    .sort((a, b) => b.total - a.total);
+  const max = rows.length ? rows[0].total : 0;
+  const grand = findings.reduce((a, f) => a + f.waste_usd, 0);
+
+  document.getElementById("findings-total").textContent = fmtC(grand);
+  document.getElementById("findings-count").textContent =
+    "total detected waste: " + findings.length + " findings across " + rows.length + " classes";
+
+  const list = document.getElementById("findings-list");
+  rows.forEach((r, i) => {
+    const meta = CLASS_META[r.cid] || { name: "Class " + r.cid, hint: "" };
+    const det = document.createElement("details");
+    det.className = "wrow";
+    const trs = r.items.map((f) =>
+      "<tr>" +
+      '<td class="mono muted">' + esc(f.span_id) + "</td>" +
+      "<td>" + f.turn_index + "</td>" +
+      '<td class="num waste">' + fmtUsd(f.waste_usd) + "</td>" +
+      '<td class="num">' + fmtPct(f.confidence) + "</td>" +
+      '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
+      "</tr>");
+    det.innerHTML =
+      "<summary>" +
+      '<span class="rank">' + String(i + 1).padStart(2, "0") + "</span>" +
+      '<span class="wname"><span class="dchip">D' + r.cid + '</span><span class="wtext"><span class="t">' +
+      esc(meta.name) + '</span><span class="whint">' + esc(meta.hint) + "</span></span></span>" +
+      '<span class="track"><span class="fill" data-w="' + (max ? (r.total / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
+      '<span><span class="wval num" style="display:block;text-align:right">' + fmtC(r.total) + "</span>" +
+      '<span class="wcount">' + r.items.length + " finding" + (r.items.length > 1 ? "s" : "") + "</span></span>" +
+      '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>' +
+      "</summary>" +
+      '<div class="wdetail"><table><thead><tr><th>Span</th><th>Turn</th><th>Waste (USD)</th><th>Confidence</th><th>Proposed variant</th></tr></thead><tbody>' +
+      trs.join("") + "</tbody></table></div>";
+    list.appendChild(det);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * 04. The measured headline: barge-in waste + the measured remedy.
  *    Renders the harness report VERBATIM: no number is computed here.
  * ------------------------------------------------------------------ */
 function renderBargein(b) {
   const h = b.headline;
-  document.getElementById("bargein-headline").textContent =
-    fmtPct(h.waste_share_of_tts_spend) + " of TTS spend billed-but-never-heard";
-  document.getElementById("bargein-meta").innerHTML =
-    "<span>at barge-in rate <b>" + fmtPct(h.barge_in_rate) + "</b> (cited default)</span>" +
-    "<span>buffer lead <b>" + b.lead_cap_s.toFixed(1) + "s</b></span>" +
-    "<span>n = <b>" + b.n + "</b> harness calls</span>" +
-    "<span>$" + h.d7_waste_usd_mean_per_call.toFixed(5) + "/call, CI95 [$" +
-    h.d7_waste_usd_ci95[0].toFixed(5) + ", $" + h.d7_waste_usd_ci95[1].toFixed(5) + "]</span>";
+  const numEl = document.getElementById("bargein-headline");
+  numEl.dataset.count = (h.waste_share_of_tts_spend * 100).toFixed(1);
+  numEl.dataset.dec = "1";
+  document.getElementById("bargein-meta").textContent =
+    "Streaming TTS generates ~" + h.mean_gen_rate_realtime_x.toFixed(0) + "× realtime, so the whole readback exists " +
+    "before the caller has heard a quarter of it. When they barge in, that audio was still billed.";
+  document.getElementById("bargein-chips").innerHTML =
+    '<span class="stat-chip">barge-in rate <b>' + fmtPct(h.barge_in_rate) + "</b> · cited default</span>" +
+    '<span class="stat-chip">buffer lead <b>' + b.lead_cap_s.toFixed(1) + "s</b></span>" +
+    '<span class="stat-chip">n = <b>' + h.n_calls + "</b> calls</span>" +
+    '<span class="stat-chip">waste <b class="num">' + fmtUsd(h.d7_waste_usd_mean_per_call) + "</b>/call · CI95 [" +
+    fmtC(h.d7_waste_usd_ci95[0]) + ", " + fmtC(h.d7_waste_usd_ci95[1]) + "]</span>";
+
+  const pts = b.granularity_sweep.points;
+  const maxShare = Math.max(...pts.map((p) => p.waste_share_of_tts_spend));
+  const chart = document.getElementById("remedy-chart");
+  pts.forEach((p, i) => {
+    const share = p.waste_share_of_tts_spend;
+    const row = document.createElement("div");
+    row.className = "remedy-row";
+    row.innerHTML =
+      '<span class="rlab">' + esc(p.granularity) +
+      (i === 0 ? '<div class="today-note" style="color:var(--warn)">today</div>' : "") + "</span>" +
+      '<span class="track"><span class="fill ' + (i === 0 ? "rfill-tts" : "rfill-fix") +
+      '" data-w="' + (maxShare ? (share / maxShare * 100) : 0) + '%"></span></span>' +
+      '<span class="rflag num" style="color:' + (i === 0 ? "var(--warn)" : "var(--llm)") + '">' + fmtPct(share) + "</span>";
+    bindTooltip(row,
+      '<div class="t-title">Chunking: ' + esc(p.granularity) + "</div>" +
+      trow("waste share of TTS spend", fmtPct(share)) +
+      trow("D7 $ total", fmtUsd(p.d7_waste_usd_total)) +
+      trow("gen rate", p.mean_gen_rate_realtime_x.toFixed(1) + "× realtime") +
+      trow("note", "re-synthesized through real Piper at this granularity"));
+    chart.appendChild(row);
+  });
 
   const tables = document.getElementById("bargein-tables");
   const table = (title, headers, rows, note) => {
     const wrap = document.createElement("div");
-    wrap.style.marginTop = "12px";
-    let html = "<div class='k' style='margin-bottom:6px'>" + esc(title) + "</div>" +
-      "<table style='width:100%'><thead><tr>" +
-      headers.map((x) => "<th>" + esc(x) + "</th>").join("") +
-      "</tr></thead><tbody>";
-    rows.forEach((cells) => {
-      html += "<tr>" + cells.map((c) => "<td>" + c + "</td>").join("") + "</tr>";
-    });
-    html += "</tbody></table>" + (note ? "<div class='muted' style='margin-top:4px'>" + note + "</div>" : "");
+    let html = '<div class="t-title">' + esc(title) + "</div>" +
+      "<table><thead><tr>" + headers.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead><tbody>";
+    rows.forEach((cells) => { html += "<tr>" + cells.map((c) => "<td>" + c + "</td>").join("") + "</tr>"; });
+    html += "</tbody></table>" + (note ? '<div class="t-note">' + note + "</div>" : "");
     wrap.innerHTML = html;
     tables.appendChild(wrap);
   };
   const share = (p) => "<b>" + fmtPct(p.waste_share_of_tts_spend) + "</b>";
-  const usd = (p) => "$" + p.d7_waste_usd_total.toFixed(4);
-  const ci = (p) => "[$" + p.d7_waste_usd_ci95[0].toFixed(5) + ", $" + p.d7_waste_usd_ci95[1].toFixed(5) + "]";
+  const usd = (p) => fmtUsd(p.d7_waste_usd_total);
+  const ci = (p) => "[" + fmtUsd(p.d7_waste_usd_ci95[0]) + ", " + fmtUsd(p.d7_waste_usd_ci95[1]) + "]";
 
   table(
-    "barge-in rate sweep (modeled input, swept — buffer held at " + b.lead_cap_s.toFixed(1) + "s)",
-    ["barge-in rate", "calls", "barge-ins", "D7 $", "%TTS spend", "CI95 $/call"],
+    "Barge-in rate sweep (modeled input, swept: buffer held at " + b.lead_cap_s.toFixed(1) + "s)",
+    ["barge-in rate", "calls", "barge-ins", "D7 $", "% of TTS spend", "CI95 $/call"],
     b.rate_sweep.map((p) => [fmtPct(p.barge_in_rate), p.n_calls, p.barge_in_calls, usd(p), share(p), ci(p)])
   );
   const fl = b.floor_annotation;
   table(
-    "buffer-lead policy sweep (stated plausible band — rate held at the cited default)",
-    ["lead_cap_s", "calls", "barge-ins", "D7 $", "%TTS spend", "CI95 $/call"],
+    "Buffer-lead policy sweep (stated plausible band: rate held at the cited default)",
+    ["lead cap", "calls", "barge-ins", "D7 $", "% of TTS spend", "CI95 $/call"],
     b.lead_cap_sweep.points.map((p) => [p.lead_cap_s.toFixed(1) + "s", p.n_calls, p.barge_in_calls, usd(p), share(p), ci(p)]),
-    fl ? "floor — " + esc(fl.note) + ": flat at " + fmtPct(fl.value) + " from " +
-      fl.from.toFixed(1) + "s to " + fl.to.toFixed(1) + "s" : ""
-  );
-  table(
-    "chunk-granularity sweep (D6/D7's remedy — each point re-synthesizes through real Piper at that granularity: MEASURED, rate held at the cited default, lead held at " + b.lead_cap_s.toFixed(1) + "s)",
-    ["granularity", "calls", "barge-ins", "D7 $", "%TTS spend", "CI95 $/call"],
-    b.granularity_sweep.points.map((p) => [esc(p.granularity), p.n_calls, p.barge_in_calls, usd(p), share(p), ci(p)])
+    fl ? "floor: " + esc(norm(fl.note)) + ": flat at " + fmtPct(fl.value) + " from " + fl.from.toFixed(1) + "s to " + fl.to.toFixed(1) + "s" : ""
   );
 
   document.getElementById("bargein-provenance").innerHTML =
-    "provenance — " + esc(b.provenance) +
-    "<br>source — " + esc(b.report_source);
+    '<div class="prov-line"><b>provenance</b>: ' + esc(norm(b.provenance)) + "</div>" +
+    '<div class="prov-line"><b>source</b>: ' + esc(norm(b.report_source)) + "</div>";
 }
 
 /* ------------------------------------------------------------------ *
- * 1. Hero — cost flame graph: conversation -> turns -> stages -> spans
+ * 05. Conditional remedies: deterministic re-pricing, clearly labeled.
+ * ------------------------------------------------------------------ */
+function renderConditional(c) {
+  const host = document.getElementById("conditional-rows");
+  const entries = Object.entries(c.variants).sort((a, b) => b[1].savings_usd - a[1].savings_usd);
+  const max = Math.max(...entries.map(([, v]) => v.savings_usd));
+  entries.forEach(([name, v]) => {
+    const pretty = REMEDY_NAMES[name] || [name, ""];
+    const zero = v.savings_usd <= 0;
+    const row = document.createElement("div");
+    row.className = "crow" + (zero ? " zero" : "");
+    row.innerHTML =
+      '<span class="cname"><b>' + esc(pretty[0]) + "</b><small>" + esc(pretty[1]) + "</small></span>" +
+      '<span class="cdet">' + esc(v.detector) + "</span>" +
+      '<span class="track"><span class="fill" data-w="' + (max > 0 && !zero ? (v.savings_usd / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
+      '<span class="cval num">' + (zero ? "no measured effect" : fmtC(v.savings_usd)) +
+      (zero ? "" : "<small>CI95 [" + fmtC(v.savings_usd_ci95[0]) + ", " + fmtC(v.savings_usd_ci95[1]) + "]</small>") + "</span>" +
+      '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
+    host.appendChild(row);
+  });
+  document.getElementById("conditional-total").textContent = fmtC(c.total_savings_usd);
+  document.getElementById("conditional-sub").textContent =
+    "Total conditional savings over " + c.n_fixtures + " fixtures. " + norm(c.label_verbatim) +
+    ". Never added to the proven margin.";
+  document.getElementById("conditional-provenance").innerHTML =
+    '<div class="prov-line">' + esc(norm(c._provenance)) + "</div>";
+}
+
+/* ------------------------------------------------------------------ *
+ * 06. Replay-evidence panel: a stat line, provenance in a drawer.
+ * ------------------------------------------------------------------ */
+function renderReplay(experiments) {
+  const grid = document.getElementById("replay-grid");
+  experiments.forEach((e, i) => {
+    const ci = e.delta_cost_ci95 || [];
+    const wilson = e.outcome_preservation_ci95
+      ? fmtPct(e.outcome_preservation_ci95[0]) + "–" + fmtPct(e.outcome_preservation_ci95[1])
+      : "not present in sample";
+    const cell = (k, v, sub) =>
+      '<div class="cell"><div class="k">' + k + '</div><div class="v num">' + v +
+      (sub ? "<small>" + sub + "</small>" : "") + "</div></div>";
+    const card = document.createElement("div");
+    card.innerHTML =
+      '<div class="block-label" style="margin-bottom:14px">' + esc(e.label || ("experiment " + (i + 1))) +
+      ' · n = ' + e.n + "</div>" +
+      '<div class="rp">' +
+      cell("Outcome preservation", fmtPct(e.outcome_preservation_rate)) +
+      cell("Wilson interval", wilson) +
+      cell("Δcost mean", fmtUsd(e.delta_cost_mean)) +
+      cell("Δcost CI95", ci.length ? fmtC(ci[0]) + " … " + fmtC(ci[1]) : "·") +
+      cell("Latency p50", e.delta_latency_p50 + " ms") +
+      cell("Latency p95", e.delta_latency_p95 + " ms") +
+      "</div>" +
+      '<div class="rp-note">divergent exemplars: <span class="mono">' +
+      esc((e.divergent_exemplars || []).join(", ") || "none") + "</span></div>" +
+      '<details class="drawer"><summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>provenance</summary>' +
+      '<div class="body">' + esc(norm(e._provenance || "")) + "</div></details>";
+    grid.appendChild(card);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * 07. Explore one call: cost flame graph (progressive disclosure).
  * ------------------------------------------------------------------ */
 function renderFlame(pt) {
   const trace = pt.trace, conv = pt.conv_cost, spanCosts = pt.span_costs;
+  document.getElementById("hero-chip").innerHTML =
+    esc(trace.conversation.scenario_id) + " · " + trace.turns.length + " TURNS · " + fmtUsd(conv);
+  document.getElementById("hero-total").innerHTML =
+    "One call: <span style='color:var(--ink);font:400 26px/1 var(--serif)'>" +
+    fmtUsd(conv) + "</span> end to end · " + esc(trace.conversation.scenario_id) +
+    " · end_reason " + esc(trace.conversation.end_reason);
 
-  document.getElementById("hero-total").textContent = fmtUsd(conv);
-  const meta = document.getElementById("hero-meta");
-  meta.innerHTML =
-    "<span>conversation <b class='mono'>" + esc(trace.conversation.conversation_id) + "</b></span>" +
-    "<span>scenario <b>" + esc(trace.conversation.scenario_id) + "</b></span>" +
-    "<span>agent <b class='mono'>" + esc(trace.conversation.agent_version) + "</b></span>" +
-    "<span>end_reason <b>" + esc(trace.conversation.end_reason) + "</b></span>" +
-    "<span>turns <b>" + trace.turns.length + "</b></span>";
+  const legend = document.getElementById("hero-legend");
+  STAGE_ORDER.filter((st) => (pt.stage_costs[st] || 0) > 0).forEach((st) => {
+    const c = pt.stage_costs[st] || 0;
+    const item = document.createElement("span");
+    item.className = "item";
+    item.innerHTML = '<span class="dot" style="background:' + STAGE_COLORS[st] + '"></span>' +
+      '<span><b style="color:var(--ink);font-family:var(--mono);font-size:12px;font-weight:500">' +
+      STAGE_TITLE[st] + "</b> · " + fmtUsd(c) +
+      '<br><span class="faint" style="font-size:10.5px">' +
+      (st === "llm" ? "TIER 1: measured (token counts × rate card)" : "TIER 2: modeled acoustics") +
+      "</span></span>";
+    legend.appendChild(item);
+  });
 
-  // per turn: spans grouped by stage + telephony residual (turn cost is
-  // pre-computed; the residual is its attributed telephony slice)
   const turns = trace.turns.map((t, i) => {
     const stages = { asr: [], llm: [], tts: [] };
     for (const st of ["asr", "llm", "tts"]) {
-      for (const s of (t[st] || [])) {
-        stages[st].push({ ...s, cost: spanCosts[s.span_id] || 0 });
-      }
+      for (const s of (t[st] || [])) stages[st].push({ ...s, cost: spanCosts[s.span_id] || 0 });
     }
     const spanSum = ["asr", "llm", "tts"].reduce((a, st) => a + stages[st].reduce((b, s) => b + s.cost, 0), 0);
     const telephony = Math.max(0, pt.turn_costs[i] - spanSum);
-    return { idx: t.turn_index, speaker: t.speaker_first,
-             wallMs: t.wall_end_ms - t.wall_start_ms, cost: pt.turn_costs[i],
-             stages, telephony };
+    return { idx: t.turn_index, speaker: t.speaker_first, wallMs: t.wall_end_ms - t.wall_start_ms,
+             cost: pt.turn_costs[i], stages, telephony };
   });
 
   const flame = document.getElementById("flame");
   flame.innerHTML = "";
 
-  // level 1: conversation
   const convRow = document.createElement("div"); convRow.className = "row";
   const convBar = document.createElement("div"); convBar.className = "conv-bar";
-  convBar.textContent = "conversation · " + trace.conversation.scenario_id + " · " + fmtUsd(conv);
+  convBar.innerHTML = "conversation · " + esc(trace.conversation.scenario_id) + " · <b>" + fmtUsd(conv) + "</b>";
   bindTooltip(convBar,
-    '<div class="t-title">Conversation — ' + esc(trace.conversation.conversation_id) + "</div>" +
+    '<div class="t-title">Conversation: ' + esc(trace.conversation.conversation_id) + "</div>" +
     trow("scenario_id", trace.conversation.scenario_id) +
     trow("conv_cost", fmtUsd(conv)) +
     trow("turns", trace.turns.length) +
@@ -356,40 +1017,32 @@ function renderFlame(pt) {
   convRow.appendChild(convBar);
   flame.appendChild(convRow);
 
-  // level 2-4: turns -> stages -> spans
   const grid = document.createElement("div"); grid.className = "turn-grid";
   for (const turn of turns) {
     const cell = document.createElement("div"); cell.className = "turn-cell";
-    cell.style.flex = turn.cost + " 1 0px";
+    cell.style.flex = (turn.cost / conv).toFixed(4) + " 1 0px";
     if (turn.cost <= 0) cell.style.display = "none";
-
     const turnBar = document.createElement("div"); turnBar.className = "turn-bar";
-    turnBar.textContent = "T" + turn.idx + " · " + fmtUsd(turn.cost);
+    turnBar.textContent = "T" + turn.idx + " · " + fmtC(turn.cost);
     bindTooltip(turnBar,
-      '<div class="t-title">Turn ' + turn.idx + " — " + fmtUsd(turn.cost) + "</div>" +
+      '<div class="t-title">Turn ' + turn.idx + ": " + fmtUsd(turn.cost) + "</div>" +
       trow("speaker_first", turn.speaker) +
       trow("wall duration", turn.wallMs + " ms") +
       trow("turn_cost", fmtUsd(turn.cost)));
-
-    // level 3: stages (asr / llm / tts / telephony)
     const stageBar = document.createElement("div"); stageBar.className = "stage-bar";
     for (const st of STAGE_ORDER) {
-      let cost;
-      if (st === "telephony") cost = turn.telephony;
-      else cost = turn.stages[st].reduce((a, s) => a + s.cost, 0);
+      const cost = st === "telephony" ? turn.telephony : turn.stages[st].reduce((a, s) => a + s.cost, 0);
       if (cost <= 0) continue;
-      stageBar.appendChild(seg(st, cost, STAGE_TITLE[st] + " " + fmtUsd(cost),
-        '<div class="t-title">' + STAGE_TITLE[st] + " — " + fmtUsd(cost) + "</div>" +
+      stageBar.appendChild(seg2(st, cost, turn.cost, STAGE_TITLE[st] + " " + fmtC(cost),
+        '<div class="t-title">' + STAGE_TITLE[st] + ": " + fmtUsd(cost) + "</div>" +
         trow("stage", st) +
-        trow("share of conv", (cost / conv * 100).toFixed(1) + "%")));
+        trow("share of call", (cost / conv * 100).toFixed(1) + "%")));
     }
-
-    // level 4: spans (each priced span; telephony residual keeps alignment)
     const spanBar = document.createElement("div"); spanBar.className = "span-bar";
     for (const st of ["asr", "llm", "tts"]) {
       for (const s of turn.stages[st]) {
         const detail = s.gen_ai_system + (s.gen_ai_request_model ? "/" + s.gen_ai_request_model : "");
-        spanBar.appendChild(seg(st, s.cost, s.span_id + " " + fmtUsd(s.cost),
+        spanBar.appendChild(seg2(st, s.cost, turn.cost, s.span_id + " " + fmtC(s.cost),
           '<div class="t-title">' + esc(s.span_id) + " · " + STAGE_TITLE[st] + " · " + fmtUsd(s.cost) + "</div>" +
           trow("model", detail) +
           trow("span cost", fmtUsd(s.cost)) +
@@ -399,139 +1052,58 @@ function renderFlame(pt) {
       }
     }
     if (turn.telephony > 0) {
-      spanBar.appendChild(seg("telephony", turn.telephony, "tel " + fmtUsd(turn.telephony),
-        '<div class="t-title">Telephony (attributed) — ' + fmtUsd(turn.telephony) + "</div>" +
+      spanBar.appendChild(seg2("telephony", turn.telephony, turn.cost, "tel " + fmtC(turn.telephony),
+        '<div class="t-title">Telephony (attributed): ' + fmtUsd(turn.telephony) + "</div>" +
         trow("stage", "telephony") +
-        trow("share of conv", (turn.telephony / conv * 100).toFixed(1) + "%") +
+        trow("share of call", (turn.telephony / conv * 100).toFixed(1) + "%") +
         trow("note", "leg cost split across turns pro-rata by wall time")));
     }
-
     cell.appendChild(turnBar); cell.appendChild(stageBar); cell.appendChild(spanBar);
     grid.appendChild(cell);
   }
   flame.appendChild(grid);
 
-  // hide cramped labels; keep them hoverable
-  requestAnimationFrame(() => {
-    flame.querySelectorAll(".seg").forEach((el) => {
-      if (el.offsetWidth < 46) el.classList.add("hide-label");
-    });
-  });
-
-  // decomposition check against the pre-computed stage_costs
   const stageSum = STAGE_ORDER.reduce((a, st) => a + (pt.stage_costs[st] || 0), 0);
   const ok = Math.abs(stageSum - conv) < 1e-9;
   document.getElementById("flame-check").innerHTML =
-    "decomposition check — <b>" + (ok ? "✓" : "✗") + "</b> " +
-    "stage_costs sum = " + fmtUsd(stageSum) + " = conv_cost = " + fmtUsd(conv) +
-    " · " + STAGE_ORDER.map((st) => STAGE_TITLE[st] + " " + fmtUsd(pt.stage_costs[st] || 0)).join(" · ");
-
+    "decomposition check " + (ok ? "holds" : "FAILS") + ": stage_costs sum " + fmtUsd(stageSum) +
+    " = conv_cost " + fmtUsd(conv);
   const prov = pt._provenance;
-  document.getElementById("hero-provenance").innerHTML = prov
-    ? "provenance — " + esc(prov.note)
-    : "";
+  document.getElementById("hero-provenance").innerHTML = prov ? esc(norm(prov.note)) : "";
 }
 
-/* ------------------------------------------------------------------ *
- * 2. Fleet view — CPRC_loaded vs CPRC_naive (lead with loaded)
- * ------------------------------------------------------------------ */
-function renderFleet(f) {
-  const grid = document.getElementById("fleet-grid");
-  const card = (loaded, k, v, d) => {
-    const el = document.createElement("div");
-    el.className = "metric" + (loaded ? " loaded" : "");
-    el.innerHTML = '<div class="k">' + k + '</div><div class="v">' + v + '</div><div class="d">' + d + "</div>";
-    return el;
-  };
-  grid.appendChild(card(true, "CPRC loaded", fmtUsd(f.cprc_loaded),
-    "all " + f.n_conversations + " conversations ÷ " + f.n_resolved + " resolved — the real margin number"));
-  grid.appendChild(card(false, "CPRC naive", fmtUsd(f.cprc_naive),
-    "only resolved conversations ÷ " + f.n_resolved + " resolved — most vendors quote this"));
-  grid.appendChild(card(false, "Total fleet cost", fmtUsd(f.total_cost_usd),
-    "resolved leg " + fmtUsd(f.resolved_cost_usd)));
-  grid.appendChild(card(false, "Recoverable margin", f.recoverable_margin_pct.toFixed(2) + "%",
-    "proven_savings ÷ CPRC_loaded (PRD Sec.4.3)"));
-
-  const prov = f._provenance;
-  document.getElementById("fleet-provenance").innerHTML = prov
-    ? "provenance — n=" + prov.n + " · " + esc(prov.note)
-    : "";
+/* flame segment: colored, tooltip, cramped labels hidden */
+function seg2(stage, weight, weightBase, label, rows) {
+  const el = document.createElement("div");
+  el.className = "seg2 seg-" + stage;
+  el.style.flex = (weight / weightBase).toFixed(4) + " 1 0px";
+  el.textContent = label;
+  bindTooltip(el, rows);
+  return el;
 }
 
-/* ------------------------------------------------------------------ *
- * 3. Ranked recoverable-margin table (sorted by waste_usd desc)
- * ------------------------------------------------------------------ */
-function renderFindings(findings) {
-  const sorted = findings.slice().sort((a, b) => b.waste_usd - a.waste_usd);
-  const body = document.querySelector("#findings-table tbody");
-  sorted.forEach((f, rank) => {
-    const tr = document.createElement("tr");
-    const variant = Object.entries(f.proposed_variant || {})
-      .map(([k, v]) => k + ": " + JSON.stringify(v)).join(", ");
-    tr.innerHTML =
-      "<td class='muted'>" + (rank + 1) + "</td>" +
-      "<td><span class='badge'>" + f.class_id + "</span></td>" +
-      "<td class='mono'>" + esc(f.span_id) + "</td>" +
-      "<td>" + f.turn_index + "</td>" +
-      "<td class='money waste'><span class='badge waste'>" + fmtUsd(f.waste_usd) + "</span></td>" +
-      "<td>" + fmtPct(f.confidence) + "</td>" +
-      "<td class='mono muted'>" + esc(variant || "—") + "</td>";
-    body.appendChild(tr);
+/* hide cramped flame + stagebar labels once visible */
+function tidyLabels() {
+  document.querySelectorAll("#flame .seg2, #fleet-stagebar .seg").forEach((el) => {
+    el.classList.toggle("hide-label", el.offsetWidth < 44);
   });
 }
 
 /* ------------------------------------------------------------------ *
- * 4. Replay-evidence panel
+ * Footer: every panel's provenance, verbatim, one deliberate click away.
  * ------------------------------------------------------------------ */
-function renderReplay(experiments) {
-  const grid = document.getElementById("replay-grid");
-  experiments.forEach((e, i) => {
-    const card = document.createElement("div"); card.className = "exp";
-    const ci = e.delta_cost_ci95 || [];
-    const wilson = (e.outcome_preservation_ci95) ? fmtPct(e.outcome_preservation_ci95[0]) + "–" + fmtPct(e.outcome_preservation_ci95[1]) : "not present in sample";
-    const stat = (k, v) => '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>";
-    const del = (v) => '<span class="' + (v < 0 ? "pos" : "neg") + '">' + v + " ms</span>";
-    card.innerHTML =
-      '<div class="head"><span class="muted">' + esc(e.label || ("experiment " + (i + 1))) + "</span>" +
-      "<span>n = <b>" + e.n + "</b></span></div>" +
-      '<div class="stats">' +
-      stat("Outcome preservation", fmtPct(e.outcome_preservation_rate)) +
-      stat("Wilson interval", wilson) +
-      stat("Delta cost mean", '<span class="pos">' + fmtUsd(e.delta_cost_mean) + "</span>") +
-      stat("Delta cost CI95", ci.length ? fmtUsd(ci[0]) + " … " + fmtUsd(ci[1]) : "—") +
-      stat("Latency p50", del(e.delta_latency_p50)) +
-      stat("Latency p95", del(e.delta_latency_p95)) +
-      "</div>" +
-      '<div class="divergents">divergent exemplars (' + (e.divergent_exemplars || []).length + '): ' +
-      '<span class="list mono">' + esc((e.divergent_exemplars || []).join(", ") || "none") + "</span></div>" +
-      (e._provenance ? '<div class="divergents">provenance — ' + esc(e._provenance) + "</div>" : "");
-    grid.appendChild(card);
-  });
-}
-
-/* ------------------------------------------------------------------ *
- * 5. Conditional savings — the Section-A re-pricing bucket. Numbers come
- *    from run_repricing_matrix verbatim; the label is carried verbatim.
- *    Rendered separately from the gated recoverable margin on purpose.
- * ------------------------------------------------------------------ */
-function renderConditional(c) {
-  const body = document.querySelector("#conditional-table tbody");
-  Object.entries(c.variants).forEach(([name, v]) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td class='mono'>" + esc(name) + "</td>" +
-      "<td class='muted'>" + esc(v.detector) + "</td>" +
-      "<td>" + v.n + "</td>" +
-      "<td>" + fmtUsd(v.delta_cost_mean) + "</td>" +
-      "<td class='money'><span class='badge'>" + fmtUsd(v.savings_usd) + "</span></td>" +
-      "<td class='muted'>[$" + v.savings_usd_ci95[0].toFixed(5) + ", $" + v.savings_usd_ci95[1].toFixed(5) + "]</td>";
-    body.appendChild(tr);
-  });
-  document.getElementById("conditional-total").innerHTML =
-    "total conditional savings: <b>" + fmtUsd(c.total_savings_usd) + "</b> over " +
-    c.n_fixtures + " fixtures — <b>" + esc(c.label_verbatim) + "</b>";
-  document.getElementById("conditional-provenance").innerHTML =
-    "provenance — " + esc(c._provenance);
+function renderProvenance(priced, fleet, bargein, experiments, conditional) {
+  const lines = [
+    ["Fleet view (CPRC)", fleet._provenance.note],
+    ["Priced trace (flame graph)", priced._provenance.note],
+    ["Barge-in headline", bargein.provenance + " " + bargein.report_source],
+    ["Replay evidence", experiments[0] && experiments[0]._provenance ? experiments[0]._provenance : ""],
+    ["Conditional savings", conditional._provenance],
+  ];
+  document.getElementById("prov-list").innerHTML = lines
+    .filter(([, t]) => t)
+    .map(([k, t]) => '<div class="prov-line"><b>' + esc(k) + "</b>: " + esc(norm(t)) + "</div>")
+    .join("");
 }
 
 /* ------------------------------------------------------------------ *
@@ -547,15 +1119,43 @@ function renderConditional(c) {
       loadJSON("data-experiments", "sample/experiments.sample.json"),
       loadJSON("data-conditional", "sample/conditional.sample.json"),
     ]);
-    renderBargein(bargein);
-    renderFlame(priced);
+
+    renderMasthead(fleet);
+    renderVerdict(fleet, bargein, conditional);
     renderFleet(fleet);
     renderFindings(findings);
-    renderReplay(experiments);
+    renderBargein(bargein);
     renderConditional(conditional);
+    renderReplay(experiments);
+    renderFlame(priced);
+    renderProvenance(priced, fleet, bargein, experiments, conditional);
+
+    document.querySelectorAll(".fill[data-w], .seg[data-w]").forEach(animateWidth);
+    document.querySelectorAll("[data-count]").forEach(countUp);
+
+    const heroDetails = document.getElementById("hero-details");
+    heroDetails.addEventListener("toggle", () => {
+      if (heroDetails.open) requestAnimationFrame(tidyLabels);
+    });
+    if (heroDetails.open) requestAnimationFrame(tidyLabels);
+
+    /* print: expand every drawer so the PDF leave-behind is complete */
+    const printState = [];
+    window.addEventListener("beforeprint", () => {
+      document.querySelectorAll("details").forEach((d) => {
+        printState.push(d.open);
+        d.open = true;
+      });
+      requestAnimationFrame(tidyLabels);
+    });
+    window.addEventListener("afterprint", () => {
+      document.querySelectorAll("details").forEach((d, i) => { d.open = printState[i] || false; });
+    });
   } catch (err) {
     document.querySelector("main").innerHTML =
-      '<div class="card">Failed to load sample data: ' + esc(err.message) + "</div>";
+      '<section style="border-top:1px solid var(--line-2);padding-top:30px">' +
+      '<h2 style="font:400 30px/1.1 var(--serif);margin:0">Failed to load sample data</h2>' +
+      '<p class="muted" style="margin-top:10px">' + esc(err.message) + "</p></section>";
   }
 })();
 </script>

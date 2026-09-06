@@ -8,6 +8,12 @@
   "cprc_loaded": 0.01339622619047619,
   "cprc_naive": 0.00882384523809524,
   "recoverable_margin_pct": 1.3225473058777217,
+  "stage_costs_usd": {
+    "asr": 8.6e-05,
+    "llm": 0.03359449999999999,
+    "tts": 0.08275000000000003,
+    "telephony": 0.07111666666666668
+  },
   "_provenance": {
     "n": 23,
     "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."

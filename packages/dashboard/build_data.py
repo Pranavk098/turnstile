@@ -156,11 +156,14 @@ def build_fleet(rates, baselines, experiment_result: dict) -> dict:
     resolved_cost_usd = 0.0
     n_resolved = 0
     n_conversations = 0
+    stage_totals: dict[str, float] = {}
 
     for path in _golden_fixtures():
         priced, verdict = _priced_and_verdict(path, rates)
         n_conversations += 1
         total_cost_usd += priced.conv_cost
+        for stage, cost in priced.stage_costs.items():
+            stage_totals[stage] = stage_totals.get(stage, 0.0) + cost
         if verdict.label.value == "RESOLVED":
             resolved_cost_usd += priced.conv_cost
             n_resolved += 1
@@ -196,6 +199,7 @@ def build_fleet(rates, baselines, experiment_result: dict) -> dict:
         "cprc_loaded": cprc_loaded,
         "cprc_naive": cprc_naive,
         "recoverable_margin_pct": recoverable_margin_pct,
+        "stage_costs_usd": stage_totals,
         "_provenance": {"n": n_conversations, "note": PROVENANCE_NOTE},
     }
 
