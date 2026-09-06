@@ -5,15 +5,20 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `2d8bbb9` · 147 commits ·
-**795 passed / 4 skipped**, `ruff check packages/` clean. Branches CONSOLIDATED:
-the Wave-2 stack (Item 1 = route/compose parser + elicitation contract + reasoning/
-truncation capture) and the preservation recorder-wiring are merged in; only doc-only
-`opencode/perf-audit` remains stray. **Wave-2 Item 2 (per-kind decision-equality gate)
-is briefed + owner-GO'd** in `docs/superpowers/briefs/glm-wave2-structured-divergence.md`
-— delegated, awaiting the executor. Measured fact: full-text difflib divergence gate
-nulls on the real backend (paid n=250: 217/217 divergent, margin 0.00%); Item 2 replaces
-it with label comparison for bounded kinds (slot_fill unchanged). Wave-3 core COMPLETE:
+**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `9d43afd` · 149 commits ·
+**807 passed / 4 skipped**, `ruff check packages/` clean. **Wave-2 Item 2 MERGED**
+(kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
+(`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
+diverge iff the replayed parsed label ≠ original label (unparseable = divergent, never
+folded); `slot_fill` keeps the content/`_similarity` path (W3-C probes classify
+identically — break stays not-preserved & non-divergent, re-verified). `parse_decision_chosen`
+relocated to `turnstile_replay/decisions.py` (single source; `openai_backend` re-imports).
+Free mock regression reproduces the pinned headline (seed 0 = 0.57%, seed 8 = 0.55%,
+0 divergent). Wave-2 Item 1 + recorder wiring also consolidated. **NEXT (owner-gated
+paid):** the ≤5-call re-probe → n=30/seed 8 pilot → n=250/seed 8 — the first real test
+of whether the label gate turns the paid null into signal; compare paid vs the seed-8
+mock (0.55%), not the headline. Only doc-only `opencode/perf-audit` remains stray.
+Wave-3 core COMPLETE:
 W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
 with honest D6/D7/D8 absence) merged; all three recoverable-margin gates converged on
 the canonical `ci_upper < 0`. W3-C preservation-measurement **scaffolding** merged
