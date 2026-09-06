@@ -76,6 +76,14 @@ CONTINUE_CONTAINMENT_MARKERS = (
     "one moment", "let me check",
 )
 
+# Wave-2 Item 1b: kinds whose bounded label vocabulary is elicited verbatim
+# in the replay prompt (the span's own decision_candidates supply the labels).
+# slot_fill is deliberately absent (single-label, verdict-content-sensitive).
+ELICITED_KINDS = frozenset({
+    DecisionKind.route, DecisionKind.compose,
+    DecisionKind.tool_select, DecisionKind.escalate_check,
+})
+
 
 def parse_decision_chosen(
     decision_kind: DecisionKind, text: str, candidates: list[str]
@@ -95,15 +103,22 @@ def parse_decision_chosen(
       candidates are the valid tool names, e.g. ``retrieve_kb_article``).
       When NO candidate is contained, the raw text passes through -- a tool
       choice is never fabricated.
-    * every other kind -> documented passthrough (the raw text): Wave-1 has
-      no per-kind schema for route/compose/slot_fill decisions.
+    * ``route`` / ``compose`` -> same longest-contained-candidate rule over
+      the span's own ``decision_candidates`` (Wave-2 Item 1a; e.g. route
+      ``[scenario_id, "other"]``, compose singletons like ``["close_call"]``).
+      Underscored labels never occur in natural prose, so an unelicited reply
+      passes through -- the elicitation line is load-bearing, and the parser
+      abstains rather than guessing.
+    * ``slot_fill`` and every other kind -> documented passthrough (the raw
+      text): single-label ``["request_slot"]`` carries no discriminating
+      signal (Wave-2 Item 2 must treat it at value level or exclude it).
     """
     low = text.lower()
     if decision_kind is DecisionKind.escalate_check:
         if any(marker in low for marker in ESCALATE_CONTAINMENT_MARKERS):
             return "escalate"
         return "continue"
-    if decision_kind is DecisionKind.tool_select:
+    if decision_kind in (DecisionKind.tool_select, DecisionKind.route, DecisionKind.compose):
         matches = [c for c in candidates if c.lower() in low]
         if matches:
             return max(matches, key=len)
@@ -122,12 +137,28 @@ def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[d
     utterance the decision being replayed responds to (PRD Sec.8.1 pins the
     caller side of every turn, so deciding given it is faithful, not
     leakage)."""
+    system = (
+        f"You are the voice agent for scenario '{context.scenario_id}'. "
+        f"Make the '{original_span.decision_kind.value}' decision for this turn."
+    )
+    # Wave-2 Item 1b elicitation contract: bounded multi-label kinds ask for
+    # the verbatim label inside a natural reply (parseable, verdict content
+    # reads intact). slot_fill is EXCLUDED -- single-label ["request_slot"]
+    # plus verdict-content sensitivity: eliciting it would fake the verdict
+    # signal, so it keeps the bare prompt until Item 2 treats it at value
+    # level or excludes it explicitly.
+    if (
+        original_span.decision_kind in ELICITED_KINDS
+        and original_span.decision_candidates
+    ):
+        labels = ", ".join(original_span.decision_candidates)
+        system += (
+            " Reply naturally, but include exactly one of these decision "
+            f"labels verbatim in your reply: {labels}."
+        )
     messages: list[dict[str, str]] = [{
         "role": "system",
-        "content": (
-            f"You are the voice agent for scenario '{context.scenario_id}'. "
-            f"Make the '{original_span.decision_kind.value}' decision for this turn."
-        ),
+        "content": system,
     }]
     for turn in context.turns_before:
         for asr in turn.asr:

@@ -10,7 +10,7 @@ from turnstile_schema import VariantSpec
 from turnstile_schema.enums import DecisionKind
 from turnstile_replay.backend import ReplayContext
 
-from turnstile_experiments.openai_backend import OpenAIBackend
+from turnstile_experiments.openai_backend import OpenAIBackend, _render_messages
 
 from _experiments_builders import asr, llm, turn
 
@@ -410,6 +410,166 @@ def test_tool_select_with_no_contained_candidate_passes_through(monkeypatch):
     decision = backend(ctx, span, VariantSpec())
     # A tool choice is never fabricated: no candidate contained -> raw passthrough.
     assert decision.decision_chosen == "I would check the shipping database."
+
+
+# --------------------------------------------------------------------------- #
+# Wave-2 Item 1a: M-2 parsing extends to route/compose (longest contained     #
+# candidate, mirroring tool_select). Labels carry underscores, so natural     #
+# prose without the verbatim label passes through -- the elicitation line     #
+# (Item 1b) is load-bearing, not an optimization.                             #
+# --------------------------------------------------------------------------- #
+
+def test_route_parsed_to_contained_candidate(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    text = "Routing this to billing_dispute for handling."
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.route, decision_chosen="billing_dispute",
+            model="gpt-5"),
+        ["billing_dispute", "other"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.output_text == text
+    assert decision.decision_chosen == "billing_dispute"
+
+
+def test_route_longest_candidate_wins(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    text = "Checking your order_status, among other things."
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.route, decision_chosen="order_status",
+            model="gpt-5"),
+        ["order_status", "other"],  # both contained; longest is the route
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.decision_chosen == "order_status"
+
+
+def test_route_with_no_contained_candidate_passes_through(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    text = "Let me look into that for you."
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.route, decision_chosen="refund",
+            model="gpt-5"),
+        ["refund", "other"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    # A route is never fabricated: no candidate contained -> raw passthrough.
+    assert decision.decision_chosen == text
+
+
+def test_compose_parsed_to_contained_candidate(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    text = "Done -- close_call, you're all set."
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.compose, decision_chosen="close_call",
+            model="gpt-5"),
+        ["close_call"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.output_text == text
+    assert decision.decision_chosen == "close_call"
+
+
+def test_compose_natural_prose_without_verbatim_label_passes_through(monkeypatch):
+    """Underscored labels never appear in natural prose ("close this call" has
+    no "close_call") -- without the elicitation line the parser abstains."""
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    text = "I'll close this call now, thanks for calling."
+    fake_client = _FakeClient(_FakeResponse(text, 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.compose, decision_chosen="close_call",
+            model="gpt-5"),
+        ["close_call"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.decision_chosen == text
+
+
+def test_escalate_check_resolve_maps_to_continue(monkeypatch):
+    """Terminal-handoff spans carry candidates ["resolve", "escalate"]: a bare
+    "resolve" reply hits no escalation marker, so the stated conservative
+    default applies (resolve ~= handle without escalation ~= continue)."""
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("resolve", 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.escalate_check, model="gpt-5"),
+        ["resolve", "escalate"],
+    )
+
+    decision = backend(ctx, span, VariantSpec())
+
+    assert decision.decision_chosen == "continue"
+
+
+# --------------------------------------------------------------------------- #
+# Wave-2 Item 1b: per-kind elicitation prompt contract. Bounded multi-label   #
+# kinds carry "include exactly one of these labels verbatim" so a real model  #
+# emits parseable text while replying naturally (verdict content reads stay   #
+# intact). slot_fill is EXCLUDED: single-label and content-sensitive, needing #
+# value-level treatment in Item 2 -- eliciting would fake its verdict signal. #
+# --------------------------------------------------------------------------- #
+
+def _system_text(span) -> str:
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    return _render_messages(ctx, span)[0]["content"]
+
+
+@pytest.mark.parametrize("kind, candidates", [
+    (DecisionKind.route, ["billing_dispute", "other"]),
+    (DecisionKind.compose, ["close_call"]),
+    (DecisionKind.tool_select, ["lookup_account"]),
+    (DecisionKind.escalate_check, ["continue", "escalate"]),
+])
+def test_elicitation_line_present_for_bounded_kinds(kind, candidates):
+    span = _with_candidates(llm("l1", decision_kind=kind, model="gpt-5"), candidates)
+    system = _system_text(span)
+    assert "exactly one of" in system
+    for label in candidates:
+        assert label in system
+
+
+def test_elicitation_absent_for_slot_fill():
+    span = _with_candidates(
+        llm("l1", decision_kind=DecisionKind.slot_fill, model="gpt-5"), ["request_slot"])
+    assert "exactly one of" not in _system_text(span)
 
 
 # --------------------------------------------------------------------------- #
