@@ -60,6 +60,19 @@ a { color: inherit; text-decoration: none; }
 .mast-top .meta span { font: 400 11px/1 var(--mono); letter-spacing: .1em; color: var(--faint); text-transform: uppercase; }
 .mast-top .meta b { color: var(--muted); font-weight: 500; }
 
+/* dataset switch (W3 Item 5): golden fixtures vs ingested report. Reuses the
+   chip vocabulary; labels are filled from the data (no hardcoded numbers). */
+#source-switch { display: flex; align-items: center; gap: 10px; padding: 6px 0 2px; flex-wrap: wrap; }
+#source-switch[hidden] { display: none; }
+.src-btn {
+  font: 500 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 1px solid var(--line-2);
+  border-radius: 999px; padding: 7px 13px; cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.src-btn:hover { color: var(--ink); border-color: var(--accent); }
+.src-btn[aria-pressed="true"] { color: var(--save); border-color: rgba(62, 207, 142, .45); }
+
 /* ============ section chrome ============ */
 section { border-top: 1px solid var(--line-2); padding: 26px 0 36px; }
 .sec-head { display: grid; grid-template-columns: 64px 1fr auto; gap: 18px; align-items: baseline;
@@ -201,6 +214,15 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 #calls-body td.id a:hover { color: var(--accent); border-color: var(--accent); }
 #calls-body td.id a[aria-current="true"] { color: var(--accent); border-color: var(--accent); }
 /* degenerate rows: "checked, it is zero" -- muted italic, never blank */
+/* honest-absence rows (W3 Item 5): a class with no data -- muted italic, no
+   bar and no $0, never zero-filled. Reuses the degenerate-row vocabulary. */
+.absent-row {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 13px 4px; border-top: 1px solid var(--line);
+  font-size: 12.5px; color: var(--muted);
+}
+.absent-row:last-of-type { border-bottom: 1px solid var(--line); }
+.absent-row .aname { font: 400 15.5px/1.3 var(--serif); color: var(--muted); }
 .zero-note { color: var(--faint); font-style: italic; }
 
 /* measured headline */
@@ -379,6 +401,15 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
     </div>
   </header>
 
+  <!-- W3 Item 5 dataset switch: golden fixtures vs the wired ingest report.
+       Hidden until the manifest declares an ingest report_path; button labels
+       are filled from the data (no hardcoded numbers). -->
+  <div id="source-switch" hidden>
+    <span class="kicker">Dataset</span>
+    <button class="src-btn" type="button" data-source="golden" aria-pressed="true"></button>
+    <button class="src-btn" type="button" data-source="ingest" aria-pressed="false"></button>
+  </div>
+
   <main>
     <!-- ============ 01 the verdict ============ -->
     <section id="answer" aria-label="The verdict">
@@ -460,6 +491,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         <span class="sub" id="findings-count"></span>
       </div>
       <div id="findings-list"></div>
+      <div class="t-note" id="findings-coverage"></div>
       <details class="drawer">
         <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>Method &amp; provenance</summary>
         <div class="body" id="findings-prov"></div>
@@ -563,6 +595,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
           </div>
           <div class="t-title">Findings on this call</div>
           <div class="tscroll"><div id="hero-findings"></div></div>
+          <div class="t-note" id="hero-coverage"></div>
         </div>
       </details>
     </section>
@@ -705,9 +738,11 @@ function countUp(el) {
 }
 
 /* ------------------------------------------------------------------ *
- * 01. Verdict index: one row per honesty tier.
+ * 01. Verdict index: one row per honesty tier. The proven row is stamped
+ * with its dataset (per-dataset margin rule): `stamp` is {n, name} built
+ * from the data, e.g. {n: 7, name: "ingest calls"} -- never hardcoded.
  * ------------------------------------------------------------------ */
-function renderVerdict(fleet, bargein, conditional) {
+function renderVerdict(fleet, bargein, conditional, stamp) {
   const h = bargein.headline;
   const provenEl = document.getElementById("v-proven-num");
   provenEl.dataset.count = fleet.recoverable_margin_pct.toFixed(2);
@@ -715,7 +750,8 @@ function renderVerdict(fleet, bargein, conditional) {
   provenEl.dataset.suffix = "%";
   provenEl.childNodes[0].nodeValue = "0";
   document.getElementById("v-proven-sub").textContent =
-    "of fleet spend is recoverable by routing eligible decisions to a cheaper model. Replay proves the outcome is preserved.";
+    "of fleet spend is recoverable by routing eligible decisions to a cheaper model. Replay proves the outcome is preserved." +
+    (stamp ? " Over these " + stamp.n + " " + stamp.name + "." : "");
 
   const measEl = document.getElementById("v-measured-num");
   measEl.dataset.count = (h.waste_share_of_tts_spend * 100).toFixed(1);
@@ -737,20 +773,23 @@ function renderVerdict(fleet, bargein, conditional) {
 function conditional_total(c) { return c.total_savings_usd; }
 
 /* ------------------------------------------------------------------ *
- * Masthead stats + chips
+ * Masthead stats + chips. `unit` names the dataset (built from the data).
  * ------------------------------------------------------------------ */
-function renderMasthead(fleet) {
+function renderMasthead(fleet, unit) {
   document.getElementById("head-meta").innerHTML =
-    "<span><b>" + fleet.n_conversations + "</b> FIXTURES</span>" +
+    "<span><b>" + fleet.n_conversations + "</b> " + esc(unit || "FIXTURES") + "</span>" +
     "<span><b>" + fleet.n_resolved + "</b> RESOLVED</span>";
 }
 
 /* ------------------------------------------------------------------ *
- * 02. Where the money goes: stage anatomy + CPRC comparison.
+ * 02. Where the money goes: stage anatomy + CPRC comparison. Clears its
+ * containers first (the dataset switch re-renders in place); `datasetName`
+ * stamps the chip with which fleet this anatomy belongs to.
  * ------------------------------------------------------------------ */
-function renderFleet(f) {
+function renderFleet(f, datasetName) {
   document.getElementById("fleet-chip").innerHTML =
-    "n = " + f.n_conversations + " · " + f.n_resolved + " resolved · CPRC per PRD §4.3";
+    "n = " + f.n_conversations + " · " + f.n_resolved + " resolved" +
+    (datasetName ? " · " + esc(datasetName) : "") + " · CPRC per PRD §4.3";
 
   const stages = STAGE_ORDER.filter((st) => (f.stage_costs_usd[st] || 0) > 0);
   const total = stages.reduce((a, st) => a + f.stage_costs_usd[st], 0);
@@ -758,6 +797,8 @@ function renderFleet(f) {
   const bar = document.getElementById("fleet-stagebar");
   const legend = document.getElementById("fleet-legend");
   const tiers = document.getElementById("fleet-tiers");
+  bar.innerHTML = "";
+  legend.innerHTML = "";
   tiers.innerHTML = '<span class="item" style="color:var(--faint)">LLM: measured (token counts × rate card) · ASR / TTS / Telephony: modeled acoustics (Tier 2)</span>';
   stages.forEach((st) => {
     const c = f.stage_costs_usd[st];
@@ -779,6 +820,7 @@ function renderFleet(f) {
   });
 
   const duo = document.getElementById("fleet-duo");
+  duo.innerHTML = "";
   const row = (name, lab, v, w, color, note) => {
     const el = document.createElement("div");
     el.className = "row";
@@ -804,7 +846,21 @@ function renderFleet(f) {
 
 /* ------------------------------------------------------------------ *
  * 03. Where the waste is: ranked class leaderboard with drill-down.
+ * Honest absence (W3 Item 5): `coverage` is the ingest report's
+ * coverage_summary (null for golden, which has no absent classes).
+ * Present-class findings render as before; absent classes render as muted
+ * ABSENT rows -- never a $0 bar or a zero finding -- plus a small strip
+ * stating which classes had data.
  * ------------------------------------------------------------------ */
+function coverageSplit(coverage) {
+  const present = [], absent = [];
+  for (let c = 1; c <= 10; c++) {
+    if ((coverage.calls_with_data_per_class[String(c)] || 0) > 0) present.push(c);
+    else absent.push(c);
+  }
+  return { present, absent };
+}
+function classList(ids) { return ids.map((c) => "D" + c).join(", "); }
 function prettyVariant(pv) {
   return Object.entries(pv || {})
     .map(([k, v]) => {
@@ -815,7 +871,7 @@ function prettyVariant(pv) {
     .join(" · ");
 }
 
-function renderFindings(findings) {
+function renderFindings(findings, coverage, stamp) {
   const byClass = new Map();
   findings.forEach((f) => {
     if (!byClass.has(f.class_id)) byClass.set(f.class_id, { total: 0, items: [] });
@@ -831,9 +887,13 @@ function renderFindings(findings) {
 
   document.getElementById("findings-total").textContent = fmtC(grand);
   document.getElementById("findings-count").textContent =
-    "total detected waste: " + findings.length + " findings across " + rows.length + " classes";
+    "total detected waste: " + findings.length + " findings across " + rows.length + " classes" +
+    (stamp ? " · over these " + stamp.n + " " + stamp.name : "");
 
   const list = document.getElementById("findings-list");
+  list.innerHTML = "";
+  const strip = document.getElementById("findings-coverage");
+  strip.innerHTML = "";
   rows.forEach((r, i) => {
     const meta = CLASS_META[r.cid] || { name: "Class " + r.cid, hint: "" };
     const det = document.createElement("details");
@@ -860,6 +920,27 @@ function renderFindings(findings) {
       trs.join("") + "</tbody></table></div>";
     list.appendChild(det);
   });
+
+  if (coverage) {
+    const { present, absent } = coverageSplit(coverage);
+    const scope = stamp ? "these " + stamp.n + " " + stamp.name : "this fleet";
+    strip.textContent =
+      "Coverage on " + scope + ": " + classList(present) + " measured" +
+      (absent.length ? " · " + classList(absent) + " absent — no data for this input" : "") + ".";
+    absent.forEach((cid) => {
+      const meta = CLASS_META[cid] || { name: "Class " + cid, hint: "" };
+      const row = document.createElement("div");
+      row.className = "absent-row";
+      row.innerHTML =
+        '<span class="dchip">D' + cid + '</span><span class="aname">' + esc(meta.name) + "</span>" +
+        '<span class="zero-note">absent — no data for this input</span>';
+      bindTooltip(row,
+        '<div class="t-title">D' + cid + " " + esc(meta.name) + ": absent</div>" +
+        trow("status", "no data for this input -- not zero waste") +
+        (meta.hint ? trow("class", meta.hint) : ""));
+      list.appendChild(row);
+    });
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -1144,6 +1225,7 @@ function renderCallsList(calls) {
   document.getElementById("calls-chip").textContent =
     calls.n + " calls · " + calls.source + " · click a call to drill down";
   const body = document.getElementById("calls-body");
+  body.innerHTML = "";
   rows.forEach((c) => {
     const tr = document.createElement("tr");
     tr.dataset.call = c.id;
@@ -1161,7 +1243,28 @@ function renderCallsList(calls) {
   });
   document.getElementById("calls-note").textContent =
     "Costs, verdicts, and top waste computed by the real pipeline over " +
-    calls.n + " " + calls.source + " calls (sample/calls.json).";
+    calls.n + " " + calls.source + " calls (" +
+    (calls.source === "ingest" ? "sample/ingest.json" : "sample/calls.json") + ").";
+}
+
+/* Per-call coverage strip (W3 Item 5): the detail's _provenance.coverage
+ * marks each class present/absent. Absent classes are named with their
+ * reason -- never a $0 row. Golden details carry no coverage (all classes
+ * measured there), so the strip stays empty for them. */
+function renderHeroCoverage(call) {
+  const host = document.getElementById("hero-coverage");
+  const coverage = call._provenance && call._provenance.coverage;
+  if (!coverage) { host.innerHTML = ""; return null; }
+  const present = [], absent = [];
+  for (let c = 1; c <= 10; c++) {
+    const e = coverage[String(c)];
+    if (e && e.status === "present") present.push(c);
+    else if (e) absent.push(c);
+  }
+  host.textContent =
+    "Coverage on this call: " + classList(present) + " measured" +
+    (absent.length ? " · " + classList(absent) + " absent — no data for this input" : "") + ".";
+  return { present, absent };
 }
 
 function renderCallMeta(call) {
@@ -1171,8 +1274,13 @@ function renderCallMeta(call) {
     "</span> <span class='faint mono' style='font-size:11px'>· end_reason " +
     esc(call.trace.conversation.end_reason) + " · " + call.trace.turns.length + " turns</span>";
   const host = document.getElementById("hero-findings");
+  const cov = renderHeroCoverage(call);
   if (!call.findings.length) {
-    host.innerHTML = '<span class="zero-note">no waste detected on this call — every detector came back clean.</span>';
+    host.innerHTML = cov
+      ? '<span class="zero-note">no waste detected among measured classes (' +
+        classList(cov.present) + ") — " + classList(cov.absent) +
+        " absent — no data for this input.</span>"
+      : '<span class="zero-note">no waste detected on this call — every detector came back clean.</span>';
     return;
   }
   const rows = [...call.findings].sort((a, b) => b.waste_usd - a.waste_usd).map((f) =>
@@ -1228,13 +1336,17 @@ async function routeCall(calls, focus) {
 /* Item 5 hook: the W3-A turnstile_ingest report plugs in here. Absent
  * (report_path null or fetch fails) the dashboard honestly says so and
  * renders the golden-fleet data; present, its label + provenance render
- * verbatim. Only the documented envelope keys are read. */
-function renderIngestNote(manifest, report) {
+ * verbatim and the dataset switch above selects which fleet the
+ * dataset-dependent panels (verdict, fleet, findings, calls, drill-down)
+ * show. Only the documented envelope keys are read. */
+function renderIngestNote(manifest, report, activeKey) {
   const hook = manifest.ingest || {};
   const host = document.getElementById("ingest-note");
   if (report && report.label) {
+    const viewing = activeKey === "ingest" ? "ingest calls" : "golden fixtures";
     host.innerHTML = "Ingested fleet: <span style='color:var(--ink)'>" + esc(report.label) +
-      "</span> · n = " + esc(report.n) +
+      "</span> · n = " + esc(report.n) + " · viewing: <b>" + esc(viewing) +
+      "</b> (switch datasets above)" +
       (report.note ? " · " + esc(norm(report.note)) : "") +
       (report.provenance ? "<br><span class='faint'>" + esc(norm(report.provenance)) + "</span>" : "");
   } else {
@@ -1263,6 +1375,47 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
 }
 
 /* ------------------------------------------------------------------ *
+ * W3 Item 5 datasets: golden fixtures (default) vs the wired ingest
+ * report. Barge-in / conditional / replay stay golden-only mechanism demos;
+ * verdict, masthead, fleet, findings, calls, drill-down, and the fleet
+ * provenance line follow the selected dataset. Nothing is recomputed here:
+ * every number renders from the fetched JSON.
+ * ------------------------------------------------------------------ */
+function ingestHeroId(report) {
+  let best = null;
+  for (const r of report.calls) {
+    const w = r.top_waste && r.top_waste.waste_usd;
+    if (w != null && (!best || w > (best.top_waste.waste_usd || 0))) best = r;
+  }
+  return (best || report.calls[0]).id;
+}
+
+const DATASETS = {};
+let currentSource = "golden";
+
+function syncSwitch() {
+  document.querySelectorAll("#source-switch .src-btn").forEach((btn) => {
+    btn.setAttribute("aria-pressed", btn.dataset.source === currentSource ? "true" : "false");
+  });
+}
+
+async function renderDataset(key) {
+  const d = DATASETS[key];
+  renderMasthead(d.fleet, d.unit);
+  renderVerdict(d.fleet, DATASETS.golden.bargein, DATASETS.golden.conditional, d.stamp);
+  renderFleet(d.fleet, d.datasetName);
+  renderFindings(d.findings, d.coverage, d.stamp);
+  renderCallsList(d.calls);
+  renderIngestNote(DATASETS.manifest, DATASETS.ingestReport, key);
+  renderProvenance(DATASETS.golden.priced, d.fleet, DATASETS.golden.bargein,
+    DATASETS.golden.experiments, DATASETS.golden.conditional);
+  await routeCall(d.calls, false);
+  document.querySelectorAll("#fleet-stagebar .seg[data-w], #findings-list .fill[data-w]").forEach(animateWidth);
+  const provenEl = document.getElementById("v-proven-num");
+  if (provenEl && provenEl.dataset.count) countUp(provenEl);
+}
+
+/* ------------------------------------------------------------------ *
  * Boot
  * ------------------------------------------------------------------ */
 (async function main() {
@@ -1280,23 +1433,79 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
       ingestPath ? loadOptional(ingestPath) : null,
     ]);
 
-    renderMasthead(fleet);
-    renderVerdict(fleet, bargein, conditional);
-    renderFleet(fleet);
-    renderFindings(findings);
+    DATASETS.golden = {
+      fleet, findings, bargein, priced, experiments, conditional,
+      calls,
+      coverage: null,
+      unit: "FIXTURES",
+      datasetName: "golden fixtures",
+      stamp: { n: fleet.n_conversations, name: "golden-fixture calls" },
+    };
+    DATASETS.manifest = manifest;
+    DATASETS.ingestReport = ingestReport;
+    if (ingestReport && ingestReport.calls && ingestReport.fleet) {
+      DATASETS.ingest = {
+        fleet: ingestReport.fleet,
+        findings: ingestReport.findings || [],
+        calls: {
+          label: ingestReport.label,
+          source: "ingest",
+          n: ingestReport.n,
+          hero: ingestHeroId(ingestReport),
+          calls: ingestReport.calls,
+        },
+        coverage: ingestReport.coverage_summary || null,
+        unit: "INGEST CALLS",
+        datasetName: "ingested sample",
+        stamp: { n: ingestReport.n, name: "ingest calls" },
+      };
+      const sw = document.getElementById("source-switch");
+      sw.hidden = false;
+      const buttons = sw.querySelectorAll(".src-btn");
+      buttons[0].textContent = "Golden fixtures · n = " + calls.n;
+      buttons[1].textContent = "Ingested sample · n = " + ingestReport.n;
+      buttons.forEach((btn) => btn.addEventListener("click", async () => {
+        const key = btn.dataset.source;
+        if (key === currentSource || !DATASETS[key]) return;
+        currentSource = key;
+        syncSwitch();
+        try {
+          await renderDataset(key);
+          history.replaceState(null, "", "#/call/" + DATASETS[key].calls.hero);
+        } catch (err) {
+          document.getElementById("hero-verdict").textContent =
+            "Could not load that dataset: " + err.message;
+        }
+      }));
+    }
+    syncSwitch();
+
     renderBargein(bargein);
     renderConditional(conditional);
     renderReplay(experiments);
-    renderCallsList(calls);
-    renderIngestNote(manifest, ingestReport);
-    renderProvenance(priced, fleet, bargein, experiments, conditional);
+    await renderDataset(currentSource);
+    // Deep link into the other dataset: a #/call/<id> naming an ingest call
+    // while viewing golden (or vice versa) follows the id across datasets.
+    const m0 = location.hash.match(/^#\/call\/([\w-]+)$/);
+    if (m0) {
+      for (const key of ["golden", "ingest"]) {
+        if (DATASETS[key] && DATASETS[key].calls.calls.some((c) => c.id === m0[1]) && key !== currentSource) {
+          currentSource = key;
+          syncSwitch();
+          await renderDataset(key);
+          break;
+        }
+      }
+    }
+    if (/^#\/call\//.test(location.hash)) {
+      await routeCall(DATASETS[currentSource].calls, true);
+    }
     window.addEventListener("hashchange", () => {
-      routeCall(calls, true).catch((err) => {
+      routeCall(DATASETS[currentSource].calls, true).catch((err) => {
         document.getElementById("hero-verdict").textContent =
           "Could not load that call: " + err.message;
       });
     });
-    await routeCall(calls, /^#\/call\//.test(location.hash));
 
     document.querySelectorAll(".fill[data-w], .seg[data-w]").forEach(animateWidth);
     document.querySelectorAll("[data-count]").forEach(countUp);

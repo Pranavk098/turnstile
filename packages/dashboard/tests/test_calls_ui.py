@@ -71,10 +71,12 @@ def test_call_navigation_is_keyboard_accessible():
     assert r"/^#\/call\/" in html
 
 
-def test_ingest_hook_renders_golden_data_until_w3a_lands():
+def test_ingest_hook_degrades_honestly_when_report_absent():
     html = _html()
     # The dashboard reads the manifest, attempts the hooked report path only
-    # when declared, and says plainly which source the list shows.
+    # when declared, and says plainly which source the list shows. The wired
+    # path (status available + dataset switch) is pinned in test_ingest_wire.py;
+    # this pins the honest fallback that survives for a missing artifact.
     assert 'loadJSON("sample/manifest.json")' in html
     assert "loadOptional(ingestPath)" in html
     assert 'id="ingest-note"' in html
