@@ -16,6 +16,6 @@
   },
   "_provenance": {
     "n": 23,
-    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."
+    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. Recoverable margin is a PER-DATASET figure (it depends on the fleet), always deterministic rate arbitrage and needing no live calls: THIS panel's number is over these 23 golden fixtures; the reproducible reference is 0.57% over the 250-trace corpus. A live backend adds only real latency/throughput, not the margin."
   }
 }

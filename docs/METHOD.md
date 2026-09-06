@@ -35,6 +35,13 @@ It is a **small, honest** number: only the `route` decision is replay-executable
 today (see LIMITATIONS.md), and a route decision is a small slice of call cost.
 That is the figure we stand behind.
 
+**Recoverable margin is per-dataset, not a universal claim.** It is "the
+recoverable margin on *this* fleet," so it differs by population: 0.57% over this
+250-trace corpus, ~1.3% over the 23 golden fixtures (the dashboard fleet), ~2.7%
+over the realistic ingest sample. Each is correct on its data; every surface
+labels its number with `(n, dataset)`. On a real customer's traffic it is whatever
+their traffic is — that is the point.
+
 **Real-path facts we did verify with paid calls** (smoke #3, n=30, ~$0.12 total
 across debugging iterations): gpt-5-nano at `reasoning_effort="minimal"` returns
 non-empty decisions at **~2s/call** and **~125 completion tokens**; a k=8

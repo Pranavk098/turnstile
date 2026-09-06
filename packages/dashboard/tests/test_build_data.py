@@ -174,7 +174,9 @@ def test_conditional_panel_carries_the_label_verbatim_and_stays_separate():
     # Textually separate from the gated proven margin: the panel carries no
     # recoverable-margin field, and its provenance forbids the mixing.
     assert "recoverable_margin" not in json.dumps(panel)
-    assert "0.57" in panel["_provenance"] and "NEVER" in panel["_provenance"]
+    # Forbids mixing with the gated proven margin (per-dataset framing — no
+    # hardcoded cross-dataset number; see the margin-reconciliation decision).
+    assert "NEVER" in panel["_provenance"] and "gated recoverable margin" in panel["_provenance"]
     assert "H-1" in panel["_provenance"]
 
 

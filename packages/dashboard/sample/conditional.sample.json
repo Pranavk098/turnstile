@@ -95,5 +95,5 @@
   },
   "total_savings_usd": 0.0013455471014492753,
   "n_fixtures": 23,
-  "_provenance": "DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (the 0.57% proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."
+  "_provenance": "DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (this fleet's proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."
 }

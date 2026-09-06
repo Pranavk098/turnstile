@@ -63,6 +63,16 @@ zero-delta paid no-op). Sets: `VARIANTS` (backend-executable), `REPRICING_VARIAN
 - **R10 rate-key convention** — documented in `pricing/rates.yaml`.
 - **Recoverable Margin** = Σ proven_savings / Σ total_cost × 100, §8.3-gated,
   reported as `[CI_lo, CI_hi]` + point + absolutes — `turnstile-prd.md` §4.3 errata.
+- **Recoverable margin is a PER-DATASET figure, never a single product claim**
+  (2026-09 reconciliation). It is "the recoverable margin ON THIS fleet," and it
+  differs by population: **0.57%** over the 250-trace synthetic corpus (the
+  reproducible reference, README/METHOD), **1.32%** over the 23 golden fixtures
+  (the dashboard fleet), **2.69%** over the 7-call ingest sample — each correct on
+  its data. Rule: **every surface stamps its margin with (n, dataset), and no text
+  cites a different dataset's number than the one it displays.** The demo headline
+  is the number for the data being shown; ultimately "your margin on your calls."
+  The §8.3 gate itself lives once in `turnstile_experiments.recoverable_margin`;
+  the dashboard/ingest re-derivations should converge on it (Task-2 consolidation).
 
 ## Where truth lives (stop re-deriving)
 | Question | Authoritative source |
