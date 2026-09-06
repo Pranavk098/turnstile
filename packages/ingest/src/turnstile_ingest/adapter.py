@@ -240,6 +240,7 @@ def load(obj: dict[str, Any] | IngestCall, rates: RateTable | None = None) -> Tr
         return Trace.model_validate(_trace_dict(call, table))
     except ValidationError as exc:
         raise IngestError(
-            f"ingest call {call.id!r} maps to an invalid Trace "
-            f"(adapter bug, not input) -- {_format_pydantic_error(exc)}"
+            f"ingest call {call.id!r} is inconsistent -- "
+            f"it maps to an invalid Trace: {_format_pydantic_error(exc)} "
+            "(check kind/effect consistency on tools)"
         ) from exc
