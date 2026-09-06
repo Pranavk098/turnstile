@@ -1,0 +1,19 @@
+[project]
+name = "turnstile-ingest"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = ["turnstile-schema", "turnstile-pricing", "turnstile-verdict", "turnstile-detectors", "turnstile-replay", "pydantic>=2.6", "pyyaml>=6.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/turnstile_ingest"]
+
+[tool.uv.sources]
+turnstile-schema = { workspace = true }
+turnstile-pricing = { workspace = true }
+turnstile-verdict = { workspace = true }
+turnstile-detectors = { workspace = true }
+turnstile-replay = { workspace = true }
