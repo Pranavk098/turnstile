@@ -468,6 +468,7 @@ def test_cap_warning_reports_finish_reason_and_reasoning_split(monkeypatch, caps
     assert "truncation" in err
     assert "finish_reason=length" in err
     assert "reasoning_tokens=240" in err
+    assert "conv=c1" in err
 
 
 def test_missing_details_block_degrades_to_zero_reasoning(monkeypatch):

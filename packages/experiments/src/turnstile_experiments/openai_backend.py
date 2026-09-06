@@ -221,15 +221,20 @@ class OpenAIBackend:
         if usage.completion_tokens >= self._max_completion_tokens:
             # M-3: a reply this long likely hit the cap and was truncated --
             # log it so the trial can be audited rather than silently biased.
-            print(
+            # Under the lock (same one guarding the progress counter): concurrent
+            # worker threads sharing one stderr handle garbled these lines on the
+            # n=250 paid re-run (reasoning/content tail lost in transport), and
+            # the conversation id makes a truncated trial traceable.
+            warning = (
                 f"[OpenAIBackend] WARNING: completion reached max_tokens "
                 f"cap ({usage.completion_tokens} >= {self._max_completion_tokens}); "
-                f"model={model} finish_reason={finish_reason} "
+                f"model={model} conv={context.conversation_id} "
+                f"finish_reason={finish_reason} "
                 f"reasoning_tokens={reasoning_tokens} content_chars={len(text)} "
-                f"-- possible truncation",
-                file=sys.stderr,
-                flush=True,
+                f"-- possible truncation"
             )
+            with self._calls_lock:
+                print(warning, file=sys.stderr, flush=True)
 
         # M-2 / Section B4: `decision_chosen` is parsed per decision_kind
         # (escalate_check -> escalate/continue containment; tool_select -> the
