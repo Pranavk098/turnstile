@@ -98,6 +98,26 @@ class PreservationBackend:
         )
 
 
+class _RecordingBackend:
+    """Wrap any DecisionBackend and capture the ACTUAL replayed output_text
+    per conversation, so the report's similarity / new_label reflect the real
+    decision -- authored OR model -- never a static assumption. Essential once
+    the real OpenAIBackend replies with text the harness did not author (under
+    the authored backend the captured text equals PROBE_VARIANT_TEXTS, so the
+    deterministic report is unchanged)."""
+
+    def __init__(self, inner: DecisionBackend) -> None:
+        self._inner = inner
+        self.last_text: dict[str, str] = {}
+
+    def __call__(
+        self, context: ReplayContext, original_span: LlmDecide, variant: VariantSpec
+    ) -> ReplayedDecision:
+        decision = self._inner(context, original_span, variant)
+        self.last_text[context.conversation_id] = decision.output_text
+        return decision
+
+
 def load_preservation_corpus(rates=None) -> list[PricedTrace]:
     """Load + price every probe in fixtures/preservation/ (sorted, deterministic)."""
     if rates is None:
@@ -160,8 +180,13 @@ def run_preservation(backend: DecisionBackend | None = None) -> dict:
     active = backend if backend is not None else PreservationBackend()
     # SWAP POINT (owner-gated paid run only -- do NOT enable here):
     # active = OpenAIBackend()  # requires TURNSTILE_ALLOW_PAID=1 + OPENAI_API_KEY
+    # Recorder wrapper: under the authored backend the captured text equals
+    # PROBE_VARIANT_TEXTS (report unchanged); under the real OpenAIBackend it
+    # captures the model's actual reply so similarity / new_label reflect the
+    # real decision, never a static assumption.
+    recorder = _RecordingBackend(active)
     previous = get_backend()
-    set_backend(active)
+    set_backend(recorder)
     try:
         rows = []
         for priced in corpus:
@@ -170,7 +195,9 @@ def run_preservation(backend: DecisionBackend | None = None) -> dict:
             from_turn = from_turn_for(priced)
             trial = replay(priced, PRESERVATION_VARIANT, from_turn)
             baseline_text = priced.trace.turns[-1].llm[0].output_text
-            variant_text = PROBE_VARIANT_TEXTS.get(trace_id, baseline_text)
+            variant_text = recorder.last_text.get(
+                trace_id, PROBE_VARIANT_TEXTS.get(trace_id, baseline_text)
+            )
             similarity = _similarity(baseline_text, variant_text)
             new_label = (
                 None
