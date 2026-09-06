@@ -1,12 +1,16 @@
 """Regenerate packages/dashboard/sample/*.json from the REAL Turnstile pipeline
-run over the 23 golden fixtures (fixtures/golden/*.json), and keep index.html's
-embedded ``<script type="application/json">`` fallback copies in sync with
-those files (both copies are written from the same in-memory objects in this
-script, so they cannot drift).
+run over the 23 golden fixtures (fixtures/golden/*.json).
+
+Architecture (W3-B Item 1): this script writes ONLY data. ``index.html`` is
+hand-authored and fetches that data over http; the build never regenerates,
+embeds, or otherwise touches HTML (an earlier revision rewrote index.html's
+embedded fallback blocks and mangled the panel containers -- that path is
+gone; test_build_data.py asserts no .html file changes when this runs).
 
 Usage::
 
     uv run python packages/dashboard/build_data.py
+    # then serve: uv run python -m http.server --directory packages/dashboard
 
 Honest two-tier labeling (see docs/DEMO.md, docs/CORPUS.md): this generator
 runs the real pricing/verdict/detectors/replay pipeline against the 23 golden
@@ -22,7 +26,6 @@ strip those notes when regenerating.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 from turnstile_schema import Baselines, VariantSpec, load_rates, load_trace
@@ -50,7 +53,6 @@ BARGEIN_REPORT_PATH = ROOT / "experiments" / "bargein_report.json"
 
 DASHBOARD_DIR = Path(__file__).resolve().parent
 SAMPLE_DIR = DASHBOARD_DIR / "sample"
-INDEX_HTML = DASHBOARD_DIR / "index.html"
 
 # 09_escalation_debt has the richest stage decomposition (asr+llm+tts+telephony
 # all present) and is the fixture the D9 tier-1 "predictable at turn 3, ran 9
@@ -368,41 +370,6 @@ def build_conditional_savings(rates, corpus) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# index.html embedded-fallback sync                                           #
-# --------------------------------------------------------------------------- #
-
-_EMBED_IDS = {
-    "data-priced": "priced_trace.json",
-    "data-fleet": "fleet.json",
-    "data-findings": "findings.sample.json",
-    "data-experiments": "experiments.sample.json",
-    "data-bargein": "bargein.sample.json",
-    "data-conditional": "conditional.sample.json",
-}
-
-
-def sync_embedded_json(payloads: dict[str, object]) -> None:
-    """Rewrite each <script type="application/json" id="...">...</script>
-    block in index.html so the embedded file:// fallback matches the freshly
-    written sample/*.json files exactly (same in-memory objects, same
-    json.dumps call) -- keeps the two copies from drifting apart."""
-    html = INDEX_HTML.read_text(encoding="utf-8")
-    for elem_id, payload in payloads.items():
-        compact = json.dumps(payload, separators=(",", ":"))
-        pattern = re.compile(
-            r'(<script type="application/json" id="' + re.escape(elem_id) + r'">\n)'
-            r'.*?'
-            r'(\n</script>)',
-            re.DOTALL,
-        )
-        new_html, count = pattern.subn(lambda m: m.group(1) + compact + m.group(2), html)
-        if count != 1:
-            raise RuntimeError(f"expected exactly one embedded block for {elem_id!r}, found {count}")
-        html = new_html
-    INDEX_HTML.write_text(html, encoding="utf-8")
-
-
-# --------------------------------------------------------------------------- #
 # Entry point                                                                  #
 # --------------------------------------------------------------------------- #
 
@@ -426,15 +393,6 @@ def main() -> None:
     (SAMPLE_DIR / "bargein.sample.json").write_text(json.dumps(bargein, indent=2), encoding="utf-8")
     (SAMPLE_DIR / "conditional.sample.json").write_text(json.dumps(conditional, indent=2), encoding="utf-8")
 
-    sync_embedded_json({
-        "data-priced": priced_trace,
-        "data-fleet": fleet,
-        "data-findings": findings,
-        "data-experiments": experiments,
-        "data-bargein": bargein,
-        "data-conditional": conditional,
-    })
-
     print(f"wrote {SAMPLE_DIR / 'priced_trace.json'}  (hero fixture: {HERO_FIXTURE})")
     print(f"wrote {SAMPLE_DIR / 'fleet.json'}  cprc_naive={fleet['cprc_naive']:.6f}  cprc_loaded={fleet['cprc_loaded']:.6f}")
     print(f"wrote {SAMPLE_DIR / 'findings.sample.json'}  n_findings={len(findings)}")
@@ -446,7 +404,6 @@ def main() -> None:
     print(f"wrote {SAMPLE_DIR / 'conditional.sample.json'}  "
           f"total conditional savings ${conditional['total_savings_usd']:.4f} "
           f"({CONDITIONAL_SAVINGS_LABEL}) -- NOT the gated margin")
-    print(f"synced embedded fallback JSON in {INDEX_HTML}")
 
 
 if __name__ == "__main__":

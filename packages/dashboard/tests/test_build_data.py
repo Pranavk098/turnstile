@@ -85,34 +85,50 @@ def test_load_bargein_report_fails_loud_when_missing(tmp_path):
 # index.html: the panel exists and the embedded file:// fallback stays in sync.#
 # --------------------------------------------------------------------------- #
 
-def test_index_html_carries_the_bargein_panel_and_embed():
-    html = build_data.INDEX_HTML.read_text(encoding="utf-8")
+# --------------------------------------------------------------------------- #
+# W3-B Item 1: the build writes ONLY data -- index.html is hand-authored and  #
+# fetches sample/*.json. Running build_data.py must modify no .html file.    #
+# --------------------------------------------------------------------------- #
+
+def test_build_module_has_no_html_writing_path():
+    # Regression guard: the old index.html-rewriting path is gone for good.
+    assert not hasattr(build_data, "sync_embedded_json")
+    assert not hasattr(build_data, "_EMBED_IDS")
+    assert not hasattr(build_data, "INDEX_HTML")
+
+
+def test_index_html_fetches_data_and_carries_no_embeds():
+    html = (build_data.DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="bargein"' in html
-    assert 'id="data-bargein"' in html
     assert "renderBargein(" in html
     assert "sample/bargein.sample.json" in html
-    # The embed id is registered so sync_embedded_json keeps it from drifting.
-    assert "data-bargein" in build_data._EMBED_IDS
+    # No embedded fallback copies: the dashboard renders purely from fetched JSON.
+    assert "application/json" not in html
+    assert "data-bargein" not in html
 
 
-def test_sync_embedded_json_updates_the_bargein_block(tmp_path):
-    html = (
-        '<html><body><script type="application/json" id="data-bargein">\n'
-        "{}\n</script></body></html>"
-    )
-    target = tmp_path / "index.html"
-    target.write_text(html, encoding="utf-8")
-    original = build_data.INDEX_HTML
-    build_data.INDEX_HTML = target
-    try:
-        build_data.sync_embedded_json({"data-bargein": {"label": "x", "v": 1}})
-    finally:
-        build_data.INDEX_HTML = original
-    synced = json.loads(
-        target.read_text(encoding="utf-8").split('id="data-bargein">\n')[1]
-        .split("\n</script>")[0]
-    )
-    assert synced == {"label": "x", "v": 1}
+def test_build_main_modifies_no_html_file(tmp_path, monkeypatch):
+    import hashlib
+
+    dashboard = build_data.DASHBOARD_DIR
+    before = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(dashboard.glob("*.html"))
+    }
+    assert before, "expected hand-authored html next to build_data.py"
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    # All six fleet datasets are still written as data ...
+    for name in ("priced_trace.json", "fleet.json", "findings.sample.json",
+                 "experiments.sample.json", "bargein.sample.json",
+                 "conditional.sample.json"):
+        assert (tmp_path / name).exists(), name
+    # ... and no .html file changed.
+    after = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(dashboard.glob("*.html"))
+    }
+    assert after == before
 
 
 # --------------------------------------------------------------------------- #
@@ -172,13 +188,12 @@ def test_conditional_panel_covers_every_remedy_detector():
         assert any(marker in d for d in detectors), marker
 
 
-def test_index_html_carries_the_conditional_panel_and_embed():
-    html = build_data.INDEX_HTML.read_text(encoding="utf-8")
+def test_index_html_carries_the_conditional_panel():
+    html = (build_data.DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="conditional"' in html
-    assert 'id="data-conditional"' in html
     assert "renderConditional(" in html
     assert "sample/conditional.sample.json" in html
-    assert "data-conditional" in build_data._EMBED_IDS
+    assert "data-conditional" not in html
     # Visually + textually separated: the heading itself carries the label.
     assert "preservation unverified (Wave-2)" in html
     assert "NOT the proven margin" in html
