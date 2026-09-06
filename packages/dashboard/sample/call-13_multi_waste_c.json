@@ -1,0 +1,932 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000013",
+      "agent_version": "agent@abc123",
+      "scenario_id": "order_status",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 3380,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": {
+          "span_id": "c0",
+          "start_offset_ms": 0,
+          "duration_ms": 80,
+          "context_tokens": 900,
+          "history_tokens": 200,
+          "system_tokens": 100,
+          "retrieved_tokens": 600,
+          "retrieved_doc_ids": [
+            "doc_order_faq_3"
+          ],
+          "pruning_strategy": "none"
+        },
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 80,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 700,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status"
+            ],
+            "output_text": "Let me check that.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 580,
+            "duration_ms": 1400,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.4,
+            "text": "Let me check that."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 1980,
+            "duration_ms": 1400,
+            "chars_played": 18,
+            "audio_seconds_played": 1.4,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 3380,
+        "wall_end_ms": 7480,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 3380,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 750,
+            "output_tokens": 14,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "slot_fill",
+            "decision_chosen": "order_number",
+            "decision_candidates": [
+              "order_number"
+            ],
+            "output_text": "What is your order number?",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 3880,
+            "duration_ms": 1800,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 27,
+            "audio_seconds_generated": 1.8,
+            "text": "What is your order number?"
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p1",
+            "start_offset_ms": 5680,
+            "duration_ms": 1800,
+            "chars_played": 27,
+            "audio_seconds_played": 1.8,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 7480,
+        "wall_end_ms": 12780,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l2",
+            "start_offset_ms": 7480,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 770,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "slot_fill",
+            "decision_chosen": "order_number",
+            "decision_candidates": [
+              "order_number"
+            ],
+            "output_text": "Sorry, could you repeat your order number?",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t2",
+            "start_offset_ms": 7980,
+            "duration_ms": 2400,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 43,
+            "audio_seconds_generated": 2.4,
+            "text": "Sorry, could you repeat your order number?"
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p2",
+            "start_offset_ms": 10380,
+            "duration_ms": 2400,
+            "chars_played": 43,
+            "audio_seconds_played": 2.4,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "agent",
+        "wall_start_ms": 12780,
+        "wall_end_ms": 17680,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l3",
+            "start_offset_ms": 13180,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 800,
+            "output_tokens": 24,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "explain_order",
+            "decision_candidates": [
+              "explain_order"
+            ],
+            "output_text": "Here is our order FAQ again.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool3",
+            "start_offset_ms": 12780,
+            "duration_ms": 400,
+            "tool_name": "search_kb",
+            "args_hash": "sha256:kbq2",
+            "args_json": "{\"query\": \"order faq\", \"doc_id\": \"doc_order_faq_3\"}",
+            "result_hash": "sha256:kbr2",
+            "latency_ms": 400,
+            "cost_usd": 0.0,
+            "tool_kind": "retrieval",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t3",
+            "start_offset_ms": 13680,
+            "duration_ms": 2000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 30,
+            "audio_seconds_generated": 2.0,
+            "text": "Here is our order FAQ again."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p3",
+            "start_offset_ms": 15680,
+            "duration_ms": 2000,
+            "chars_played": 30,
+            "audio_seconds_played": 2.0,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 4,
+        "speaker_first": "caller",
+        "wall_start_ms": 17680,
+        "wall_end_ms": 20780,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l4",
+            "start_offset_ms": 17680,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 520,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_4",
+            "decision_candidates": [
+              "step_4"
+            ],
+            "output_text": "Okay, checking step 4.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t4",
+            "start_offset_ms": 18180,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 4."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p4",
+            "start_offset_ms": 19480,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 5,
+        "speaker_first": "agent",
+        "wall_start_ms": 20780,
+        "wall_end_ms": 23880,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l5",
+            "start_offset_ms": 20780,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 525,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_5",
+            "decision_candidates": [
+              "step_5"
+            ],
+            "output_text": "Okay, checking step 5.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t5",
+            "start_offset_ms": 21280,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 5."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p5",
+            "start_offset_ms": 22580,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 6,
+        "speaker_first": "caller",
+        "wall_start_ms": 23880,
+        "wall_end_ms": 26980,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l6",
+            "start_offset_ms": 23880,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 530,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_6",
+            "decision_candidates": [
+              "step_6"
+            ],
+            "output_text": "Okay, checking step 6.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t6",
+            "start_offset_ms": 24380,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 6."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p6",
+            "start_offset_ms": 25680,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 7,
+        "speaker_first": "agent",
+        "wall_start_ms": 26980,
+        "wall_end_ms": 30080,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l7",
+            "start_offset_ms": 26980,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 535,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_7",
+            "decision_candidates": [
+              "step_7"
+            ],
+            "output_text": "Okay, checking step 7.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t7",
+            "start_offset_ms": 27480,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 7."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p7",
+            "start_offset_ms": 28780,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 8,
+        "speaker_first": "caller",
+        "wall_start_ms": 30080,
+        "wall_end_ms": 33180,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l8",
+            "start_offset_ms": 30080,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 540,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_8",
+            "decision_candidates": [
+              "step_8"
+            ],
+            "output_text": "Okay, checking step 8.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t8",
+            "start_offset_ms": 30580,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 8."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p8",
+            "start_offset_ms": 31880,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 9,
+        "speaker_first": "agent",
+        "wall_start_ms": 33180,
+        "wall_end_ms": 36280,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l9",
+            "start_offset_ms": 33180,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 545,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_9",
+            "decision_candidates": [
+              "step_9"
+            ],
+            "output_text": "Okay, checking step 9.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t9",
+            "start_offset_ms": 33680,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 9."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p9",
+            "start_offset_ms": 34980,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 10,
+        "speaker_first": "caller",
+        "wall_start_ms": 36280,
+        "wall_end_ms": 39380,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l10",
+            "start_offset_ms": 36280,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 550,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_10",
+            "decision_candidates": [
+              "step_10"
+            ],
+            "output_text": "Okay, checking step 10.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t10",
+            "start_offset_ms": 36780,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 10."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p10",
+            "start_offset_ms": 38080,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 11,
+        "speaker_first": "agent",
+        "wall_start_ms": 39380,
+        "wall_end_ms": 42480,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l11",
+            "start_offset_ms": 39380,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 555,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_11",
+            "decision_candidates": [
+              "step_11"
+            ],
+            "output_text": "Okay, checking step 11.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t11",
+            "start_offset_ms": 39880,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 11."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p11",
+            "start_offset_ms": 41180,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 12,
+        "speaker_first": "caller",
+        "wall_start_ms": 42480,
+        "wall_end_ms": 45580,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l12",
+            "start_offset_ms": 42480,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 560,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_12",
+            "decision_candidates": [
+              "step_12"
+            ],
+            "output_text": "Okay, checking step 12.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t12",
+            "start_offset_ms": 42980,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 12."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p12",
+            "start_offset_ms": 44280,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 13,
+        "speaker_first": "agent",
+        "wall_start_ms": 45580,
+        "wall_end_ms": 48680,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l13",
+            "start_offset_ms": 45580,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 565,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_13",
+            "decision_candidates": [
+              "step_13"
+            ],
+            "output_text": "Okay, checking step 13.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t13",
+            "start_offset_ms": 46080,
+            "duration_ms": 1300,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 20,
+            "audio_seconds_generated": 1.3,
+            "text": "Okay, checking step 13."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p13",
+            "start_offset_ms": 47380,
+            "duration_ms": 1300,
+            "chars_played": 20,
+            "audio_seconds_played": 1.3,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 49000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 49
+    }
+  },
+  "span_costs": {
+    "l0": 0.000211,
+    "t0": 0.00045,
+    "l1": 0.0002155,
+    "t1": 0.000675,
+    "l2": 0.00022449999999999998,
+    "t2": 0.001075,
+    "l3": 0.000248,
+    "t3": 0.00075,
+    "l4": 0.00015999999999999999,
+    "t4": 0.0005,
+    "l5": 0.00016125,
+    "t5": 0.0005,
+    "l6": 0.0001625,
+    "t6": 0.0005,
+    "l7": 0.00016375,
+    "t7": 0.0005,
+    "l8": 0.000165,
+    "t8": 0.0005,
+    "l9": 0.00016625,
+    "t9": 0.0005,
+    "l10": 0.0001675,
+    "t10": 0.0005,
+    "l11": 0.00016875,
+    "t11": 0.0005,
+    "l12": 0.00016999999999999999,
+    "t12": 0.0005,
+    "l13": 0.00017125,
+    "t13": 0.0005
+  },
+  "turn_costs": [
+    0.0011429809641194193,
+    0.0014751514653519584,
+    0.0020552689674061897,
+    0.0016967298000547795,
+    0.001102053546973432,
+    0.001103303546973432,
+    0.001104553546973432,
+    0.001105803546973432,
+    0.001107053546973432,
+    0.001108303546973432,
+    0.001109553546973432,
+    0.001110803546973432,
+    0.001112053546973432,
+    0.001113303546973432
+  ],
+  "conv_cost": 0.017446916666666666,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.00255525,
+    "tts": 0.007950000000000004,
+    "telephony": 0.006941666666666667
+  },
+  "_provenance": {
+    "fixture": "13_multi_waste_c",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": false,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [
+    {
+      "class_id": 3,
+      "turn_index": 3,
+      "span_id": "tool3",
+      "waste_usd": 0.00015,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "retrieval_policy": "threshold:0.8"
+      },
+      "evidence": {
+        "half": "doc_id",
+        "doc_id": "doc_order_faq_3",
+        "first_retrieved_turn": 0,
+        "retrieved_tokens": 600,
+        "tool_cost_usd": 0.0,
+        "rate_in": 0.25
+      }
+    },
+    {
+      "class_id": 4,
+      "turn_index": 13,
+      "span_id": "l13",
+      "waste_usd": 0.025083836829268298,
+      "confidence": 0.85,
+      "proposed_variant": {
+        "context_strategy": "summarize:2000"
+      },
+      "evidence": {
+        "scenario_id": "order_status",
+        "turns_to_resolution": 14,
+        "p50_turns": 5.0,
+        "p75_turns": 7.25,
+        "mean_cost_per_turn": 0.002787092981029811
+      }
+    },
+    {
+      "class_id": 5,
+      "turn_index": 2,
+      "span_id": "l2",
+      "waste_usd": 0.014828784237195289,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "model_routing": {
+          "slot_fill": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "slot_fill",
+        "decision_chosen": "order_number",
+        "first_turn": 1,
+        "reprompt_turn": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000018",
+      "agent_version": "agent@abc123",
+      "scenario_id": "balance_check",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 3300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 400,
+            "output_tokens": 12,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "quick_answer",
+            "decision_candidates": [
+              "quick_answer"
+            ],
+            "output_text": "Your balance is zero.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 500,
+            "duration_ms": 1400,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 22,
+            "audio_seconds_generated": 1.4,
+            "text": "Your balance is zero."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 1900,
+            "duration_ms": 1400,
+            "chars_played": 22,
+            "audio_seconds_played": 1.4,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 4000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 4
+    }
+  },
+  "span_costs": {
+    "l0": 0.000124,
+    "t0": 0.00055
+  },
+  "turn_costs": [
+    0.0012406666666666668
+  ],
+  "conv_cost": 0.0012406666666666668,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.000124,
+    "tts": 0.00055,
+    "telephony": 0.0005666666666666667
+  },
+  "_provenance": {
+    "fixture": "18_edge_single_turn",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": false,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": []
+}

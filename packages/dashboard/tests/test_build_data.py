@@ -1,9 +1,9 @@
-"""Tests for the dashboard's data builder (batch 2 T3/T4).
+"""Tests for the dashboard's data builder (batch 2 T3/T4, W3-B Items 1-2).
 
 The load-bearing assertions: the barge-in panel's numbers TRACE to the
-harness report (nothing recomputed or hardcoded), the provenance string is
-carried through verbatim, and index.html carries the panel + its embedded
-file:// fallback in sync."""
+harness report (nothing recomputed or hardcoded), per-call data traces to
+the real pipeline over every golden fixture, and the build writes ONLY
+data -- running it modifies no .html file."""
 from __future__ import annotations
 
 import json
@@ -85,34 +85,50 @@ def test_load_bargein_report_fails_loud_when_missing(tmp_path):
 # index.html: the panel exists and the embedded file:// fallback stays in sync.#
 # --------------------------------------------------------------------------- #
 
-def test_index_html_carries_the_bargein_panel_and_embed():
-    html = build_data.INDEX_HTML.read_text(encoding="utf-8")
+# --------------------------------------------------------------------------- #
+# W3-B Item 1: the build writes ONLY data -- index.html is hand-authored and  #
+# fetches sample/*.json. Running build_data.py must modify no .html file.    #
+# --------------------------------------------------------------------------- #
+
+def test_build_module_has_no_html_writing_path():
+    # Regression guard: the old index.html-rewriting path is gone for good.
+    assert not hasattr(build_data, "sync_embedded_json")
+    assert not hasattr(build_data, "_EMBED_IDS")
+    assert not hasattr(build_data, "INDEX_HTML")
+
+
+def test_index_html_fetches_data_and_carries_no_embeds():
+    html = (build_data.DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="bargein"' in html
-    assert 'id="data-bargein"' in html
     assert "renderBargein(" in html
     assert "sample/bargein.sample.json" in html
-    # The embed id is registered so sync_embedded_json keeps it from drifting.
-    assert "data-bargein" in build_data._EMBED_IDS
+    # No embedded fallback copies: the dashboard renders purely from fetched JSON.
+    assert "application/json" not in html
+    assert "data-bargein" not in html
 
 
-def test_sync_embedded_json_updates_the_bargein_block(tmp_path):
-    html = (
-        '<html><body><script type="application/json" id="data-bargein">\n'
-        "{}\n</script></body></html>"
-    )
-    target = tmp_path / "index.html"
-    target.write_text(html, encoding="utf-8")
-    original = build_data.INDEX_HTML
-    build_data.INDEX_HTML = target
-    try:
-        build_data.sync_embedded_json({"data-bargein": {"label": "x", "v": 1}})
-    finally:
-        build_data.INDEX_HTML = original
-    synced = json.loads(
-        target.read_text(encoding="utf-8").split('id="data-bargein">\n')[1]
-        .split("\n</script>")[0]
-    )
-    assert synced == {"label": "x", "v": 1}
+def test_build_main_modifies_no_html_file(tmp_path, monkeypatch):
+    import hashlib
+
+    dashboard = build_data.DASHBOARD_DIR
+    before = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(dashboard.glob("*.html"))
+    }
+    assert before, "expected hand-authored html next to build_data.py"
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    # All six fleet datasets are still written as data ...
+    for name in ("priced_trace.json", "fleet.json", "findings.sample.json",
+                 "experiments.sample.json", "bargein.sample.json",
+                 "conditional.sample.json"):
+        assert (tmp_path / name).exists(), name
+    # ... and no .html file changed.
+    after = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(dashboard.glob("*.html"))
+    }
+    assert after == before
 
 
 # --------------------------------------------------------------------------- #
@@ -172,13 +188,110 @@ def test_conditional_panel_covers_every_remedy_detector():
         assert any(marker in d for d in detectors), marker
 
 
-def test_index_html_carries_the_conditional_panel_and_embed():
-    html = build_data.INDEX_HTML.read_text(encoding="utf-8")
+def test_index_html_carries_the_conditional_panel():
+    html = (build_data.DASHBOARD_DIR / "index.html").read_text(encoding="utf-8")
     assert 'id="conditional"' in html
-    assert 'id="data-conditional"' in html
     assert "renderConditional(" in html
     assert "sample/conditional.sample.json" in html
-    assert "data-conditional" in build_data._EMBED_IDS
+    assert "data-conditional" not in html
     # Visually + textually separated: the heading itself carries the label.
     assert "preservation unverified (Wave-2)" in html
     assert "NOT the proven margin" in html
+
+
+# --------------------------------------------------------------------------- #
+# W3-B Item 2 -- per-call data for ALL calls traces to the real pipeline.     #
+# --------------------------------------------------------------------------- #
+
+def _rates_and_baselines():
+    rates = build_data.load_rates(build_data.RATES_PATH)
+    baselines = build_data.Baselines.model_validate(
+        json.loads(build_data.BASELINES_PATH.read_text(encoding="utf-8")))
+    return rates, baselines
+
+
+def test_calls_index_covers_every_golden_fixture():
+    rates, baselines = _rates_and_baselines()
+    index, _ = build_data.build_calls(rates, baselines)
+    assert [row["id"] for row in index] == [
+        p.stem for p in build_data._golden_fixtures()]
+    for row in index:
+        assert row["cost_usd"] > 0
+        assert row["n_turns"] > 0
+        assert row["verdict"] in ("RESOLVED", "PARTIALLY_RESOLVED", "UNRESOLVED",
+                                    "ESCALATED", "ABANDONED", "MISROUTED", "FALSE_RESOLVE")
+        assert row["detail"] == f"call-{row['id']}.json"
+
+
+def test_calls_index_traces_to_the_pipeline():
+    rates, baselines = _rates_and_baselines()
+    index, details = build_data.build_calls(rates, baselines)
+    # Spot-check the hero fixture end to end: cost, verdict, top waste all
+    # recomputed here from the pipeline must match the built rows.
+    hero = next(r for r in index if r["id"] == build_data.HERO_FIXTURE)
+    path = build_data.GOLDEN / f"{build_data.HERO_FIXTURE}.json"
+    priced, verdict, findings = build_data._analyze(path, rates, baselines)
+    assert hero["cost_usd"] == pytest.approx(priced.conv_cost)
+    assert hero["verdict"] == verdict.label.value
+    assert hero["n_turns"] == len(priced.trace.turns)
+    if findings:
+        top = max(findings, key=lambda f: f["waste_usd"])
+        assert hero["top_waste"]["class_id"] == top["class_id"]
+        assert hero["top_waste"]["waste_usd"] == pytest.approx(top["waste_usd"])
+    else:
+        assert hero["top_waste"] is None
+    # Index costs sum to the fleet total (same priced objects, no second math).
+    fleet = build_data.build_fleet(
+        rates, baselines, build_data.build_experiments(rates)[0])
+    assert sum(r["cost_usd"] for r in index) == pytest.approx(fleet["total_cost_usd"])
+
+
+def test_call_detail_files_carry_the_drill_down_shape():
+    rates, baselines = _rates_and_baselines()
+    _, details = build_data.build_calls(rates, baselines)
+    assert len(details) == len(build_data._golden_fixtures())
+    for call_id, data in details.items():
+        # Everything the detail view renders: flame graph, verdict, findings.
+        for key in ("trace", "span_costs", "turn_costs", "conv_cost",
+                    "stage_costs", "verdict", "findings"):
+            assert key in data, (call_id, key)
+        assert data["_provenance"]["fixture"] == call_id
+        assert abs(sum(data["stage_costs"].values()) - data["conv_cost"]) < 1e-9
+
+
+def test_build_main_writes_per_call_data(tmp_path, monkeypatch):
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    payload = json.loads((tmp_path / "calls.json").read_text(encoding="utf-8"))
+    assert payload["n"] == len(build_data._golden_fixtures())
+    assert len(payload["calls"]) == payload["n"]
+    assert payload["hero"] == build_data.HERO_FIXTURE
+    assert any(row["id"] == payload["hero"] for row in payload["calls"])
+    for row in payload["calls"]:
+        detail = json.loads((tmp_path / row["detail"]).read_text(encoding="utf-8"))
+        assert detail["conv_cost"] == pytest.approx(row["cost_usd"])
+
+
+# --------------------------------------------------------------------------- #
+# W3-B Item 5 hook -- manifest.json: source declaration + the ingest slot.    #
+# --------------------------------------------------------------------------- #
+
+def test_build_main_writes_manifest_with_ingest_hook(tmp_path, monkeypatch):
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["source"] == "golden-fixtures"
+    assert manifest["calls_index"] == "sample/calls.json"
+    assert manifest["hero"] == build_data.HERO_FIXTURE
+    assert manifest["n_calls"] == len(build_data._golden_fixtures())
+    hook = manifest["ingest"]
+    # No dependency on W3-A existing: the slot is declared, empty, with the
+    # producer contract a turnstile_ingest report must satisfy to plug in.
+    assert hook["report_path"] is None
+    assert "W3-A" in hook["status"]
+    contract = hook["contract"]
+    assert set(contract["report_envelope"]) == {"label", "n", "note", "provenance"}
+    assert "call-<id>.json" in contract["per_call_files"]
+    assert "verdict" in contract["index_row_keys"] and "detail" in contract["index_row_keys"]
+    assert "verdict" in contract["detail_keys"] and "findings" in contract["detail_keys"]
+    assert "D6/D7/D8" in contract["acoustic_rule"]

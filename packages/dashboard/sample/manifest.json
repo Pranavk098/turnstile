@@ -1,0 +1,41 @@
+{
+  "label": "Turnstile dashboard data manifest",
+  "source": "golden-fixtures",
+  "calls_index": "sample/calls.json",
+  "hero": "09_escalation_debt",
+  "n_calls": 23,
+  "ingest": {
+    "status": "awaiting W3-A Item 5",
+    "report_path": null,
+    "contract": {
+      "report_envelope": {
+        "label": "str",
+        "n": "int",
+        "note": "str",
+        "provenance": "str"
+      },
+      "per_call_files": "sample/call-<id>.json + sample/calls.json rows, same keys as golden",
+      "index_row_keys": [
+        "id",
+        "scenario_id",
+        "cost_usd",
+        "verdict",
+        "end_reason",
+        "n_turns",
+        "top_waste",
+        "detail"
+      ],
+      "detail_keys": [
+        "trace",
+        "span_costs",
+        "turn_costs",
+        "conv_cost",
+        "stage_costs",
+        "verdict",
+        "findings",
+        "_provenance"
+      ],
+      "acoustic_rule": "no G2 fields -> no D6/D7/D8 findings (absent, not zero)"
+    }
+  }
+}

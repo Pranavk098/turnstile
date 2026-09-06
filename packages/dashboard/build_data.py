@@ -1,12 +1,16 @@
 """Regenerate packages/dashboard/sample/*.json from the REAL Turnstile pipeline
-run over the 23 golden fixtures (fixtures/golden/*.json), and keep index.html's
-embedded ``<script type="application/json">`` fallback copies in sync with
-those files (both copies are written from the same in-memory objects in this
-script, so they cannot drift).
+run over the 23 golden fixtures (fixtures/golden/*.json).
+
+Architecture (W3-B Item 1): this script writes ONLY data. ``index.html`` is
+hand-authored and fetches that data over http; the build never regenerates,
+embeds, or otherwise touches HTML (an earlier revision rewrote index.html's
+embedded fallback blocks and mangled the panel containers -- that path is
+gone; test_build_data.py asserts no .html file changes when this runs).
 
 Usage::
 
     uv run python packages/dashboard/build_data.py
+    # then serve: uv run python -m http.server --directory packages/dashboard
 
 Honest two-tier labeling (see docs/DEMO.md, docs/CORPUS.md): this generator
 runs the real pricing/verdict/detectors/replay pipeline against the 23 golden
@@ -22,7 +26,6 @@ strip those notes when regenerating.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 from turnstile_schema import Baselines, VariantSpec, load_rates, load_trace
@@ -50,7 +53,6 @@ BARGEIN_REPORT_PATH = ROOT / "experiments" / "bargein_report.json"
 
 DASHBOARD_DIR = Path(__file__).resolve().parent
 SAMPLE_DIR = DASHBOARD_DIR / "sample"
-INDEX_HTML = DASHBOARD_DIR / "index.html"
 
 # 09_escalation_debt has the richest stage decomposition (asr+llm+tts+telephony
 # all present) and is the fixture the D9 tier-1 "predictable at turn 3, ran 9
@@ -99,6 +101,22 @@ def _priced_and_verdict(path: Path, rates):
     return priced, verdict
 
 
+def _analyze(path: Path, rates, baselines):
+    """Run the real pipeline over one fixture: priced trace, verdict, findings."""
+    priced, verdict = _priced_and_verdict(path, rates)
+    findings = []
+    for finding in detect(priced, verdict, baselines):
+        data = finding.model_dump(mode="json")
+        # VariantSpec sets only the knobs it changes (see contracts.py) --
+        # drop the unset ones here so the dashboard's "proposed variant"
+        # column shows the one or two keys that matter, not six nulls.
+        data["proposed_variant"] = finding.proposed_variant.model_dump(
+            mode="json", exclude_none=True
+        )
+        findings.append(data)
+    return priced, verdict, findings
+
+
 # --------------------------------------------------------------------------- #
 # 1. findings.sample.json -- detect() over every fixture, real output          #
 # --------------------------------------------------------------------------- #
@@ -106,16 +124,8 @@ def _priced_and_verdict(path: Path, rates):
 def build_findings(rates, baselines) -> list[dict]:
     findings: list[dict] = []
     for path in _golden_fixtures():
-        priced, verdict = _priced_and_verdict(path, rates)
-        for finding in detect(priced, verdict, baselines):
-            data = finding.model_dump(mode="json")
-            # VariantSpec sets only the knobs it changes (see contracts.py) --
-            # drop the unset ones here so the dashboard's "proposed variant"
-            # column shows the one or two keys that matter, not six nulls.
-            data["proposed_variant"] = finding.proposed_variant.model_dump(
-                mode="json", exclude_none=True
-            )
-            findings.append(data)
+        _, _, per_call = _analyze(path, rates, baselines)
+        findings.extend(per_call)
     return findings
 
 
@@ -368,38 +378,106 @@ def build_conditional_savings(rates, corpus) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# index.html embedded-fallback sync                                           #
+# 7. calls.json + call-<id>.json -- per-call data for ALL calls (W3-B Item 2)#
 # --------------------------------------------------------------------------- #
 
-_EMBED_IDS = {
-    "data-priced": "priced_trace.json",
-    "data-fleet": "fleet.json",
-    "data-findings": "findings.sample.json",
-    "data-experiments": "experiments.sample.json",
-    "data-bargein": "bargein.sample.json",
-    "data-conditional": "conditional.sample.json",
+def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
+    """Per-call index rows + per-call detail payloads for every golden fixture.
+
+    The index row carries what the call list shows (id, scenario, cost,
+    verdict, top waste); the detail payload carries what the drill-down
+    shows (the full priced trace for the flame graph, the verdict, this
+    call's own findings). The dashboard renders these payloads verbatim --
+    nothing is recomputed in the browser."""
+    index: list[dict] = []
+    details: dict[str, dict] = {}
+    for path in _golden_fixtures():
+        call_id = path.stem
+        priced, verdict, findings = _analyze(path, rates, baselines)
+        top = max(findings, key=lambda f: f["waste_usd"], default=None)
+        index.append(
+            {
+                "id": call_id,
+                "scenario_id": priced.trace.conversation.scenario_id,
+                "cost_usd": priced.conv_cost,
+                "verdict": verdict.label.value,
+                "end_reason": priced.trace.conversation.end_reason.value,
+                "n_turns": len(priced.trace.turns),
+                "top_waste": (
+                    None
+                    if top is None
+                    else {
+                        "class_id": top["class_id"],
+                        "waste_usd": top["waste_usd"],
+                        "span_id": top["span_id"],
+                        "turn_index": top["turn_index"],
+                    }
+                ),
+                "detail": f"call-{call_id}.json",
+            }
+        )
+        data = priced.model_dump(mode="json")
+        data["_provenance"] = {
+            "fixture": call_id,
+            "note": (
+                "Per-call priced trace over a golden fixture (same tiers as "
+                "the fleet: LLM stage measured from real token counts, "
+                "acoustic stages modeled by the fixture generator; verdict "
+                "and findings from the real pipeline -- see docs/METHOD.md)."
+            ),
+        }
+        data["verdict"] = verdict.model_dump(mode="json")
+        data["findings"] = findings
+        details[call_id] = data
+    return index, details
+
+
+# --------------------------------------------------------------------------- #
+# 8. manifest.json -- data source declaration + the W3-A Item 5 hook          #
+# --------------------------------------------------------------------------- #
+
+# Where the turnstile_ingest report (W3-A Item 5) plugs in. The dashboard
+# NEVER depends on it existing: manifest["ingest"]["report_path"] is null
+# until W3-A lands, and index.html renders the golden-fleet data with an
+# honest "ingest absent" note. When W3-A Item 5 lands, it EITHER drops a
+# report envelope at the path below (the dashboard surfaces its label +
+# provenance verbatim) OR -- the full motion -- writes calls.json-shaped
+# per-call files itself. Contract for the producer:
+INGEST_CONTRACT = {
+    # Minimal envelope the dashboard surfaces verbatim (no other keys read).
+    "report_envelope": {"label": "str", "n": "int", "note": "str", "provenance": "str"},
+    # Full motion: per-call files shaped EXACTLY like this builder's
+    # call-<id>.json (keys: trace, span_costs, turn_costs, conv_cost,
+    # stage_costs, verdict, findings, _provenance) plus matching
+    # sample/calls.json rows (keys: id, scenario_id, cost_usd, verdict,
+    # end_reason, n_turns, top_waste, detail). Call ids must be
+    # filename-safe and match the dashboard route ([A-Za-z0-9_-]).
+    "per_call_files": "sample/call-<id>.json + sample/calls.json rows, same keys as golden",
+    "index_row_keys": ["id", "scenario_id", "cost_usd", "verdict", "end_reason",
+                       "n_turns", "top_waste", "detail"],
+    "detail_keys": ["trace", "span_costs", "turn_costs", "conv_cost",
+                    "stage_costs", "verdict", "findings", "_provenance"],
+    # Honesty rule (the typical real-log case): calls WITHOUT G2 acoustic
+    # fields (chars_synthesized/chars_played) MUST carry no D6/D7/D8
+    # findings -- honestly absent, never zero-filled. The dashboard maps
+    # class_ids 1-10 and all 7 verdict labels already; nothing new needed.
+    "acoustic_rule": "no G2 fields -> no D6/D7/D8 findings (absent, not zero)",
 }
 
 
-def sync_embedded_json(payloads: dict[str, object]) -> None:
-    """Rewrite each <script type="application/json" id="...">...</script>
-    block in index.html so the embedded file:// fallback matches the freshly
-    written sample/*.json files exactly (same in-memory objects, same
-    json.dumps call) -- keeps the two copies from drifting apart."""
-    html = INDEX_HTML.read_text(encoding="utf-8")
-    for elem_id, payload in payloads.items():
-        compact = json.dumps(payload, separators=(",", ":"))
-        pattern = re.compile(
-            r'(<script type="application/json" id="' + re.escape(elem_id) + r'">\n)'
-            r'.*?'
-            r'(\n</script>)',
-            re.DOTALL,
-        )
-        new_html, count = pattern.subn(lambda m: m.group(1) + compact + m.group(2), html)
-        if count != 1:
-            raise RuntimeError(f"expected exactly one embedded block for {elem_id!r}, found {count}")
-        html = new_html
-    INDEX_HTML.write_text(html, encoding="utf-8")
+def build_manifest(calls_index: list[dict]) -> dict:
+    return {
+        "label": "Turnstile dashboard data manifest",
+        "source": "golden-fixtures",
+        "calls_index": "sample/calls.json",
+        "hero": HERO_FIXTURE,
+        "n_calls": len(calls_index),
+        "ingest": {
+            "status": "awaiting W3-A Item 5",
+            "report_path": None,
+            "contract": INGEST_CONTRACT,
+        },
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -426,14 +504,25 @@ def main() -> None:
     (SAMPLE_DIR / "bargein.sample.json").write_text(json.dumps(bargein, indent=2), encoding="utf-8")
     (SAMPLE_DIR / "conditional.sample.json").write_text(json.dumps(conditional, indent=2), encoding="utf-8")
 
-    sync_embedded_json({
-        "data-priced": priced_trace,
-        "data-fleet": fleet,
-        "data-findings": findings,
-        "data-experiments": experiments,
-        "data-bargein": bargein,
-        "data-conditional": conditional,
-    })
+    calls_index, call_details = build_calls(rates, baselines)
+    calls_payload = {
+        "label": "All calls -- per-call cost, verdict, and top waste",
+        "source": "golden-fixtures",
+        "n": len(calls_index),
+        # The drill-down's default call (also the fleet hero flame graph).
+        "hero": HERO_FIXTURE,
+        "calls": calls_index,
+    }
+    (SAMPLE_DIR / "calls.json").write_text(json.dumps(calls_payload, indent=2), encoding="utf-8")
+    for call_id, data in call_details.items():
+        (SAMPLE_DIR / f"call-{call_id}.json").write_text(
+            json.dumps(data, indent=2), encoding="utf-8"
+        )
+
+    manifest = build_manifest(calls_index)
+    (SAMPLE_DIR / "manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
 
     print(f"wrote {SAMPLE_DIR / 'priced_trace.json'}  (hero fixture: {HERO_FIXTURE})")
     print(f"wrote {SAMPLE_DIR / 'fleet.json'}  cprc_naive={fleet['cprc_naive']:.6f}  cprc_loaded={fleet['cprc_loaded']:.6f}")
@@ -446,7 +535,10 @@ def main() -> None:
     print(f"wrote {SAMPLE_DIR / 'conditional.sample.json'}  "
           f"total conditional savings ${conditional['total_savings_usd']:.4f} "
           f"({CONDITIONAL_SAVINGS_LABEL}) -- NOT the gated margin")
-    print(f"synced embedded fallback JSON in {INDEX_HTML}")
+    print(f"wrote {SAMPLE_DIR / 'calls.json'}  n_calls={len(calls_index)} "
+          f"+ {len(call_details)} per-call detail files")
+    print(f"wrote {SAMPLE_DIR / 'manifest.json'}  source=golden-fixtures "
+          f"ingest={manifest['ingest']['status']}")
 
 
 if __name__ == "__main__":

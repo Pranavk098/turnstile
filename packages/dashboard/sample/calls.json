@@ -1,0 +1,318 @@
+{
+  "label": "All calls -- per-call cost, verdict, and top waste",
+  "source": "golden-fixtures",
+  "n": 23,
+  "hero": "09_escalation_debt",
+  "calls": [
+    {
+      "id": "00_baseline_clean",
+      "scenario_id": "order_status",
+      "cost_usd": 0.004009,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-00_baseline_clean.json"
+    },
+    {
+      "id": "01_over_model",
+      "scenario_id": "order_status",
+      "cost_usd": 0.001525,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": {
+        "class_id": 1,
+        "waste_usd": 0.0007440000000000001,
+        "span_id": "l0",
+        "turn_index": 0
+      },
+      "detail": "call-01_over_model.json"
+    },
+    {
+      "id": "02_context_bloat",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.006041666666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 2,
+        "waste_usd": 0.0015,
+        "span_id": "l4",
+        "turn_index": 4
+      },
+      "detail": "call-02_context_bloat.json"
+    },
+    {
+      "id": "03_redundant_retrieval",
+      "scenario_id": "refund",
+      "cost_usd": 0.0045681666666666666,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 3,
+        "waste_usd": 0.00015,
+        "span_id": "tool2",
+        "turn_index": 2
+      },
+      "detail": "call-03_redundant_retrieval.json"
+    },
+    {
+      "id": "04_turn_inflation",
+      "scenario_id": "order_status",
+      "cost_usd": 0.015517083333333332,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 14,
+      "top_waste": {
+        "class_id": 4,
+        "waste_usd": 0.025083836829268298,
+        "span_id": "l13",
+        "turn_index": 13
+      },
+      "detail": "call-04_turn_inflation.json"
+    },
+    {
+      "id": "05_reprompt_loop",
+      "scenario_id": "account_update",
+      "cost_usd": 0.0037978333333333336,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 2,
+      "top_waste": {
+        "class_id": 5,
+        "waste_usd": 0.00236748427672956,
+        "span_id": "l1",
+        "turn_index": 1
+      },
+      "detail": "call-05_reprompt_loop.json"
+    },
+    {
+      "id": "06_dead_tokens",
+      "scenario_id": "order_status",
+      "cost_usd": 0.00031066666666666666,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": {
+        "class_id": 6,
+        "waste_usd": 4.4e-05,
+        "span_id": "l0",
+        "turn_index": 0
+      },
+      "detail": "call-06_dead_tokens.json"
+    },
+    {
+      "id": "07_barge_in_waste",
+      "scenario_id": "refund",
+      "cost_usd": 0.009766666666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": {
+        "class_id": 7,
+        "waste_usd": 0.0040108695652173905,
+        "span_id": "t0",
+        "turn_index": 0
+      },
+      "detail": "call-07_barge_in_waste.json"
+    },
+    {
+      "id": "08_silence_tax",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0014946666666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0007366666666666667,
+        "span_id": "t0",
+        "turn_index": 0
+      },
+      "detail": "call-08_silence_tax.json"
+    },
+    {
+      "id": "09_escalation_debt",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.018648833333333333,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 13,
+      "top_waste": {
+        "class_id": 4,
+        "waste_usd": 0.01669359684745763,
+        "span_id": "l12",
+        "turn_index": 12
+      },
+      "detail": "call-09_escalation_debt.json"
+    },
+    {
+      "id": "10_tool_thrash",
+      "scenario_id": "account_update",
+      "cost_usd": 0.002054666666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 2,
+      "top_waste": {
+        "class_id": 10,
+        "waste_usd": 0.0010683333333333335,
+        "span_id": "tool1",
+        "turn_index": 1
+      },
+      "detail": "call-10_tool_thrash.json"
+    },
+    {
+      "id": "11_multi_waste_a",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.006935,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 2,
+        "waste_usd": 0.0015,
+        "span_id": "l4",
+        "turn_index": 4
+      },
+      "detail": "call-11_multi_waste_a.json"
+    },
+    {
+      "id": "12_multi_waste_b",
+      "scenario_id": "refund",
+      "cost_usd": 0.011990333333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 7,
+        "waste_usd": 0.0040108695652173905,
+        "span_id": "t1",
+        "turn_index": 1
+      },
+      "detail": "call-12_multi_waste_b.json"
+    },
+    {
+      "id": "13_multi_waste_c",
+      "scenario_id": "order_status",
+      "cost_usd": 0.017446916666666666,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 14,
+      "top_waste": {
+        "class_id": 4,
+        "waste_usd": 0.025083836829268298,
+        "span_id": "l13",
+        "turn_index": 13
+      },
+      "detail": "call-13_multi_waste_c.json"
+    },
+    {
+      "id": "14_escalation_early",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.0062734999999999996,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.0019877653631284915,
+        "span_id": "l3",
+        "turn_index": 3
+      },
+      "detail": "call-14_escalation_early.json"
+    },
+    {
+      "id": "15_escalation_late",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.011263833333333334,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 8,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.0024538522607781285,
+        "span_id": "l6",
+        "turn_index": 6
+      },
+      "detail": "call-15_escalation_late.json"
+    },
+    {
+      "id": "16_abandoned",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0016133333333333334,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": null,
+      "detail": "call-16_abandoned.json"
+    },
+    {
+      "id": "17_false_resolve",
+      "scenario_id": "refund",
+      "cost_usd": 0.00209,
+      "verdict": "FALSE_RESOLVE",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": null,
+      "detail": "call-17_false_resolve.json"
+    },
+    {
+      "id": "18_edge_single_turn",
+      "scenario_id": "balance_check",
+      "cost_usd": 0.0012406666666666668,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 1,
+      "top_waste": null,
+      "detail": "call-18_edge_single_turn.json"
+    },
+    {
+      "id": "19_edge_40_turn",
+      "scenario_id": "long_technical_support",
+      "cost_usd": 0.04063333333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 40,
+      "top_waste": null,
+      "detail": "call-19_edge_40_turn.json"
+    },
+    {
+      "id": "20_unknown_mutation",
+      "scenario_id": "cancel_subscription",
+      "cost_usd": 0.006262500000000001,
+      "verdict": "UNRESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 2,
+      "top_waste": null,
+      "detail": "call-20_unknown_mutation.json"
+    },
+    {
+      "id": "21_handoff_rejected",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.007993166666666668,
+      "verdict": "UNRESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.007993166666666668,
+        "span_id": "tool3",
+        "turn_index": 3
+      },
+      "detail": "call-21_handoff_rejected.json"
+    },
+    {
+      "id": "22_handoff_pending",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.006070333333333334,
+      "verdict": "UNRESOLVED",
+      "end_reason": "escalated",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-22_handoff_pending.json"
+    }
+  ]
+}

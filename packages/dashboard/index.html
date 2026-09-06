@@ -182,13 +182,26 @@ section { border-top: 1px solid var(--line-2); padding: 26px 0 36px; }
 .wrow[open] summary { background: var(--well); }
 .wdetail { padding: 6px 4px 18px; overflow-x: auto; }
 
-/* tables */
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+/* tables: tabular numerals + one shared precision (fmtMoney) so columns align */
+table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
 th { text-align: left; font: 500 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
      color: var(--faint); padding: 8px 10px; border-bottom: 1px solid var(--line-2); }
 td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 tbody tr:hover { background: var(--well); }
 td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
+
+/* scroll container: a wide table scrolls inside its own box; the page
+   itself never scrolls sideways (see the <680px check) */
+.tscroll { overflow-x: auto; }
+.tscroll table { min-width: 560px; }
+
+/* call list */
+#calls-body td.id { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+#calls-body td.id a { color: var(--ink); border-bottom: 1px solid var(--line-2); padding-bottom: 1px; }
+#calls-body td.id a:hover { color: var(--accent); border-color: var(--accent); }
+#calls-body td.id a[aria-current="true"] { color: var(--accent); border-color: var(--accent); }
+/* degenerate rows: "checked, it is zero" -- muted italic, never blank */
+.zero-note { color: var(--faint); font-style: italic; }
 
 /* measured headline */
 .hnum { font: 400 clamp(72px, 9vw, 118px)/0.95 var(--serif); letter-spacing: -.01em; }
@@ -211,7 +224,9 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 .rfill-fix { background: var(--llm); }
 
 /* conditional remedies */
-.crow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 168px 26px;
+/* conditional remedies: name | detector | bar | value. The rows are not
+   expandable, so there is deliberately no chevron affordance here. */
+.crow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 168px max-content;
         align-items: center; gap: 18px; padding: 12px 4px; border-top: 1px solid var(--line); }
 .crow:last-of-type { border-bottom: 1px solid var(--line); }
 .crow .cname { min-width: 0; }
@@ -221,7 +236,6 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 .crow .cval { font: 500 12.5px/1.35 var(--mono); text-align: right; color: var(--ink); }
 .crow .cval small { display: block; color: var(--faint); font-weight: 400; font-size: 10px; }
 .crow.zero .cval { color: var(--faint); font-weight: 400; font-style: italic; letter-spacing: .02em; }
-.crow .chev { color: var(--faint); justify-self: center; }
 .ctotal { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-top: 22px; }
 .ctotal .big { font: 400 34px/1 var(--serif); }
 .ctotal .sub { color: var(--muted); font-size: 12.5px; }
@@ -321,7 +335,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   .mast-body { grid-template-columns: 1fr; gap: 24px; }
   .tier-row { grid-template-columns: 40px 110px 1fr 200px 30px; }
   .tier-row .t-num { font-size: 44px; }
-  .crow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px 24px; }
+  .crow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px max-content; }
   .wrow summary { grid-template-columns: 30px 190px 1fr 110px 24px; }
   .tier-row::before { left: -16px; }
 }
@@ -333,7 +347,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   #hero .flame-summary { grid-template-columns: 40px 1fr 22px; }
   #hero .flame-summary .tag { display: none; }
   #hero .flame-summary h2 { font-size: 22px; }
-  .crow { grid-template-columns: 1fr 110px 22px; }
+  .crow { grid-template-columns: 1fr max-content; }
   .crow .cdet { display: none; }
   .crow .track { display: none; }
   .wrow summary { grid-template-columns: 26px 1fr 110px 20px; gap: 10px; }
@@ -342,6 +356,8 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   .rp .cell { border-bottom: 1px solid var(--line); }
   .sec-head { grid-template-columns: 40px 1fr; }
   .sec-head .tag { grid-column: 2; text-align: left; }
+  .mast-top { flex-wrap: wrap; row-gap: 10px; }
+  .about-link { margin-left: 0; }
   .mast-top .meta { display: none; }
 }
 </style>
@@ -358,6 +374,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         <span class="brand-sub">Voice-AI margin dashboard</span>
       </div>
       <div class="meta" id="head-meta"></div>
+      <a class="about-link" href="#calls">All calls</a>
       <a class="about-link" href="home.html">What is this?</a>
     </div>
   </header>
@@ -504,16 +521,34 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       <div id="replay-grid"></div>
     </section>
 
-    <!-- ============ 07 explore one call ============ -->
+    <!-- ============ 07 all calls ============ -->
+    <section id="calls" aria-label="All calls">
+      <div class="sec-head">
+        <span class="idx">07</span>
+        <h2 id="calls-title" tabindex="-1">All calls</h2>
+        <span class="tag" id="calls-chip">per-call cost · verdict · top waste</span>
+      </div>
+      <div class="tscroll">
+        <table id="calls-table">
+          <thead><tr><th>Call</th><th>Scenario</th><th>Cost</th><th>Verdict</th><th>Top waste</th></tr></thead>
+          <tbody id="calls-body"></tbody>
+        </table>
+      </div>
+      <div class="t-note" id="calls-note"></div>
+      <div class="t-note" id="ingest-note"></div>
+    </section>
+
+    <!-- ============ 08 explore one call ============ -->
     <section id="hero" aria-label="Explore one call">
       <details id="hero-details">
         <summary class="flame-summary">
-          <span class="idx">07</span>
-          <h2>Explore one call: the flame graph</h2>
+          <span class="idx">08</span>
+          <h2 id="hero-title" tabindex="-1">Explore one call: the flame graph</h2>
           <span class="tag" id="hero-chip">fixture</span>
           <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>
         </summary>
         <div class="flame-body">
+          <div id="hero-verdict" style="margin-bottom:22px"></div>
           <div class="split">
             <div>
               <div class="block-label" id="hero-total"></div>
@@ -526,6 +561,8 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
               <div class="t-note" id="hero-provenance" style="margin-top:16px"></div>
             </div>
           </div>
+          <div class="t-title">Findings on this call</div>
+          <div class="tscroll"><div id="hero-findings"></div></div>
         </div>
       </details>
     </section>
@@ -542,43 +579,35 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
 
 <div id="tooltip" role="tooltip"></div>
 
-<!-- ==================== embedded data (file:// fallback) ==================== -->
-<script type="application/json" id="data-priced">
-{"trace":{"conversation":{"conversation_id":"00000000-0000-0000-0000-000000000009","agent_version":"agent@abc123","scenario_id":"billing_dispute","started_at":"2026-08-30T00:00:00Z","ended_at":"2026-08-30T00:02:00Z","end_reason":"escalated","schema_version":"1.1"},"turns":[{"turn_index":0,"speaker_first":"caller","wall_start_ms":0,"wall_end_ms":4100,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l0","start_offset_ms":0,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_0","decision_candidates":["stall_0"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t0","start_offset_ms":500,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p0","start_offset_ms":2300,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":1,"speaker_first":"agent","wall_start_ms":4100,"wall_end_ms":8200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l1","start_offset_ms":4100,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_1","decision_candidates":["stall_1"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t1","start_offset_ms":4600,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p1","start_offset_ms":6400,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":2,"speaker_first":"caller","wall_start_ms":8200,"wall_end_ms":12300,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l2","start_offset_ms":8200,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_2","decision_candidates":["stall_2"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t2","start_offset_ms":8700,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p2","start_offset_ms":10500,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":3,"speaker_first":"caller","wall_start_ms":12300,"wall_end_ms":15600,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l3","start_offset_ms":12300,"duration_ms":700,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":700,"output_tokens":20,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"escalate_check","decision_chosen":"escalate","decision_candidates":["resolve","escalate"],"output_text":"This needs a human.","latency_ms":700,"retry_of":null}],"tools":[],"tts":[{"span_id":"t3","start_offset_ms":13000,"duration_ms":1300,"gen_ai_system":"piper","chars_synthesized":19,"audio_seconds_generated":1.3,"text":"This needs a human."}],"playback":[{"span_id":"p3","start_offset_ms":14300,"duration_ms":1300,"chars_played":19,"audio_seconds_played":1.3,"truncated_by":null}]},{"turn_index":4,"speaker_first":"caller","wall_start_ms":15600,"wall_end_ms":19700,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l4","start_offset_ms":15600,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_4","decision_candidates":["stall_4"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t4","start_offset_ms":16100,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p4","start_offset_ms":17900,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":5,"speaker_first":"agent","wall_start_ms":19700,"wall_end_ms":23800,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l5","start_offset_ms":19700,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_5","decision_candidates":["stall_5"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t5","start_offset_ms":20200,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p5","start_offset_ms":22000,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":6,"speaker_first":"caller","wall_start_ms":23800,"wall_end_ms":27900,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l6","start_offset_ms":23800,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_6","decision_candidates":["stall_6"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t6","start_offset_ms":24300,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p6","start_offset_ms":26100,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":7,"speaker_first":"agent","wall_start_ms":27900,"wall_end_ms":32000,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l7","start_offset_ms":27900,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_7","decision_candidates":["stall_7"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t7","start_offset_ms":28400,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p7","start_offset_ms":30200,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":8,"speaker_first":"caller","wall_start_ms":32000,"wall_end_ms":36100,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l8","start_offset_ms":32000,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_8","decision_candidates":["stall_8"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t8","start_offset_ms":32500,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p8","start_offset_ms":34300,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":9,"speaker_first":"agent","wall_start_ms":36100,"wall_end_ms":40200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l9","start_offset_ms":36100,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_9","decision_candidates":["stall_9"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t9","start_offset_ms":36600,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p9","start_offset_ms":38400,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":10,"speaker_first":"caller","wall_start_ms":40200,"wall_end_ms":44300,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l10","start_offset_ms":40200,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_10","decision_candidates":["stall_10"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t10","start_offset_ms":40700,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p10","start_offset_ms":42500,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":11,"speaker_first":"agent","wall_start_ms":44300,"wall_end_ms":48400,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l11","start_offset_ms":44300,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":600,"output_tokens":16,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"stall_11","decision_candidates":["stall_11"],"output_text":"Let me keep looking into this.","latency_ms":500,"retry_of":null}],"tools":[],"tts":[{"span_id":"t11","start_offset_ms":44800,"duration_ms":1800,"gen_ai_system":"piper","chars_synthesized":28,"audio_seconds_generated":1.8,"text":"Let me keep looking into this."}],"playback":[{"span_id":"p11","start_offset_ms":46600,"duration_ms":1800,"chars_played":28,"audio_seconds_played":1.8,"truncated_by":null}]},{"turn_index":12,"speaker_first":"agent","wall_start_ms":48400,"wall_end_ms":52200,"barge_in":false,"vad":[],"asr":[],"context":null,"llm":[{"span_id":"l12","start_offset_ms":48700,"duration_ms":500,"gen_ai_system":"openai","gen_ai_request_model":"gpt-5-mini","input_tokens":650,"output_tokens":18,"cache_read_tokens":0,"cache_write_tokens":0,"reasoning_tokens":0,"decision_kind":"compose","decision_chosen":"transfer","decision_candidates":["transfer"],"output_text":"Transferring you now.","latency_ms":500,"retry_of":null}],"tools":[{"span_id":"tool12","start_offset_ms":48400,"duration_ms":300,"tool_name":"transfer_to_agent","args_hash":"sha256:xfer12","args_json":"{}","result_hash":"sha256:r","latency_ms":300,"cost_usd":0.0,"tool_kind":"handoff","tool_status":"ok","effect":"committed"}],"tts":[{"span_id":"t12","start_offset_ms":49200,"duration_ms":1500,"gen_ai_system":"piper","chars_synthesized":22,"audio_seconds_generated":1.5,"text":"Transferring you now."}],"playback":[{"span_id":"p12","start_offset_ms":50700,"duration_ms":1500,"chars_played":22,"audio_seconds_played":1.5,"truncated_by":null}]}],"telephony":{"span_id":"leg","start_offset_ms":0,"duration_ms":53000,"provider":"twilio","direction":"inbound","billable_seconds":53}},"span_costs":{"l0":0.00018199999999999998,"t0":0.0007000000000000001,"l1":0.00018199999999999998,"t1":0.0007000000000000001,"l2":0.00018199999999999998,"t2":0.0007000000000000001,"l3":0.000215,"t3":0.000475,"l4":0.00018199999999999998,"t4":0.0007000000000000001,"l5":0.00018199999999999998,"t5":0.0007000000000000001,"l6":0.00018199999999999998,"t6":0.0007000000000000001,"l7":0.00018199999999999998,"t7":0.0007000000000000001,"l8":0.00018199999999999998,"t8":0.0007000000000000001,"l9":0.00018199999999999998,"t9":0.0007000000000000001,"l10":0.00018199999999999998,"t10":0.0007000000000000001,"l11":0.00018199999999999998,"t11":0.0007000000000000001,"l12":0.0001985,"t12":0.00055},"turn_costs":[0.001471734993614304,0.001471734993614304,0.001471734993614304,0.0011646647509578544,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.001471734993614304,0.0012950836526181356],"conv_cost":0.018648833333333333,"stage_costs":{"asr":0.0,"llm":0.0024154999999999992,"tts":0.008725000000000002,"telephony":0.007508333333333334},"_provenance":{"fixture":"09_escalation_debt","stage_tier":{"llm":"tier1_measured","asr":"tier2_modeled_acoustics","tts":"tier2_modeled_acoustics","telephony":"tier2_modeled_acoustics"},"note":"LLM stage cost is computed from this fixture's real token counts (Tier 1, measured). ASR/TTS/telephony stage costs are computed with the same pricing formula but over the fixture generator's modeled acoustics, not a live audio pipeline (Tier 2, mechanism -- not a measured magnitude; see docs/DEMO.md)."}}
-</script>
-<script type="application/json" id="data-fleet">
-{"label":"Wave-1 real fleet (23 golden fixtures)","note":"Real computed aggregate over the 23 golden fixtures -- not a production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3.","n_conversations":23,"n_resolved":14,"total_cost_usd":0.18754716666666665,"resolved_cost_usd":0.12353383333333336,"cprc_loaded":0.01339622619047619,"cprc_naive":0.00882384523809524,"recoverable_margin_pct":1.3225473058777217,"stage_costs_usd":{"asr":8.6e-05,"llm":0.03359449999999999,"tts":0.08275000000000003,"telephony":0.07111666666666668},"_provenance":{"n":23,"note":"Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. The Tier-1 headline is the DETERMINISTIC rate-arbitrage recoverable margin (0.57%; needs no live calls); a live backend adds only real latency/throughput."}}
-</script>
-<script type="application/json" id="data-findings">
-[{"class_id":1,"turn_index":0,"span_id":"l0","waste_usd":0.0007440000000000001,"confidence":0.9,"proposed_variant":{"model_routing":{"route":"gpt-5-nano"}},"evidence":{"decision_kind":"route","model":"gpt-5","output_tokens":15,"actual_cost_usd":0.0007750000000000001,"cheapest_tier_cost_usd":3.1e-05,"cheapest_tier_model":"gpt-5-nano"}},{"class_id":2,"turn_index":4,"span_id":"l4","waste_usd":0.0015,"confidence":0.9,"proposed_variant":{"context_strategy":"window:8","prefix_caching":true},"evidence":{"slope_tok_per_turn":650.0,"cache_ratio":0.0,"baseline_input_tokens":800,"worst_turn_excess_tokens":2600}},{"class_id":3,"turn_index":2,"span_id":"tool2","waste_usd":0.00015,"confidence":0.9,"proposed_variant":{"retrieval_policy":"threshold:0.8"},"evidence":{"half":"doc_id","doc_id":"doc_refund_policy_7","first_retrieved_turn":0,"retrieved_tokens":600,"tool_cost_usd":0.0,"rate_in":0.25}},{"class_id":4,"turn_index":13,"span_id":"l13","waste_usd":0.025083836829268298,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"order_status","turns_to_resolution":14,"p50_turns":5.0,"p75_turns":7.25,"mean_cost_per_turn":0.002787092981029811}},{"class_id":5,"turn_index":1,"span_id":"l1","waste_usd":0.00236748427672956,"confidence":0.95,"proposed_variant":{"model_routing":{"slot_fill":"gpt-5-nano"}},"evidence":{"decision_kind":"slot_fill","decision_chosen":"phone_number","first_turn":0,"reprompt_turn":1}},{"class_id":6,"turn_index":0,"span_id":"l0","waste_usd":4.4e-05,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"output_text":"Here is extra info nobody hears.","tts_texts":[],"voiced_fraction":0.0,"unmatched_output_tokens":22.0}},{"class_id":7,"turn_index":0,"span_id":"t0","waste_usd":0.0040108695652173905,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"chars_synthesized":184,"chars_played":61,"wasted_chars":123,"tts_waste_usd":0.0030749999999999996,"llm_waste_usd":0.0009358695652173913}},{"class_id":8,"turn_index":0,"span_id":"t0","waste_usd":0.0007366666666666667,"confidence":0.9,"proposed_variant":{"model_routing":{"compose":"gpt-5-nano"}},"evidence":{"gap_start_ms":1800,"gap_end_ms":7000,"silence_ms":5200,"billed_wall_ms":7000,"attributed_to":"asr_endpoint","trailing_gap":true}},{"class_id":4,"turn_index":12,"span_id":"l12","waste_usd":0.01669359684745763,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"billing_dispute","turns_to_resolution":13,"p50_turns":7.0,"p75_turns":10.0,"mean_cost_per_turn":0.002782266141242938}},{"class_id":9,"turn_index":3,"span_id":"l3","waste_usd":0.014233628352490422,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":3,"conversation_end_turn":12,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":10,"turn_index":1,"span_id":"tool1","waste_usd":0.0010683333333333335,"confidence":0.95,"proposed_variant":{"tool_batching":true},"evidence":{"tool_name":"update_address","args_hash":"sha256:dupAddr1","turn_cost_usd":0.0010683333333333335,"tool_cost_usd":0.0}},{"class_id":1,"turn_index":0,"span_id":"l0","waste_usd":0.001104,"confidence":0.9,"proposed_variant":{"model_routing":{"route":"gpt-5-nano"}},"evidence":{"decision_kind":"route","model":"gpt-5","output_tokens":15,"actual_cost_usd":0.00115,"cheapest_tier_cost_usd":4.600000000000001e-05,"cheapest_tier_model":"gpt-5-nano"}},{"class_id":2,"turn_index":4,"span_id":"l4","waste_usd":0.0015,"confidence":0.9,"proposed_variant":{"context_strategy":"window:8","prefix_caching":true},"evidence":{"slope_tok_per_turn":650.0,"cache_ratio":0.0,"baseline_input_tokens":800,"worst_turn_excess_tokens":2600}},{"class_id":8,"turn_index":0,"span_id":"l0","waste_usd":0.0006375,"confidence":0.9,"proposed_variant":{"model_routing":{"compose":"gpt-5-nano"}},"evidence":{"gap_start_ms":500,"gap_end_ms":5000,"silence_ms":4500,"billed_wall_ms":5000,"attributed_to":"tts_ttfb","trailing_gap":true}},{"class_id":6,"turn_index":0,"span_id":"l0","waste_usd":4.4e-05,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"output_text":"Here is extra info nobody hears.","tts_texts":[],"voiced_fraction":0.0,"unmatched_output_tokens":22.0}},{"class_id":7,"turn_index":1,"span_id":"t1","waste_usd":0.0040108695652173905,"confidence":0.95,"proposed_variant":{"tts_chunking":"sentence"},"evidence":{"chars_synthesized":184,"chars_played":61,"wasted_chars":123,"tts_waste_usd":0.0030749999999999996,"llm_waste_usd":0.0009358695652173913}},{"class_id":10,"turn_index":3,"span_id":"tool3","waste_usd":0.0010452040816326532,"confidence":0.95,"proposed_variant":{"tool_batching":true},"evidence":{"tool_name":"process_refund","args_hash":"sha256:dupAddr9","turn_cost_usd":0.0010452040816326532,"tool_cost_usd":0.0}},{"class_id":3,"turn_index":3,"span_id":"tool3","waste_usd":0.00015,"confidence":0.9,"proposed_variant":{"retrieval_policy":"threshold:0.8"},"evidence":{"half":"doc_id","doc_id":"doc_order_faq_3","first_retrieved_turn":0,"retrieved_tokens":600,"tool_cost_usd":0.0,"rate_in":0.25}},{"class_id":4,"turn_index":13,"span_id":"l13","waste_usd":0.025083836829268298,"confidence":0.85,"proposed_variant":{"context_strategy":"summarize:2000"},"evidence":{"scenario_id":"order_status","turns_to_resolution":14,"p50_turns":5.0,"p75_turns":7.25,"mean_cost_per_turn":0.002787092981029811}},{"class_id":5,"turn_index":2,"span_id":"l2","waste_usd":0.014828784237195289,"confidence":0.95,"proposed_variant":{"model_routing":{"slot_fill":"gpt-5-nano"}},"evidence":{"decision_kind":"slot_fill","decision_chosen":"order_number","first_turn":1,"reprompt_turn":2}},{"class_id":9,"turn_index":3,"span_id":"l3","waste_usd":0.0019877653631284915,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":3,"conversation_end_turn":3,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":9,"turn_index":6,"span_id":"l6","waste_usd":0.0024538522607781285,"confidence":0.5,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":1,"turn_of_no_return":6,"conversation_end_turn":7,"note":"t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."}},{"class_id":9,"turn_index":3,"span_id":"tool3","waste_usd":0.007993166666666668,"confidence":0.95,"proposed_variant":{"escalation_policy":"threshold:0.85"},"evidence":{"tier":2,"tool_name":"transfer_to_agent","effect":"rejected","conv_cost_usd":0.007993166666666668,"note":"terminal handoff rejected -- caller stranded after paying full conversation cost."}}]
-</script>
-<script type="application/json" id="data-experiments">
-[{"label":"D1 over-model reroute: route -> gpt-5-nano","variant":{"model_routing":{"route":"gpt-5-nano"}},"n":6,"outcome_preservation_rate":1.0,"delta_cost_mean":-0.0004134,"delta_cost_ci95":[-0.0007300666666666668,-0.00015453333333333334],"delta_latency_p50":0.0,"delta_latency_p95":0.0,"divergent_exemplars":[],"_provenance":"mechanism demo -- MockBackend, not measured. MockBackend's safe-reroute path returns the identical output_text/decision_chosen for a cheaper same-family model, so outcome_preservation_rate=1.0 here is a property of the mock (cheaper==same outcome by construction), not an observed production result. Outcome-preservation is NOT measurable on a synthetic corpus (canned inputs/outputs, pinned tools -> structural); it needs authored utterances then real traffic (Wave-2). delta_cost is deterministic rate arbitrage, needing no live backend (docs/LIMITATIONS.md)."}]
-</script>
-<script type="application/json" id="data-bargein">
-{"label":"D7 barge-in unheard waste \u2014 measured on the barge-in harness","n":150,"seed":0,"lead_cap_s":2.0,"headline":{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},"rate_sweep":[{"barge_in_rate":0.05,"n_calls":150,"barge_in_calls":10,"d7_findings":10,"d7_waste_usd_total":0.017575,"d7_waste_usd_mean_per_call":0.00011716666666666666,"d7_waste_usd_ci95":[2.9000000000000004e-05,0.0002288416666666666],"tts_spend_usd_total":1.0007749999999993,"waste_share_of_tts_spend":0.017561389922809836,"generated_chars_total":40031,"wasted_chars_total":703,"wasted_char_share":0.017561389922809822,"mean_gen_rate_realtime_x":40.813512561506144,"mean_achieved_lead_s":3.822055948485932},{"barge_in_rate":0.1,"n_calls":150,"barge_in_calls":18,"d7_findings":18,"d7_waste_usd_total":0.030575,"d7_waste_usd_mean_per_call":0.00020383333333333335,"d7_waste_usd_ci95":[9.583333333333335e-05,0.00033516666666666666],"tts_spend_usd_total":0.9896749999999991,"waste_share_of_tts_spend":0.03089398034708367,"generated_chars_total":39587,"wasted_chars_total":1223,"wasted_char_share":0.030893980347083638,"mean_gen_rate_realtime_x":42.162665113634446,"mean_achieved_lead_s":3.75006200693902},{"barge_in_rate":0.15,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.039975,"d7_waste_usd_mean_per_call":0.00026649999999999997,"d7_waste_usd_ci95":[0.00014283333333333333,0.0004048458333333332],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.04068081208975731,"generated_chars_total":39306,"wasted_chars_total":1599,"wasted_char_share":0.04068081208975729,"mean_gen_rate_realtime_x":42.588404537334036,"mean_achieved_lead_s":3.4853048992614153},{"barge_in_rate":0.2,"n_calls":150,"barge_in_calls":29,"d7_findings":29,"d7_waste_usd_total":0.048675,"d7_waste_usd_mean_per_call":0.00032450000000000003,"d7_waste_usd_ci95":[0.00019683333333333337,0.0004671666666666667],"tts_spend_usd_total":0.981774999999999,"waste_share_of_tts_spend":0.049578569427822114,"generated_chars_total":39271,"wasted_chars_total":1947,"wasted_char_share":0.04957856942782206,"mean_gen_rate_realtime_x":40.02827834436394,"mean_achieved_lead_s":3.6301634492400394},{"barge_in_rate":0.3,"n_calls":150,"barge_in_calls":45,"d7_findings":45,"d7_waste_usd_total":0.07572500000000001,"d7_waste_usd_mean_per_call":0.0005048333333333335,"d7_waste_usd_ci95":[0.00033050000000000006,0.0006988375000000001],"tts_spend_usd_total":0.9618499999999994,"waste_share_of_tts_spend":0.07872849196860224,"generated_chars_total":38474,"wasted_chars_total":3029,"wasted_char_share":0.07872849196860217,"mean_gen_rate_realtime_x":41.78386492304996,"mean_achieved_lead_s":3.609190667176017}],"lead_cap_sweep":{"parameter":"streaming buffer-lead policy lead_cap_s (modeled input, swept over a stated plausible policy band -- not a claim about any vendor's pipeline)","barge_in_rate_held_at":0.15,"points":[{"lead_cap_s":0.5,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":1.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":2.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.040425,"d7_waste_usd_mean_per_call":0.0002695,"d7_waste_usd_ci95":[0.00014516666666666668,0.00040766666666666675],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041138757441611995,"generated_chars_total":39306,"wasted_chars_total":1617,"wasted_char_share":0.04113875744161197,"mean_gen_rate_realtime_x":40.78089999443805,"mean_achieved_lead_s":3.5157411897672928},{"lead_cap_s":3.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.043375,"d7_waste_usd_mean_per_call":0.00028916666666666663,"d7_waste_usd_ci95":[0.0001621666666666667,0.0004306708333333333],"tts_spend_usd_total":0.9855999999999994,"waste_share_of_tts_spend":0.044008725649350676,"generated_chars_total":39424,"wasted_chars_total":1735,"wasted_char_share":0.04400872564935065,"mean_gen_rate_realtime_x":40.76529309445457,"mean_achieved_lead_s":3.775340282737814},{"lead_cap_s":4.0,"n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.046125,"d7_waste_usd_mean_per_call":0.0003075,"d7_waste_usd_ci95":[0.0001743291666666667,0.00045134166666666666],"tts_spend_usd_total":0.9883499999999994,"waste_share_of_tts_spend":0.0466686902413113,"generated_chars_total":39534,"wasted_chars_total":1845,"wasted_char_share":0.046668690241311275,"mean_gen_rate_realtime_x":40.7419443004339,"mean_achieved_lead_s":4.008468627409017}]},"granularity_sweep":{"parameter":"TTS chunk granularity -- the atomic cancellation unit (sentence = today's streaming default and D6/D7's proposed remedy; clause/word split finer). MEASURED at each granularity: every readback re-synthesizes through real Piper at that granularity (per-chunk chars/audio/wall), never modeled; barge-in rate held at the cited default, buffer lead held at the stated 2s, caller behavior shared across points via a common seed","barge_in_rate_held_at":0.15,"lead_cap_s_held_at":2.0,"points":[{"granularity":"sentence","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.04075,"d7_waste_usd_mean_per_call":0.0002716666666666667,"d7_waste_usd_ci95":[0.0001466666666666667,0.0004105124999999999],"tts_spend_usd_total":0.9826499999999995,"waste_share_of_tts_spend":0.041469495751284814,"generated_chars_total":39306,"wasted_chars_total":1630,"wasted_char_share":0.04146949575128479,"mean_gen_rate_realtime_x":41.02914261306263,"mean_achieved_lead_s":3.5386094321876618},{"granularity":"clause","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.021825,"d7_waste_usd_mean_per_call":0.0001455,"d7_waste_usd_ci95":[8.783333333333335e-05,0.0002065],"tts_spend_usd_total":0.9491750000000004,"waste_share_of_tts_spend":0.022993652382332017,"generated_chars_total":37967,"wasted_chars_total":873,"wasted_char_share":0.022993652382332024,"mean_gen_rate_realtime_x":34.74056867235993,"mean_achieved_lead_s":1.8383645198526009},{"granularity":"word","n_calls":150,"barge_in_calls":25,"d7_findings":25,"d7_waste_usd_total":0.009725000000000003,"d7_waste_usd_mean_per_call":6.483333333333336e-05,"d7_waste_usd_ci95":[4.116666666666667e-05,8.917083333333328e-05],"tts_spend_usd_total":0.7944750000000006,"waste_share_of_tts_spend":0.012240787941722515,"generated_chars_total":31779,"wasted_chars_total":389,"wasted_char_share":0.01224078794172252,"mean_gen_rate_realtime_x":27.054788213816604,"mean_achieved_lead_s":1.9193544248224899}]},"floor_annotation":{"from":0.5,"to":2.0,"value":0.041138757441611995,"note":"waste is flat across these lead caps -- the measured synthesis-chunk floor (the in-flight chunk is atomic)"},"provenance":"Real Piper TTS generation-ahead behavior, measured on-device (per-chunk audio duration and wall-clock synthesis time); barge-in RATE modeled and swept over the cited range (turnstile_corpus.distributions.BARGE_IN_RATE, telli.com 2026, default 0.15); barge-in POSITION modeled as uniform over the utterance's audio (stated null model -- no citable position distribution); N controlled harness calls with a scripted confirmation-readback scenario -- NOT production traffic, not real-time conversation, no ASR/LLM.","report_source":"experiments/bargein_report.json, generated by packages/experiments/run_bargein_harness.py (real Piper TTS synthesis; barge-in rate and position modeled and swept). The dashboard renders this report; it computes no harness number."}
-</script>
-<script type="application/json" id="data-conditional">
-{"label":"Section-A re-pricing remedies \u2014 deterministic conditional savings","label_verbatim":"deterministic conditional saving \u2014 preservation unverified (Wave-2)","variants":{"context_window_8":{"detector":"D2 (context bloat) / D4 (turn inflation)","n":23,"delta_cost_mean":-1.3043478260869486e-05,"delta_cost_ci95":[-3.913043478260846e-05,0.0],"savings_usd":1.3043478260869486e-05,"savings_usd_ci95":[-0.0,3.913043478260846e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"context_summarize_2000":{"detector":"D4 (turn inflation)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"prefix_caching_on":{"detector":"D2 (context bloat)","n":23,"delta_cost_mean":-0.0006950543478260872,"delta_cost_ci95":[-0.001147698097826088,-0.0003404323369565221],"savings_usd":0.0006950543478260872,"savings_usd_ci95":[0.0003404323369565221,0.001147698097826088],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"tool_batching_on":{"detector":"D10 (tool thrash)","n":23,"delta_cost_mean":0.0,"delta_cost_ci95":[0.0,0.0],"savings_usd":-0.0,"savings_usd_ci95":[-0.0,-0.0],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"escalation_threshold_0_85":{"detector":"D9 (escalation debt)","n":23,"delta_cost_mean":-0.0006244057971014492,"delta_cost_ci95":[-0.0018160362318840578,0.0],"savings_usd":0.0006244057971014492,"savings_usd_ci95":[-0.0,0.0018160362318840578],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"},"retrieval_threshold_0_8":{"detector":"D3 (redundant retrieval)","n":23,"delta_cost_mean":-1.3043478260869412e-05,"delta_cost_ci95":[-3.2608695652173565e-05,0.0],"savings_usd":1.3043478260869412e-05,"savings_usd_ci95":[-0.0,3.2608695652173565e-05],"label":"deterministic conditional saving \u2014 preservation unverified (Wave-2)"}},"total_savings_usd":0.0013455471014492753,"n_fixtures":23,"_provenance":"DETERMINISTIC CONDITIONAL SAVINGS \u2014 deterministic conditional saving \u2014 preservation unverified (Wave-2). Deterministic re-pricing over the 23 golden fixtures via run_repricing_matrix (no backend, no spend); the transform reduces or re-rates work, so preservation of the outcome is UNMEASURABLE on the synthetic corpus (H-1). These numbers are NEVER added to the gated recoverable margin (the 0.57% proven number) and must not be presented as measured or proven savings. Verified in Wave-2 or not at all."}
-</script>
-
 <script>
 "use strict";
 
 /* ------------------------------------------------------------------ *
- * Data loading: read the committed sample/*.json when served over http;
- * fall back to the embedded JSON above when opened from file:// (where
- * fetch() on local files is blocked by the browser).
+ * Data loading: static JSON written by build_data.py (which never touches
+ * HTML). Serve this directory over http, e.g.
+ * `python -m http.server` from packages/dashboard — browsers block fetch()
+ * on file:// so there is no embedded fallback; the error panel says so.
  * ------------------------------------------------------------------ */
-async function loadJSON(id, url) {
+async function loadJSON(url) {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (_) {
+    throw new Error("could not fetch " + url + " — serve this folder over http " +
+      "(e.g. `python -m http.server` from packages/dashboard); file:// cannot load local JSON.");
+  }
+  if (!res.ok) throw new Error("GET " + url + ": http " + res.status);
+  return await res.json();
+}
+/* Optional data (e.g. the W3-A ingest report hook in manifest.json):
+ * null when absent — the dashboard renders the golden-fleet data instead. */
+async function loadOptional(url) {
   try {
     const res = await fetch(url);
-    if (res.ok) return await res.json();
-    throw new Error("http " + res.status);
+    if (!res.ok) return null;
+    return await res.json();
   } catch (_) {
-    const el = document.getElementById(id);
-    if (!el) throw new Error("no embedded data for " + id);
-    return JSON.parse(el.textContent);
+    return null;
   }
 }
 
@@ -599,6 +628,9 @@ const fmtC = (v) => {
   const r = Math.round(v * 1e5) / 1e5;
   return "$" + r.toFixed(5).replace(/0+$/, "").replace(/\.$/, "");
 };
+/* fixed-precision money for table COLUMNS: "$0.00034" vs "$0.00150" align;
+ * headlines/singles keep fmtC/fmtUsd, prose keeps full precision */
+const fmtMoney = (v) => "$" + Number(v).toFixed(5);
 
 const STAGE_ORDER = ["asr", "llm", "tts", "telephony"];
 const STAGE_TITLE = { asr: "ASR", llm: "LLM", tts: "TTS", telephony: "Telephony" };
@@ -810,7 +842,7 @@ function renderFindings(findings) {
       "<tr>" +
       '<td class="mono muted">' + esc(f.span_id) + "</td>" +
       "<td>" + f.turn_index + "</td>" +
-      '<td class="num waste">' + fmtUsd(f.waste_usd) + "</td>" +
+      '<td class="num waste">' + fmtMoney(f.waste_usd) + "</td>" +
       '<td class="num">' + fmtPct(f.confidence) + "</td>" +
       '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
       "</tr>");
@@ -820,7 +852,7 @@ function renderFindings(findings) {
       '<span class="wname"><span class="dchip">D' + r.cid + '</span><span class="wtext"><span class="t">' +
       esc(meta.name) + '</span><span class="whint">' + esc(meta.hint) + "</span></span></span>" +
       '<span class="track"><span class="fill" data-w="' + (max ? (r.total / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
-      '<span><span class="wval num" style="display:block;text-align:right">' + fmtC(r.total) + "</span>" +
+      '<span><span class="wval num" style="display:block;text-align:right">' + fmtMoney(r.total) + "</span>" +
       '<span class="wcount">' + r.items.length + " finding" + (r.items.length > 1 ? "s" : "") + "</span></span>" +
       '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>' +
       "</summary>" +
@@ -874,6 +906,7 @@ function renderBargein(b) {
   const tables = document.getElementById("bargein-tables");
   const table = (title, headers, rows, note) => {
     const wrap = document.createElement("div");
+    wrap.className = "tscroll";
     let html = '<div class="t-title">' + esc(title) + "</div>" +
       "<table><thead><tr>" + headers.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead><tbody>";
     rows.forEach((cells) => { html += "<tr>" + cells.map((c) => "<td>" + c + "</td>").join("") + "</tr>"; });
@@ -882,8 +915,8 @@ function renderBargein(b) {
     tables.appendChild(wrap);
   };
   const share = (p) => "<b>" + fmtPct(p.waste_share_of_tts_spend) + "</b>";
-  const usd = (p) => fmtUsd(p.d7_waste_usd_total);
-  const ci = (p) => "[" + fmtUsd(p.d7_waste_usd_ci95[0]) + ", " + fmtUsd(p.d7_waste_usd_ci95[1]) + "]";
+  const usd = (p) => fmtMoney(p.d7_waste_usd_total);
+  const ci = (p) => "[" + fmtMoney(p.d7_waste_usd_ci95[0]) + ", " + fmtMoney(p.d7_waste_usd_ci95[1]) + "]";
 
   table(
     "Barge-in rate sweep (modeled input, swept: buffer held at " + b.lead_cap_s.toFixed(1) + "s)",
@@ -919,9 +952,8 @@ function renderConditional(c) {
       '<span class="cname"><b>' + esc(pretty[0]) + "</b><small>" + esc(pretty[1]) + "</small></span>" +
       '<span class="cdet">' + esc(v.detector) + "</span>" +
       '<span class="track"><span class="fill" data-w="' + (max > 0 && !zero ? (v.savings_usd / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
-      '<span class="cval num">' + (zero ? "no measured effect" : fmtC(v.savings_usd)) +
-      (zero ? "" : "<small>CI95 [" + fmtC(v.savings_usd_ci95[0]) + ", " + fmtC(v.savings_usd_ci95[1]) + "]</small>") + "</span>" +
-      '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
+      '<span class="cval num">' + (zero ? "no measured effect" : fmtMoney(v.savings_usd)) +
+      (zero ? "" : "<small>CI95 [" + fmtMoney(v.savings_usd_ci95[0]) + ", " + fmtMoney(v.savings_usd_ci95[1]) + "]</small>") + "</span>";
     host.appendChild(row);
   });
   document.getElementById("conditional-total").textContent = fmtC(c.total_savings_usd);
@@ -978,6 +1010,7 @@ function renderFlame(pt) {
     " · end_reason " + esc(trace.conversation.end_reason);
 
   const legend = document.getElementById("hero-legend");
+  legend.innerHTML = "";
   STAGE_ORDER.filter((st) => (pt.stage_costs[st] || 0) > 0).forEach((st) => {
     const c = pt.stage_costs[st] || 0;
     const item = document.createElement("span");
@@ -1090,6 +1123,129 @@ function tidyLabels() {
 }
 
 /* ------------------------------------------------------------------ *
+ * 07+08. All calls: hash-routed list -> per-call detail.
+ * Routes are `#/call/<fixture-id>` (static-friendly: no server rewrite
+ * rules). Plain `#fleet`-style anchors are left to the browser.
+ * ------------------------------------------------------------------ */
+function verdictChip(v) {
+  const cls = v === "RESOLVED" ? "chip save"
+    : (v === "ESCALATED" || v === "ABANDONED" || v === "FALSE_RESOLVE" || v === "MISROUTED")
+      ? "chip warn" : "chip";
+  return '<span class="' + cls + '">' + esc(v) + "</span>";
+}
+
+function wasteName(cid) {
+  const meta = CLASS_META[cid];
+  return meta ? meta.name : "Class " + cid;
+}
+
+function renderCallsList(calls) {
+  const rows = [...calls.calls].sort((a, b) => b.cost_usd - a.cost_usd);
+  document.getElementById("calls-chip").textContent =
+    calls.n + " calls · " + calls.source + " · click a call to drill down";
+  const body = document.getElementById("calls-body");
+  rows.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.dataset.call = c.id;
+    const top = c.top_waste
+      ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
+        ' · <span class="num">' + fmtMoney(c.top_waste.waste_usd) + "</span>"
+      : '<span class="zero-note">no waste detected</span>';
+    tr.innerHTML =
+      '<td class="id"><a href="#/call/' + esc(c.id) + '">' + esc(c.id) + "</a></td>" +
+      "<td>" + esc(c.scenario_id) + "</td>" +
+      '<td class="num">' + fmtMoney(c.cost_usd) + "</td>" +
+      "<td>" + verdictChip(c.verdict) + "</td>" +
+      "<td>" + top + "</td>";
+    body.appendChild(tr);
+  });
+  document.getElementById("calls-note").textContent =
+    "Costs, verdicts, and top waste computed by the real pipeline over " +
+    calls.n + " " + calls.source + " calls (sample/calls.json).";
+}
+
+function renderCallMeta(call) {
+  const v = call.verdict;
+  document.getElementById("hero-verdict").innerHTML =
+    verdictChip(v.label) + " <span class='muted'>" + esc(call.trace.conversation.scenario_id) +
+    "</span> <span class='faint mono' style='font-size:11px'>· end_reason " +
+    esc(call.trace.conversation.end_reason) + " · " + call.trace.turns.length + " turns</span>";
+  const host = document.getElementById("hero-findings");
+  if (!call.findings.length) {
+    host.innerHTML = '<span class="zero-note">no waste detected on this call — every detector came back clean.</span>';
+    return;
+  }
+  const rows = [...call.findings].sort((a, b) => b.waste_usd - a.waste_usd).map((f) =>
+    "<tr>" +
+    '<td class="mono muted">D' + f.class_id + " " + esc(wasteName(f.class_id)) + "</td>" +
+    '<td class="mono muted">' + esc(f.span_id) + "</td>" +
+    "<td>" + f.turn_index + "</td>" +
+    '<td class="num waste">' + fmtMoney(f.waste_usd) + "</td>" +
+    '<td class="num">' + fmtPct(f.confidence) + "</td>" +
+    '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
+    "</tr>");
+  host.innerHTML = "<table><thead><tr><th>Waste class</th><th>Span</th><th>Turn</th>" +
+    "<th>Waste (USD)</th><th>Confidence</th><th>Proposed variant</th></tr></thead><tbody>" +
+    rows.join("") + "</tbody></table>";
+}
+
+const callCache = new Map();
+function getCall(id) {
+  if (!callCache.has(id)) callCache.set(id, loadJSON("sample/call-" + id + ".json"));
+  return callCache.get(id);
+}
+
+/* Render the call the URL names (default: the hero fixture), and move
+ * keyboard focus into the detail when the user followed a link here. */
+async function routeCall(calls, focus) {
+  const m = location.hash.match(/^#\/call\/([\w-]+)$/);
+  const ids = new Set(calls.calls.map((c) => c.id));
+  const id = (m && ids.has(m[1])) ? m[1] : calls.hero;
+  if (m && !ids.has(m[1])) {
+    document.getElementById("hero-verdict").innerHTML =
+      '<span style="color:var(--warn)">unknown call ' + esc(m[1]) + "</span>" +
+      ' <span class="faint">— showing the hero call instead; ' +
+      '<a href="#calls" style="border-bottom:1px solid var(--line-2)">see all calls</a></span>';
+  }
+  const call = await getCall(id);
+  renderFlame(call);
+  renderCallMeta(call);
+  document.querySelectorAll("#calls-body tr").forEach((tr) => {
+    const a = tr.querySelector("a");
+    if (a) {
+      if (tr.dataset.call === id) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    }
+  });
+  requestAnimationFrame(tidyLabels);
+  if (focus) {
+    document.getElementById("hero-details").open = true;
+    document.getElementById("hero").scrollIntoView();
+    document.getElementById("hero-title").focus({ preventScroll: true });
+  }
+}
+
+/* Item 5 hook: the W3-A turnstile_ingest report plugs in here. Absent
+ * (report_path null or fetch fails) the dashboard honestly says so and
+ * renders the golden-fleet data; present, its label + provenance render
+ * verbatim. Only the documented envelope keys are read. */
+function renderIngestNote(manifest, report) {
+  const hook = manifest.ingest || {};
+  const host = document.getElementById("ingest-note");
+  if (report && report.label) {
+    host.innerHTML = "Ingested fleet: <span style='color:var(--ink)'>" + esc(report.label) +
+      "</span> · n = " + esc(report.n) +
+      (report.note ? " · " + esc(norm(report.note)) : "") +
+      (report.provenance ? "<br><span class='faint'>" + esc(norm(report.provenance)) + "</span>" : "");
+  } else {
+    host.innerHTML = "Real-call ingest " +
+      (hook.status ? "(" + esc(hook.status) + ") " : "") +
+      "is not wired yet — the list above shows the " + manifest.n_calls +
+      " golden fixtures. Contract for the producer: <span class='mono'>sample/manifest.json → ingest.contract</span>.";
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * Footer: every panel's provenance, verbatim, one deliberate click away.
  * ------------------------------------------------------------------ */
 function renderProvenance(priced, fleet, bargein, experiments, conditional) {
@@ -1111,13 +1267,17 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
  * ------------------------------------------------------------------ */
 (async function main() {
   try {
-    const [bargein, priced, fleet, findings, experiments, conditional] = await Promise.all([
-      loadJSON("data-bargein", "sample/bargein.sample.json"),
-      loadJSON("data-priced", "sample/priced_trace.json"),
-      loadJSON("data-fleet", "sample/fleet.json"),
-      loadJSON("data-findings", "sample/findings.sample.json"),
-      loadJSON("data-experiments", "sample/experiments.sample.json"),
-      loadJSON("data-conditional", "sample/conditional.sample.json"),
+    const manifest = await loadJSON("sample/manifest.json");
+    const ingestPath = manifest.ingest && manifest.ingest.report_path;
+    const [bargein, priced, fleet, findings, experiments, conditional, calls, ingestReport] = await Promise.all([
+      loadJSON("sample/bargein.sample.json"),
+      loadJSON("sample/priced_trace.json"),
+      loadJSON("sample/fleet.json"),
+      loadJSON("sample/findings.sample.json"),
+      loadJSON("sample/experiments.sample.json"),
+      loadJSON("sample/conditional.sample.json"),
+      loadJSON("sample/calls.json"),
+      ingestPath ? loadOptional(ingestPath) : null,
     ]);
 
     renderMasthead(fleet);
@@ -1127,8 +1287,16 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
     renderBargein(bargein);
     renderConditional(conditional);
     renderReplay(experiments);
-    renderFlame(priced);
+    renderCallsList(calls);
+    renderIngestNote(manifest, ingestReport);
     renderProvenance(priced, fleet, bargein, experiments, conditional);
+    window.addEventListener("hashchange", () => {
+      routeCall(calls, true).catch((err) => {
+        document.getElementById("hero-verdict").textContent =
+          "Could not load that call: " + err.message;
+      });
+    });
+    await routeCall(calls, /^#\/call\//.test(location.hash));
 
     document.querySelectorAll(".fill[data-w], .seg[data-w]").forEach(animateWidth);
     document.querySelectorAll("[data-count]").forEach(countUp);
