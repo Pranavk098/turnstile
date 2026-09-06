@@ -5,9 +5,9 @@ proceed, docs/CORPUS.md's "gated owner approval").
 
 For each variant, estimates the set of ``llm.decide`` decisions a real
 backend would re-run -- the same "earliest applicable turn" rule
-``turnstile_replay.replay._earliest_applicable_turn`` uses (that function is
-private, so the rule is duplicated here in miniature rather than reached
-into; keep the two in sync if the rule ever changes) -- and prices each
+``turnstile_replay.replay._earliest_applicable_turn`` uses (imported directly,
+single source of truth, same as ``turnstile_experiments.checkpoint_runner``)
+-- and prices each
 re-run decision's INPUT + OUTPUT tokens (no ``cache_read``/``cache_write``
 credit: a live re-run is a fresh API call, not guaranteed to hit OpenAI's own
 prompt cache, so this is a deliberately conservative/upper-bound estimate) at
@@ -20,21 +20,9 @@ from __future__ import annotations
 
 from turnstile_schema import PricedTrace, RateTable, VariantSpec, load_rates
 from turnstile_schema.spans import LlmDecide
+from turnstile_replay.replay import _earliest_applicable_turn
 
 RATES_PATH = "pricing/rates.yaml"
-
-
-def _earliest_applicable_turn(trace: PricedTrace, variant: VariantSpec) -> int:
-    """Mirrors ``turnstile_replay.replay._earliest_applicable_turn`` (private
-    -- duplicated here rather than imported; see module docstring)."""
-    if variant.model_routing:
-        kinds = set(variant.model_routing.keys())
-        for turn in trace.trace.turns:
-            for span in turn.llm:
-                if span.decision_kind.value in kinds:
-                    return turn.turn_index
-        return len(trace.trace.turns)
-    return 0
 
 
 def _targets(trace: PricedTrace, variant: VariantSpec) -> list[LlmDecide]:
