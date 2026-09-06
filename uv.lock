@@ -10,6 +10,7 @@ members = [
     "turnstile-dashboard",
     "turnstile-detectors",
     "turnstile-experiments",
+    "turnstile-ingest",
     "turnstile-otel",
     "turnstile-pricing",
     "turnstile-replay",
@@ -1513,6 +1514,7 @@ dev = [
     { name = "turnstile-corpus" },
     { name = "turnstile-detectors" },
     { name = "turnstile-experiments" },
+    { name = "turnstile-ingest" },
     { name = "turnstile-otel" },
     { name = "turnstile-pricing" },
     { name = "turnstile-replay" },
@@ -1536,6 +1538,7 @@ dev = [
     { name = "turnstile-corpus", editable = "packages/corpus" },
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-experiments", editable = "packages/experiments" },
+    { name = "turnstile-ingest", editable = "packages/ingest" },
     { name = "turnstile-otel", editable = "packages/otel" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-replay", editable = "packages/replay" },
@@ -1619,6 +1622,31 @@ requires-dist = [
     { name = "numpy" },
     { name = "openai" },
     { name = "turnstile-corpus", editable = "packages/corpus" },
+    { name = "turnstile-detectors", editable = "packages/detectors" },
+    { name = "turnstile-pricing", editable = "packages/pricing" },
+    { name = "turnstile-replay", editable = "packages/replay" },
+    { name = "turnstile-schema", editable = "packages/schema" },
+    { name = "turnstile-verdict", editable = "packages/verdict" },
+]
+
+[[package]]
+name = "turnstile-ingest"
+version = "0.0.0"
+source = { editable = "packages/ingest" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "turnstile-detectors" },
+    { name = "turnstile-pricing" },
+    { name = "turnstile-replay" },
+    { name = "turnstile-schema" },
+    { name = "turnstile-verdict" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-replay", editable = "packages/replay" },

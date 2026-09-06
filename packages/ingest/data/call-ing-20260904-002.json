@@ -1,0 +1,307 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260904-002",
+      "agent_version": "voice-agent@3.2.1",
+      "scenario_id": "refund",
+      "started_at": "2026-09-04T09:14:52Z",
+      "ended_at": "2026-09-04T09:15:26Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 7200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-002:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2800,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.8,
+            "is_streaming": true,
+            "transcript": "Hi, I'd like to return the headphones I bought last week, order O R D 88121.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-002:t0:llm",
+            "start_offset_ms": 3100,
+            "duration_ms": 650,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 790,
+            "output_tokens": 11,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "refund",
+            "decision_candidates": [
+              "refund"
+            ],
+            "output_text": "I can help with that return. Let me find your order first.",
+            "latency_ms": 650,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 7200,
+        "wall_end_ms": 15600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-002:t1:llm",
+            "start_offset_ms": 7800,
+            "duration_ms": 850,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1030,
+            "output_tokens": 24,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_order",
+            "decision_candidates": [
+              "lookup_order"
+            ],
+            "output_text": "I found order O R D 88121, the headphones, delivered last Thursday and still in the return window.",
+            "latency_ms": 850,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-002:t1:tool0",
+            "start_offset_ms": 7300,
+            "duration_ms": 380,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:dbd7726a5cb0a80ea11547a8e551ea5088e66cb5e0a348a01bc7494d2300eeb0",
+            "args_json": "{\"order_id\":\"ORD-88121\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 380,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 15600,
+        "wall_end_ms": 24800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-002:t2:llm",
+            "start_offset_ms": 16900,
+            "duration_ms": 900,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1300,
+            "output_tokens": 26,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "confirm_refund",
+            "decision_candidates": [
+              "confirm_refund"
+            ],
+            "output_text": "Your refund of seventy-nine ninety-nine is processed and should land back on your card in three to five days.",
+            "latency_ms": 900,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-002:t2:tool0",
+            "start_offset_ms": 15700,
+            "duration_ms": 1100,
+            "tool_name": "process_refund",
+            "args_hash": "sha256:228b4beb8a272b585d0b60e829b02f693b3a3582f62450aadbcef50ca1de25eb",
+            "args_json": "{\"amount_usd\":79.99,\"order_id\":\"ORD-88121\",\"reason\":\"customer_return\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 1100,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "caller",
+        "wall_start_ms": 24800,
+        "wall_end_ms": 30200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-002:t3:asr",
+            "start_offset_ms": 25000,
+            "duration_ms": 1500,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 1.5,
+            "is_streaming": true,
+            "transcript": "Perfect, thank you so much.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-002:t3:llm",
+            "start_offset_ms": 26600,
+            "duration_ms": 550,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1540,
+            "output_tokens": 12,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "farewell",
+            "decision_candidates": [
+              "farewell"
+            ],
+            "output_text": "Happy to help. Goodbye, and have a great day.",
+            "latency_ms": 550,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260904-002:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 34000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 38
+    }
+  },
+  "span_costs": {
+    "ing-20260904-002:t0:asr": 0.00020066666666666665,
+    "ing-20260904-002:t0:llm": 0.0002195,
+    "ing-20260904-002:t1:llm": 0.0003055,
+    "ing-20260904-002:t2:llm": 0.000377,
+    "ing-20260904-002:t3:asr": 0.00010750000000000001,
+    "ing-20260904-002:t3:llm": 0.00040899999999999997
+  },
+  "turn_costs": [
+    0.0017036103752759383,
+    0.0018028509933774835,
+    0.002016955849889625,
+    0.0014790827814569539
+  ],
+  "conv_cost": 0.0070025,
+  "stage_costs": {
+    "asr": 0.00030816666666666666,
+    "llm": 0.001311,
+    "tts": 0.0,
+    "telephony": 0.005383333333333334
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.9,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "process_refund",
+        "tool_kind": "mutation",
+        "effect": "committed",
+        "tool_status": "ok",
+        "turn_index": 2,
+        "rule": "resolved_requires_effect_committed"
+      }
+    ],
+    "turn_of_no_return": 2
+  },
+  "findings": [],
+  "top_waste_usd": null,
+  "_provenance": {
+    "ingest_call": "ing-20260904-002",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      6,
+      8
+    ]
+  }
+}

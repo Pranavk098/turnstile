@@ -1,0 +1,332 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260904-007",
+      "agent_version": "voice-agent@3.2.1",
+      "scenario_id": "billing_dispute",
+      "started_at": "2026-09-04T16:40:02Z",
+      "ended_at": "2026-09-04T16:40:44Z",
+      "end_reason": "escalated",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 7400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-007:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2900,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.9,
+            "is_streaming": true,
+            "transcript": "This is the third time I'm calling about this two hundred dollar fee and nobody fixes it!",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-007:t0:llm",
+            "start_offset_ms": 3200,
+            "duration_ms": 700,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 880,
+            "output_tokens": 13,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "billing_dispute",
+            "decision_candidates": [
+              "billing_dispute"
+            ],
+            "output_text": "I hear you, and I'm sorry. Let me dig into that fee right now.",
+            "latency_ms": 700,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 7400,
+        "wall_end_ms": 17200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-007:t1:llm",
+            "start_offset_ms": 8200,
+            "duration_ms": 900,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1140,
+            "output_tokens": 26,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "explain_fee",
+            "decision_candidates": [
+              "explain_fee"
+            ],
+            "output_text": "I see the two hundred dollar installation fee from July. It looks valid from here, but let me check the waiver rules.",
+            "latency_ms": 900,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-007:t1:tool0",
+            "start_offset_ms": 7500,
+            "duration_ms": 600,
+            "tool_name": "lookup_invoices",
+            "args_hash": "sha256:c08362332d8e31c7f9763b68521ff28bf73eec668a915ef9e50d2d79feecad44",
+            "args_json": "{\"customer_id\":\"C-55901\",\"dispute\":\"fee_200\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 600,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "caller",
+        "wall_start_ms": 17200,
+        "wall_end_ms": 26800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-007:t2:asr",
+            "start_offset_ms": 17400,
+            "duration_ms": 2300,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.3,
+            "is_streaming": true,
+            "transcript": "I was promised that fee would be waived. I want a supervisor.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-007:t2:llm",
+            "start_offset_ms": 19800,
+            "duration_ms": 750,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1420,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "escalate_check",
+            "decision_chosen": "escalate_now",
+            "decision_candidates": [
+              "escalate_now"
+            ],
+            "output_text": "You shouldn't have to call three times. I'll bring in a specialist who can waive it.",
+            "latency_ms": 750,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "agent",
+        "wall_start_ms": 26800,
+        "wall_end_ms": 36000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-007:t3:llm",
+            "start_offset_ms": 28500,
+            "duration_ms": 800,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1680,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "warm_transfer",
+            "decision_candidates": [
+              "warm_transfer"
+            ],
+            "output_text": "Connecting you to a billing specialist now. They have your full history. Please hold.",
+            "latency_ms": 800,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-007:t3:tool0",
+            "start_offset_ms": 26900,
+            "duration_ms": 1500,
+            "tool_name": "transfer_to_specialist",
+            "args_hash": "sha256:1de99e9fce0b09ebc54a631c288f9248cb0d4fb2c92766301342605d6068b271",
+            "args_json": "{\"queue\":\"billing_supervisors\",\"reason\":\"repeat_caller_fee_waiver\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 1500,
+            "cost_usd": 0.0,
+            "tool_kind": "handoff",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260904-007:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 42000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 46
+    }
+  },
+  "span_costs": {
+    "ing-20260904-007:t0:asr": 0.00020783333333333333,
+    "ing-20260904-007:t0:llm": 0.000246,
+    "ing-20260904-007:t1:llm": 0.000337,
+    "ing-20260904-007:t2:asr": 0.00016483333333333332,
+    "ing-20260904-007:t2:llm": 0.00038700000000000003,
+    "ing-20260904-007:t3:llm": 0.000456
+  },
+  "turn_costs": [
+    0.0017933703703703705,
+    0.0021109814814814815,
+    0.0022896111111111116,
+    0.0021213703703703707
+  ],
+  "conv_cost": 0.008315333333333334,
+  "stage_costs": {
+    "asr": 0.00037266666666666665,
+    "llm": 0.001426,
+    "tts": 0.0,
+    "telephony": 0.006516666666666668
+  },
+  "verdict": {
+    "label": "ESCALATED",
+    "confidence": 0.9,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "transfer_to_specialist",
+        "tool_kind": "handoff",
+        "effect": "committed",
+        "tool_status": "ok",
+        "turn_index": 3,
+        "rule": "escalated_requires_handoff_committed",
+        "turn_of_no_return_source": "earliest_escalate_check",
+        "escalate_check_turn": 2
+      }
+    ],
+    "turn_of_no_return": 2
+  },
+  "findings": [
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260904-007:t2:llm",
+      "waste_usd": 0.004410981481481483,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "model_routing": null,
+        "context_strategy": null,
+        "prefix_caching": null,
+        "retrieval_policy": null,
+        "tts_chunking": null,
+        "escalation_policy": "threshold:0.85",
+        "tool_batching": null
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 3,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      }
+    }
+  ],
+  "top_waste_usd": 0.004410981481481483,
+  "_provenance": {
+    "ingest_call": "ing-20260904-007",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      6,
+      8
+    ]
+  }
+}
