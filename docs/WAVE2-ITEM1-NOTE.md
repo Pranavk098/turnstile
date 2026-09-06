@@ -38,3 +38,21 @@ label. Suggested bar: ≥4/5 (slot_fill control expected to abstain) → go Item
 else stop and report. Estimated spend: fractions of a cent.
 
 **No paid call has been made for this note. Awaiting owner go for the probe.**
+
+## Measured: real-model parse reliability (2026-09-06 probe, 5 paid calls, ~$0.001)
+
+One elicited replay per kind on real corpus spans (seed 8), routed to
+`gpt-5-nano` (paid-matrix conditions):
+
+| kind | elicited | verbatim label | parsed | in-vocab |
+|---|---|---|---|---|
+| `route` | yes | yes (`Decision: tech_support`) | tech_support | yes |
+| `compose` | yes | yes (trailing `inform`) | inform | yes |
+| `tool_select` | yes | yes (trailing `retrieve_kb_article`) | retrieve_kb_article | yes |
+| `escalate_check` | yes | yes (`Decision: continue`) | continue | yes |
+| `slot_fill` (control) | no | no | raw passthrough | abstained (as designed) |
+
+**Rate 4/4 = 1.0 ≥ 4/5 bar → GO Item 2 (pending owner confirm).** Replies stay
+natural (verdict content reads intact); no truncation (max 169 < 256
+completion tokens). The control confirms `slot_fill` needs Item-2
+value-level treatment, not label equality.
