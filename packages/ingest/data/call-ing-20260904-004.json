@@ -1,0 +1,323 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260904-004",
+      "agent_version": "voice-agent@3.2.1",
+      "scenario_id": "cancel_subscription",
+      "started_at": "2026-09-04T11:05:44Z",
+      "ended_at": "2026-09-04T11:06:22Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 6600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-004:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2400,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.4,
+            "is_streaming": true,
+            "transcript": "I want to cancel my subscription. My account is A C 554.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-004:t0:llm",
+            "start_offset_ms": 2700,
+            "duration_ms": 650,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 810,
+            "output_tokens": 12,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "cancel_subscription",
+            "decision_candidates": [
+              "cancel_subscription"
+            ],
+            "output_text": "I can take care of that. Let me pull up your account.",
+            "latency_ms": 650,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 6600,
+        "wall_end_ms": 15800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-004:t1:llm",
+            "start_offset_ms": 7200,
+            "duration_ms": 850,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1060,
+            "output_tokens": 26,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "summarize_plan",
+            "decision_candidates": [
+              "summarize_plan"
+            ],
+            "output_text": "I found your Premium monthly plan. Before I proceed, can I ask what made you decide to leave?",
+            "latency_ms": 850,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-004:t1:tool0",
+            "start_offset_ms": 6700,
+            "duration_ms": 400,
+            "tool_name": "lookup_subscription",
+            "args_hash": "sha256:a4b1cda2a4052422fbf580c7a64669e1534325a6ff349e96d6fa7826e83bb211",
+            "args_json": "{\"account_id\":\"AC-554\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 400,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "caller",
+        "wall_start_ms": 15800,
+        "wall_end_ms": 23800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-004:t2:asr",
+            "start_offset_ms": 16000,
+            "duration_ms": 2100,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.1,
+            "is_streaming": true,
+            "transcript": "I'm just not using it enough to justify the cost.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-004:t2:llm",
+            "start_offset_ms": 18200,
+            "duration_ms": 800,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1330,
+            "output_tokens": 24,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "slot_fill",
+            "decision_chosen": "confirm_cancel",
+            "decision_candidates": [
+              "confirm_cancel"
+            ],
+            "output_text": "Understood. Just to confirm, should I cancel your Premium plan at the end of this billing cycle?",
+            "latency_ms": 800,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "caller",
+        "wall_start_ms": 23800,
+        "wall_end_ms": 34000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-004:t3:asr",
+            "start_offset_ms": 24000,
+            "duration_ms": 1600,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 1.6,
+            "is_streaming": true,
+            "transcript": "Yes, please go ahead and cancel.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-004:t3:llm",
+            "start_offset_ms": 27200,
+            "duration_ms": 850,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1590,
+            "output_tokens": 22,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "acknowledge_pending",
+            "decision_candidates": [
+              "acknowledge_pending"
+            ],
+            "output_text": "I've queued that cancellation request, and you'll get a confirmation email shortly.",
+            "latency_ms": 850,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-004:t3:tool0",
+            "start_offset_ms": 25700,
+            "duration_ms": 1400,
+            "tool_name": "cancel_subscription",
+            "args_hash": "sha256:f2ad0634c7a40a66b6917157cf71cf4e78272155fc251e685e5697b877872a03",
+            "args_json": "{\"account_id\":\"AC-554\",\"effective\":\"end_of_cycle\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 1400,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "pending"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260904-004:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 38000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 42
+    }
+  },
+  "span_costs": {
+    "ing-20260904-004:t0:asr": 0.000172,
+    "ing-20260904-004:t0:llm": 0.00022649999999999998,
+    "ing-20260904-004:t1:llm": 0.000317,
+    "ing-20260904-004:t2:asr": 0.00015050000000000003,
+    "ing-20260904-004:t2:llm": 0.0003805,
+    "ing-20260904-004:t3:asr": 0.00011466666666666667,
+    "ing-20260904-004:t3:llm": 0.0004415
+  },
+  "turn_costs": [
+    0.0015535000000000002,
+    0.0019270000000000001,
+    0.001931,
+    0.0023411666666666667
+  ],
+  "conv_cost": 0.007752666666666667,
+  "stage_costs": {
+    "asr": 0.0004371666666666667,
+    "llm": 0.0013655,
+    "tts": 0.0,
+    "telephony": 0.00595
+  },
+  "verdict": {
+    "label": "PARTIALLY_RESOLVED",
+    "confidence": 0.75,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "cancel_subscription",
+        "tool_kind": "mutation",
+        "effect": "pending",
+        "tool_status": "ok",
+        "turn_index": 3,
+        "rule": "required_mutation_attempted_not_committed",
+        "scenario_id": "cancel_subscription",
+        "handled_tool": "cancel_subscription",
+        "note": "the scenario's required mutation is present but pending -- partially handled, not resolved."
+      }
+    ],
+    "turn_of_no_return": 3
+  },
+  "findings": [],
+  "top_waste_usd": null,
+  "_provenance": {
+    "ingest_call": "ing-20260904-004",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      6,
+      8
+    ]
+  }
+}

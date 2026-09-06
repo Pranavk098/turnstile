@@ -126,31 +126,53 @@ def test_missing_telephony_marks_d8_absent():
 
 
 def test_run_calls_artifact_shape_matches_dashboard_contract():
-    artifact = run_calls(
+    artifact, details = run_calls(
         [_absent_call(), _present_call()], RATES, BASELINES,
         label="test", sample=False,
     )
-    assert set(artifact) == {"label", "sample", "fleet", "coverage_summary", "calls", "findings"}
+    # Dashboard report envelope (manifest INGEST_CONTRACT).
+    assert isinstance(artifact["label"], str)
+    assert artifact["n"] == 2
+    assert isinstance(artifact["note"], str)
+    assert isinstance(artifact["provenance"], str)
     for key in ("n_conversations", "n_resolved", "total_cost_usd", "resolved_cost_usd",
                 "cprc_loaded", "cprc_naive", "recoverable_margin_pct",
                 "stage_costs_usd", "_provenance"):
         assert key in artifact["fleet"], key
     assert artifact["fleet"]["n_conversations"] == 2
     assert artifact["coverage_summary"]["n_calls"] == 2
+    # Calls index rows shaped like the dashboard's own calls.json.
     assert len(artifact["calls"]) == 2
-    for call_report in artifact["calls"]:
-        assert len(call_report["coverage"]) == 10
+    for row in artifact["calls"]:
+        assert set(row) == {"id", "scenario_id", "cost_usd", "verdict",
+                            "end_reason", "n_turns", "top_waste", "detail"}
+        detail = details[row["detail"]]
+        assert set(detail) == {"trace", "span_costs", "turn_costs", "conv_cost",
+                               "stage_costs", "verdict", "findings", "top_waste_usd",
+                               "_provenance"}
+        assert detail["conv_cost"] == row["cost_usd"]
+        assert detail["trace"]["conversation"]["conversation_id"] == row["id"]
     for finding in artifact["findings"]:
         assert "call_id" in finding
 
 
 def test_committed_data_artifact_is_dashboard_readable():
-    path = ROOT / "packages" / "ingest" / "data" / "data.json"
+    data_dir = ROOT / "packages" / "ingest" / "data"
+    path = data_dir / "data.json"
     assert path.exists(), "regenerate with: uv run python -m turnstile_ingest --sample"
     artifact = json.loads(path.read_text(encoding="utf-8"))
     assert artifact["sample"] is True
-    assert artifact["fleet"]["n_conversations"] >= 5
-    assert artifact["coverage_summary"]["n_calls"] == artifact["fleet"]["n_conversations"]
-    for call_report in artifact["calls"]:
-        assert len(call_report["coverage"]) == 10
-        assert "no data for this input" in call_report["coverage"]["8"]["reason"]
+    assert artifact["n"] == artifact["fleet"]["n_conversations"] >= 5
+    assert artifact["n"] == artifact["coverage_summary"]["n_calls"]
+    for row in artifact["calls"]:
+        assert set(row) == {"id", "scenario_id", "cost_usd", "verdict",
+                            "end_reason", "n_turns", "top_waste", "detail"}
+        detail_path = data_dir / row["detail"]
+        assert detail_path.exists(), f"missing per-call file {row['detail']}"
+        detail = json.loads(detail_path.read_text(encoding="utf-8"))
+        assert detail["conv_cost"] == row["cost_usd"]
+        coverage = detail["_provenance"]["coverage"]
+        assert len(coverage) == 10
+        # The dashboard's acoustic rule: no G2 fields -> no D6/D7/D8 findings.
+        assert "no data for this input" in coverage["8"]["reason"]
+        assert not any(f["class_id"] in (6, 7, 8) for f in detail["findings"])

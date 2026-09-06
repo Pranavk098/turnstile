@@ -112,20 +112,29 @@ the telephony leg is missing.
 
 ## `data.json` shape (for W3-B)
 
+The CLI writes `<out>/data.json` plus one `call-<id>.json` per call, matching
+the dashboard manifest's `INGEST_CONTRACT` (its `calls.json` rows and
+per-call detail keys exactly; call ids match `[A-Za-z0-9_-]+`):
+
 ```
+data.json:
 {
-  "label": ..., "sample": true|false,
+  "label": ..., "n": 7, "note": ..., "provenance": "...",   # report envelope
+  "sample": true,
   "fleet": {same keys as the dashboard's fleet.json: label, note,
             n_conversations, n_resolved, total_cost_usd, resolved_cost_usd,
             cprc_loaded, cprc_naive, recoverable_margin_pct,
             stage_costs_usd, _provenance},
-  "coverage_summary": {"n_calls": N, "calls_with_data_per_class": {"1": N, ...}},
-  "calls": [{"call_id", "scenario", "verdict", "conv_cost_usd",
-             "stage_costs_usd", "coverage": {"1": {"status", "reason"}, ...},
-             "findings": [..., each with "call_id"], "excluded_absent_classes": [6, 8],
-             "n_turns"}],
-  "findings": [...all reported findings...]
+  "coverage_summary": {"n_calls": 7, "calls_with_data_per_class": {"1": 7, ...}},
+  "calls": [{"id", "scenario_id", "cost_usd", "verdict", "end_reason",
+             "n_turns", "top_waste", "detail": "call-<id>.json"}],
+  "findings": [...all reported findings, each with "call_id"...]
 }
+call-<id>.json:
+{"trace", "span_costs", "turn_costs", "conv_cost", "stage_costs",
+ "verdict", "findings", "top_waste_usd",
+ "_provenance": {"ingest_call", "sample", "note", "coverage",
+                "excluded_absent_classes"}}
 ```
 
 `recoverable_margin_pct` uses the same §8.3 gate as the dashboard (D1

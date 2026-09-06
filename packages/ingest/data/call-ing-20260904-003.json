@@ -1,0 +1,253 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260904-003",
+      "agent_version": "voice-agent@3.2.1",
+      "scenario_id": "order_status",
+      "started_at": "2026-09-04T10:31:05Z",
+      "ended_at": "2026-09-04T10:31:27Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 6200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-003:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2200,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.2,
+            "is_streaming": true,
+            "transcript": "Hey, where's my package? My order is O R D 90210.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-003:t0:llm",
+            "start_offset_ms": 2600,
+            "duration_ms": 600,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 740,
+            "output_tokens": 10,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status"
+            ],
+            "output_text": "Let me track that package for you right now.",
+            "latency_ms": 600,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 6200,
+        "wall_end_ms": 15800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-003:t1:llm",
+            "start_offset_ms": 6750,
+            "duration_ms": 800,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 980,
+            "output_tokens": 22,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "report_status",
+            "decision_candidates": [
+              "report_status"
+            ],
+            "output_text": "Good news, order O R D 90210 ships tomorrow morning and should arrive Thursday.",
+            "latency_ms": 800,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260904-003:t1:tool0",
+            "start_offset_ms": 6300,
+            "duration_ms": 350,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:1fa74f9f32f2a0108de12c6557970af08fde2cffe059d3e2f4460e48a83f0f92",
+            "args_json": "{\"order_id\":\"ORD-90210\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 350,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "caller",
+        "wall_start_ms": 15800,
+        "wall_end_ms": 20400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260904-003:t2:asr",
+            "start_offset_ms": 16000,
+            "duration_ms": 1400,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 1.4,
+            "is_streaming": true,
+            "transcript": "Thursday works. Thanks, bye.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260904-003:t2:llm",
+            "start_offset_ms": 17500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1200,
+            "output_tokens": 9,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "farewell",
+            "decision_candidates": [
+              "farewell"
+            ],
+            "output_text": "You're welcome. Goodbye.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260904-003:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 22000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 26
+    }
+  },
+  "span_costs": {
+    "ing-20260904-003:t0:asr": 0.00015766666666666666,
+    "ing-20260904-003:t0:llm": 0.000205,
+    "ing-20260904-003:t1:llm": 0.000289,
+    "ing-20260904-003:t2:asr": 0.00010033333333333332,
+    "ing-20260904-003:t2:llm": 0.000318
+  },
+  "turn_costs": [
+    0.0014821111111111111,
+    0.0020223333333333334,
+    0.0012488888888888888
+  ],
+  "conv_cost": 0.004753333333333333,
+  "stage_costs": {
+    "asr": 0.000258,
+    "llm": 0.000812,
+    "tts": 0.0,
+    "telephony": 0.0036833333333333336
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": true,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [],
+  "top_waste_usd": null,
+  "_provenance": {
+    "ingest_call": "ing-20260904-003",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      6,
+      8
+    ]
+  }
+}

@@ -29,6 +29,7 @@ How absence differs from zero, per detector (investigated, not assumed):
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +38,7 @@ from turnstile_detectors import detect
 from turnstile_pricing import price_trace
 from turnstile_replay import experiment
 from turnstile_verdict import adjudicate
-from turnstile_ingest.adapter import load, parse_call
+from turnstile_ingest.adapter import IngestError, load, parse_call
 from turnstile_ingest.model import IngestCall
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -120,6 +121,7 @@ def run_call(
     return {
         "call_id": call.id,
         "scenario": call.scenario,
+        "end_reason": call.end_reason.value,
         "verdict": verdict.model_dump(mode="json"),
         "conv_cost_usd": priced.conv_cost,
         "stage_costs_usd": dict(priced.stage_costs),
@@ -129,6 +131,56 @@ def run_call(
         ],
         "excluded_absent_classes": dropped,
         "n_turns": len(call.turns),
+    }
+
+
+_CALL_ID_RE = re.compile(r"[A-Za-z0-9_-]+\Z")
+
+
+def _detail_filename(call_id: str) -> str:
+    if not _CALL_ID_RE.match(call_id):
+        raise IngestError(
+            f"id {call_id!r}: call ids must match [A-Za-z0-9_-]+ so the "
+            "dashboard can route per-call detail files (its route pattern)"
+        )
+    return f"call-{call_id}.json"
+
+
+def _detail_file(
+    call: IngestCall,
+    priced: PricedTrace,
+    verdict,
+    findings: list,
+    dropped: list[int],
+    coverage,
+    sample: bool,
+) -> dict[str, Any]:
+    """One call-<id>.json payload with EXACTLY the dashboard's detail keys
+    (trace, span_costs, turn_costs, conv_cost, stage_costs, verdict, findings,
+    _provenance). Findings here are plain Finding dumps (no call_id -- same
+    as the golden per-call files); coverage lives in _provenance."""
+    return {
+        "trace": priced.trace.model_dump(mode="json"),
+        "span_costs": dict(priced.span_costs),
+        "turn_costs": list(priced.turn_costs),
+        "conv_cost": priced.conv_cost,
+        "stage_costs": dict(priced.stage_costs),
+        "verdict": verdict.model_dump(mode="json"),
+        "findings": [f.model_dump(mode="json") for f in findings],
+        "top_waste_usd": max((f.waste_usd for f in findings), default=None),
+        "_provenance": {
+            "ingest_call": call.id,
+            "sample": sample,
+            "note": (
+                "Per-call priced trace over an ingested log (turnstile_ingest). "
+                "SAMPLE -- not production data. " if sample else ""
+            )
+            + "LLM/tool layers measured from the log's own telemetry; "
+              "acoustic stages only where the log carries rate-resolvable "
+              "telemetry (see coverage).",
+            "coverage": {str(k): v for k, v in coverage.items()},
+            "excluded_absent_classes": list(dropped),
+        },
     }
 
 
@@ -153,55 +205,70 @@ def run_calls(
     *,
     label: str,
     sample: bool,
-) -> dict[str, Any]:
-    """Run the full pipeline over many calls; return the dashboard-shaped
-    data artifact (fleet + findings + per-call reports + coverage summary)."""
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    """Run the full pipeline over many calls.
+
+    Returns ``(index_artifact, detail_files)``. The index artifact carries
+    the dashboard's report envelope (``label``/``n``/``note``/``provenance``)
+    plus the fleet aggregate, the coverage summary, the ``calls`` index
+    (rows shaped EXACTLY like the dashboard's calls.json:
+    id/scenario_id/cost_usd/verdict/end_reason/n_turns/top_waste/detail) and
+    the aggregate findings list. ``detail_files`` maps
+    ``call-<id>.json`` -> the per-call payload with EXACTLY the dashboard's
+    detail keys. The CLI writes both to the output directory.
+    """
     priced_traces: list[PricedTrace] = []
-    calls: list[dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
+    details: dict[str, dict[str, Any]] = {}
     all_findings: list[dict[str, Any]] = []
+    present_counts: dict[str, int] = {}
     total_cost = 0.0
     resolved_cost = 0.0
     n_resolved = 0
     stage_totals: dict[str, float] = {}
 
     for obj in objs:
-        call, priced, verdict, coverage, findings, _raw = _run_priced(obj, rates, baselines)
-        report = {
-            "call_id": call.id,
-            "scenario": call.scenario,
-            "verdict": verdict.model_dump(mode="json"),
-            "conv_cost_usd": priced.conv_cost,
-            "stage_costs_usd": dict(priced.stage_costs),
-            "coverage": {str(k): v for k, v in coverage.items()},
-            "findings": [
-                {**f.model_dump(mode="json"), "call_id": call.id} for f in findings
-            ],
-            "excluded_absent_classes": sorted(
-                {f.class_id for f in _raw} - {f.class_id for f in findings}
-            ),
+        call, priced, verdict, coverage, findings, raw = _run_priced(obj, rates, baselines)
+        dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
+        filename = _detail_filename(call.id)
+        details[filename] = _detail_file(call, priced, verdict, findings, dropped, coverage, sample)
+        top_waste = max((f.waste_usd for f in findings), default=None)
+        rows.append({
+            "id": call.id,
+            "scenario_id": call.scenario,
+            "cost_usd": priced.conv_cost,
+            "verdict": verdict.label.value,
+            "end_reason": call.end_reason.value,
             "n_turns": len(call.turns),
-        }
+            "top_waste": top_waste,
+            "detail": filename,
+        })
+        all_findings.extend(
+            {**f.model_dump(mode="json"), "call_id": call.id} for f in findings
+        )
+        for class_id, entry in coverage.items():
+            if entry["status"] == "present":
+                key = str(class_id)
+                present_counts[key] = present_counts.get(key, 0) + 1
         priced_traces.append(priced)
-        calls.append(report)
-        all_findings.extend(report["findings"])
         total_cost += priced.conv_cost
         for stage, cost in priced.stage_costs.items():
             stage_totals[stage] = stage_totals.get(stage, 0.0) + cost
-        if report["verdict"]["label"] == "RESOLVED":
+        if verdict.label.value == "RESOLVED":
             resolved_cost += priced.conv_cost
             n_resolved += 1
 
-    n = len(calls)
+    n = len(rows)
     acoustic_note = (
         "Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) "
         "carry no TTS/playback spans: their TTS cost is unmeasured (0 in "
         "stage_costs, NOT zero waste) and detector classes 6/7/8 are reported "
         "ABSENT per call ('no data for this input'), excluded from findings."
     )
+    sample_note = "SAMPLE aggregate over ingested calls -- not a production fleet. " if sample else ""
     fleet = {
         "label": label,
-        "note": ("SAMPLE aggregate over ingested calls -- not a production fleet. " if sample else "")
-        + "CPRC_naive/CPRC_loaded per PRD Sec.4.3. " + acoustic_note,
+        "note": sample_note + "CPRC_naive/CPRC_loaded per PRD Sec.4.3. " + acoustic_note,
         "n_conversations": n,
         "n_resolved": n_resolved,
         "total_cost_usd": total_cost,
@@ -221,19 +288,27 @@ def run_calls(
             ),
         },
     }
-    present_counts: dict[str, int] = {}
-    for report in calls:
-        for class_id, entry in report["coverage"].items():
-            if entry["status"] == "present":
-                present_counts[class_id] = present_counts.get(class_id, 0) + 1
-    return {
+    # The dashboard's report envelope (manifest INGEST_CONTRACT): exactly
+    # label/n/note/provenance on top, the fleet + coverage beside them, the
+    # calls index rows shaped like its own calls.json.
+    artifact = {
         "label": label,
+        "n": n,
+        "note": sample_note + "Ingested call logs via turnstile_ingest. " + acoustic_note,
+        "provenance": (
+            "turnstile_ingest report over "
+            + ("the bundled 7-call SAMPLE (not production data). " if sample else "ingested logs. ")
+            + "LLM/tool layers from the log's own telemetry; acoustic stages "
+              "only where the log carries rate-resolvable telemetry; D6/D7/D8 "
+              "reported ABSENT where it does not."
+        ),
         "sample": sample,
         "fleet": fleet,
         "coverage_summary": {
             "n_calls": n,
             "calls_with_data_per_class": present_counts,
         },
-        "calls": calls,
+        "calls": rows,
         "findings": all_findings,
     }
+    return artifact, details

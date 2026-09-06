@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
 
     rates = load_rates(args.rates)
     baselines = Baselines.model_validate(json.loads(args.baselines.read_text(encoding="utf-8")))
-    artifact = run_calls(
+    artifact, details = run_calls(
         calls, rates, baselines,
         label="ingested sample (7 calls)" if sample else f"ingested {input_path.name}",
         sample=sample,
@@ -77,13 +77,15 @@ def main(argv: list[str] | None = None) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     out_path = args.out / "data.json"
     out_path.write_text(json.dumps(artifact, indent=2), encoding="utf-8")
+    for filename, detail in details.items():
+        (args.out / filename).write_text(json.dumps(detail, indent=2), encoding="utf-8")
 
     fleet = artifact["fleet"]
     summary = artifact["coverage_summary"]["calls_with_data_per_class"]
     n = artifact["coverage_summary"]["n_calls"]
     full = [c for c in range(1, 11) if summary.get(str(c), 0) == n]
     partial = [(c, summary.get(str(c), 0)) for c in range(1, 11) if summary.get(str(c), 0) != n]
-    print(f"ingested {n} call(s) from {input_path} -> {out_path}")
+    print(f"ingested {n} call(s) from {input_path} -> {out_path} + {len(details)} per-call files")
     print(f"total cost ${fleet['total_cost_usd']:.4f} over {n} calls, "
           f"{fleet['n_resolved']} resolved; "
           f"recoverable margin {fleet['recoverable_margin_pct']:.2f}% "
