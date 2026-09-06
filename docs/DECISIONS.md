@@ -39,10 +39,13 @@ See `memory/turnstile-delegation-model.md`.
 Three tiers, labeled on every number: **Measured** (barge-in waste on real Piper;
 deterministic rate-arbitrage recoverable margin 0.57%), **Instrumented-not-measured**
 (voice-stack decomposition, D8 on synthetic acoustics — hypothesis + sensitivity
-sweep, magnitude not claimed), **Not-yet-measured** (outcome-preservation — the
-synthetic corpus can't measure it: canned outputs + placeholder caller inputs +
-tool-pinned verdicts are structural, H-1). Full detail: `docs/METHOD.md`,
-`docs/LIMITATIONS.md`, `docs/DEMO.md`.
+sweep, magnitude not claimed), **Partially-measured** (outcome-preservation — the
+Wave-2 kind-aware gate measured it on real calls: routing forks at 7.8% and verdicts
+hold at **0.985** over non-divergent routing pivots, paid n=250/seed 8; but
+preservation *under a divergent decision* stays unobserved, and the route elicitation
+is a 2-way `[scenario_id, "other"]` choice — H-1's structural 1.0 is broken, not the
+whole question closed). Full detail: `docs/METHOD.md`, `docs/LIMITATIONS.md`,
+`docs/DEMO.md`.
 
 ## Variant execution model (why 5/6 "variants" were no-ops)
 Only `model_routing` is applied on the replay **backend**. Every other VariantSpec

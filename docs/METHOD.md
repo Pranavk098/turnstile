@@ -66,17 +66,55 @@ corpus**, for two independent reasons:
    verdicts — regardless of what the model decides. Spending real credit to
    re-measure a pinned quantity buys nothing.
 
-Therefore **outcome-preservation is a Wave-2 measurement**, not a Tier-1 claim.
-The replay experiment on synthetic data *proves the mechanism* (pinned replay,
-deterministic re-pricing, §8.3 gating) but cannot *measure preservation* until it
-runs against real traffic with real baselines. This corrects the earlier
-"Tier-1 = measured replay" framing: on a synthetic corpus, replay is a mechanism
-demonstration; the measured number requires real audio (G1) or a real-baseline
-build (see LIMITATIONS.md, Wave-2).
+Therefore, **through Wave-1, outcome-preservation was not a measured claim** — and
+Wave-2 has now **partially measured it on real calls** (preservation **0.985** over
+non-divergent routing pivots; preservation-under-divergence still open — see the
+*Wave-2 update* below). The replay experiment on synthetic data *proves the mechanism*
+(pinned replay, deterministic re-pricing, §8.3 gating) but cannot *measure preservation*
+via the Wave-1 lexical gate; the Wave-2 kind-aware gate is what unlocked the real-call
+measurement (a full number still requires real audio (G1) or a real-baseline build for
+the content-driven decisions — see LIMITATIONS.md, Wave-2).
 
-**Divergence, when reported, is an upper bound**, not a fork rate: it measures
-generator-vs-model *style* difference, not variant-induced decision change. Lead
-with the verdict, not the divergence count.
+**Under the Wave-1 lexical gate, divergence was an upper bound**, not a fork rate:
+full-text `difflib` measured generator-vs-model *style* difference, not variant-induced
+decision change. The Wave-2 kind-aware gate changes this — on bounded decisions it
+compares parsed labels, so divergence becomes a real, measured fork rate (**7.8%** on
+real routing; see below). Still lead with the verdict, not the raw divergence count.
+
+### Wave-2 update: routing decision-identity and the first measured preservation number (real calls)
+
+The Wave-1 gate compared full reply text (`difflib`), which nulled on real replies — a
+sensible cheaper-model answer shares almost no lexical overlap with the corpus's
+synthetic baseline, so **217/217** trials were marked divergent (paid, n=250/seed 8) and
+the margin collapsed to a vacuous 0.00%. Wave-2 replaced it with a **kind-aware decision
+gate**: for bounded-vocabulary decisions (route, tool_select, escalate_check, compose),
+divergence is *label* inequality, not string distance.
+
+Under that gate, on **real gpt-5-nano calls** (paid, n=250/seed 8, 1,734 calls):
+
+- **A real fork rate, no longer hidden at 100%:** 17/217 routing pivots (**7.8%**)
+  forked — nano genuinely chose a different route. Excluded by design (not
+  re-adjudicated), as the honest gate should.
+- **Decision-identity on the rest:** the 200 non-divergent pivots routed identically
+  (true by gate construction).
+- **The first measured preservation number:** over those 200, verdicts held at
+  **0.985 (197/200)** — three flipped on utterance *content* while the routing label
+  stayed identical. Preservation is no longer structurally 1.0; the mock's 1.0 is
+  measured *almost* true, with three real content-driven failures.
+- **Margin: 0.573% [0.481, 0.667]** (Δcost −$0.000139/trial, CI strictly negative,
+  §8.3 passes). This is the **seed-8** population — compare to the **seed-8 mock
+  (0.55% [0.46, 0.63])**, not the seed-0 headline. Its point rounds to ~0.57% by
+  *coincidence* with the seed-0 mock headline (different populations, near-equal
+  points); it does **not** "reproduce the headline."
+
+**What this is and is not.** It measures *routing decision-identity* on the cheaper tier
+and, on the non-forked trials, *verdict preservation* — under an elicitation that hands
+the model the span's own candidates (for route, a 2-way `[scenario_id, "other"]` set, so
+the model picks between the correct label and one alternative, not open-ended routing).
+Preservation **under a divergent decision** stays unobserved: the 17 forks are excluded,
+not re-adjudicated, so we have not yet watched a verdict hold or fail when the cheaper
+model decides *differently*. That needs harder decisions (larger candidate sets) or a
+real-baseline build — a Wave-2+ open item.
 
 ## Tier-2: instrumented, not measured
 

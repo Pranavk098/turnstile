@@ -14,10 +14,20 @@ folded); `slot_fill` keeps the content/`_similarity` path (W3-C probes classify
 identically — break stays not-preserved & non-divergent, re-verified). `parse_decision_chosen`
 relocated to `turnstile_replay/decisions.py` (single source; `openai_backend` re-imports).
 Free mock regression reproduces the pinned headline (seed 0 = 0.57%, seed 8 = 0.55%,
-0 divergent). Wave-2 Item 1 + recorder wiring also consolidated. **NEXT (owner-gated
-paid):** the ≤5-call re-probe → n=30/seed 8 pilot → n=250/seed 8 — the first real test
-of whether the label gate turns the paid null into signal; compare paid vs the seed-8
-mock (0.55%), not the headline. Only doc-only `opencode/perf-audit` remains stray.
+0 divergent). Wave-2 Item 1 + recorder wiring also consolidated. **PAID RUN DONE +
+MEASURED (owner-gated, ~$1.28 total to date):** re-probe → pilot → n=250/seed 8 (1,734
+calls, ~$0.39) all landed. The label gate turned the flat 0.00% lexical null into real
+signal: **routing forks at 7.8%** (17/217, real different routes), **verdict preservation
+= 0.985** (197/200 non-divergent pivots — the project's FIRST measured, non-structural
+preservation number: 3 content-driven flips under identical routing), **margin 0.573%
+[0.481, 0.667]** (paid n=250/seed 8; compare to seed-8 mock 0.55%, NOT the seed-0 0.57%
+headline — the ~0.57% rounding match is coincidental, different populations). `docs/METHOD.md`
++ `docs/DECISIONS.md` updated (preservation reclassified Measured→**Partially-measured**);
+paid result JSONs are gitignored (live in the OpenCode clone). **OPEN:** preservation
+*under a divergent decision* still unobserved (17 forks excluded, not re-adjudicated) —
+needs harder decisions (larger candidate sets than route's 2-way `[scenario_id,"other"]`)
+or a real-baseline build; Item 3 truncation policy (2/1,734, non-distorting) noted.
+Only doc-only `opencode/perf-audit` remains stray.
 Wave-3 core COMPLETE:
 W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
 with honest D6/D7/D8 absence) merged; all three recoverable-margin gates converged on
