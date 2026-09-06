@@ -535,6 +535,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         </table>
       </div>
       <div class="t-note" id="calls-note"></div>
+      <div class="t-note" id="ingest-note"></div>
     </section>
 
     <!-- ============ 08 explore one call ============ -->
@@ -1224,6 +1225,26 @@ async function routeCall(calls, focus) {
   }
 }
 
+/* Item 5 hook: the W3-A turnstile_ingest report plugs in here. Absent
+ * (report_path null or fetch fails) the dashboard honestly says so and
+ * renders the golden-fleet data; present, its label + provenance render
+ * verbatim. Only the documented envelope keys are read. */
+function renderIngestNote(manifest, report) {
+  const hook = manifest.ingest || {};
+  const host = document.getElementById("ingest-note");
+  if (report && report.label) {
+    host.innerHTML = "Ingested fleet: <span style='color:var(--ink)'>" + esc(report.label) +
+      "</span> · n = " + esc(report.n) +
+      (report.note ? " · " + esc(norm(report.note)) : "") +
+      (report.provenance ? "<br><span class='faint'>" + esc(norm(report.provenance)) + "</span>" : "");
+  } else {
+    host.innerHTML = "Real-call ingest " +
+      (hook.status ? "(" + esc(hook.status) + ") " : "") +
+      "is not wired yet — the list above shows the " + manifest.n_calls +
+      " golden fixtures. Contract for the producer: <span class='mono'>sample/manifest.json → ingest.contract</span>.";
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * Footer: every panel's provenance, verbatim, one deliberate click away.
  * ------------------------------------------------------------------ */
@@ -1246,7 +1267,9 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
  * ------------------------------------------------------------------ */
 (async function main() {
   try {
-    const [bargein, priced, fleet, findings, experiments, conditional, calls] = await Promise.all([
+    const manifest = await loadJSON("sample/manifest.json");
+    const ingestPath = manifest.ingest && manifest.ingest.report_path;
+    const [bargein, priced, fleet, findings, experiments, conditional, calls, ingestReport] = await Promise.all([
       loadJSON("sample/bargein.sample.json"),
       loadJSON("sample/priced_trace.json"),
       loadJSON("sample/fleet.json"),
@@ -1254,6 +1277,7 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
       loadJSON("sample/experiments.sample.json"),
       loadJSON("sample/conditional.sample.json"),
       loadJSON("sample/calls.json"),
+      ingestPath ? loadOptional(ingestPath) : null,
     ]);
 
     renderMasthead(fleet);
@@ -1264,6 +1288,7 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
     renderConditional(conditional);
     renderReplay(experiments);
     renderCallsList(calls);
+    renderIngestNote(manifest, ingestReport);
     renderProvenance(priced, fleet, bargein, experiments, conditional);
     window.addEventListener("hashchange", () => {
       routeCall(calls, true).catch((err) => {

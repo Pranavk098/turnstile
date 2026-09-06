@@ -433,6 +433,54 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
 
 
 # --------------------------------------------------------------------------- #
+# 8. manifest.json -- data source declaration + the W3-A Item 5 hook          #
+# --------------------------------------------------------------------------- #
+
+# Where the turnstile_ingest report (W3-A Item 5) plugs in. The dashboard
+# NEVER depends on it existing: manifest["ingest"]["report_path"] is null
+# until W3-A lands, and index.html renders the golden-fleet data with an
+# honest "ingest absent" note. When W3-A Item 5 lands, it EITHER drops a
+# report envelope at the path below (the dashboard surfaces its label +
+# provenance verbatim) OR -- the full motion -- writes calls.json-shaped
+# per-call files itself. Contract for the producer:
+INGEST_CONTRACT = {
+    # Minimal envelope the dashboard surfaces verbatim (no other keys read).
+    "report_envelope": {"label": "str", "n": "int", "note": "str", "provenance": "str"},
+    # Full motion: per-call files shaped EXACTLY like this builder's
+    # call-<id>.json (keys: trace, span_costs, turn_costs, conv_cost,
+    # stage_costs, verdict, findings, _provenance) plus matching
+    # sample/calls.json rows (keys: id, scenario_id, cost_usd, verdict,
+    # end_reason, n_turns, top_waste, detail). Call ids must be
+    # filename-safe and match the dashboard route ([A-Za-z0-9_-]).
+    "per_call_files": "sample/call-<id>.json + sample/calls.json rows, same keys as golden",
+    "index_row_keys": ["id", "scenario_id", "cost_usd", "verdict", "end_reason",
+                       "n_turns", "top_waste", "detail"],
+    "detail_keys": ["trace", "span_costs", "turn_costs", "conv_cost",
+                    "stage_costs", "verdict", "findings", "_provenance"],
+    # Honesty rule (the typical real-log case): calls WITHOUT G2 acoustic
+    # fields (chars_synthesized/chars_played) MUST carry no D6/D7/D8
+    # findings -- honestly absent, never zero-filled. The dashboard maps
+    # class_ids 1-10 and all 7 verdict labels already; nothing new needed.
+    "acoustic_rule": "no G2 fields -> no D6/D7/D8 findings (absent, not zero)",
+}
+
+
+def build_manifest(calls_index: list[dict]) -> dict:
+    return {
+        "label": "Turnstile dashboard data manifest",
+        "source": "golden-fixtures",
+        "calls_index": "sample/calls.json",
+        "hero": HERO_FIXTURE,
+        "n_calls": len(calls_index),
+        "ingest": {
+            "status": "awaiting W3-A Item 5",
+            "report_path": None,
+            "contract": INGEST_CONTRACT,
+        },
+    }
+
+
+# --------------------------------------------------------------------------- #
 # Entry point                                                                  #
 # --------------------------------------------------------------------------- #
 
@@ -471,6 +519,11 @@ def main() -> None:
             json.dumps(data, indent=2), encoding="utf-8"
         )
 
+    manifest = build_manifest(calls_index)
+    (SAMPLE_DIR / "manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
+
     print(f"wrote {SAMPLE_DIR / 'priced_trace.json'}  (hero fixture: {HERO_FIXTURE})")
     print(f"wrote {SAMPLE_DIR / 'fleet.json'}  cprc_naive={fleet['cprc_naive']:.6f}  cprc_loaded={fleet['cprc_loaded']:.6f}")
     print(f"wrote {SAMPLE_DIR / 'findings.sample.json'}  n_findings={len(findings)}")
@@ -484,6 +537,8 @@ def main() -> None:
           f"({CONDITIONAL_SAVINGS_LABEL}) -- NOT the gated margin")
     print(f"wrote {SAMPLE_DIR / 'calls.json'}  n_calls={len(calls_index)} "
           f"+ {len(call_details)} per-call detail files")
+    print(f"wrote {SAMPLE_DIR / 'manifest.json'}  source=golden-fixtures "
+          f"ingest={manifest['ingest']['status']}")
 
 
 if __name__ == "__main__":

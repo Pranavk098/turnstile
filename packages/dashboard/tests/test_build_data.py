@@ -270,3 +270,28 @@ def test_build_main_writes_per_call_data(tmp_path, monkeypatch):
     for row in payload["calls"]:
         detail = json.loads((tmp_path / row["detail"]).read_text(encoding="utf-8"))
         assert detail["conv_cost"] == pytest.approx(row["cost_usd"])
+
+
+# --------------------------------------------------------------------------- #
+# W3-B Item 5 hook -- manifest.json: source declaration + the ingest slot.    #
+# --------------------------------------------------------------------------- #
+
+def test_build_main_writes_manifest_with_ingest_hook(tmp_path, monkeypatch):
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["source"] == "golden-fixtures"
+    assert manifest["calls_index"] == "sample/calls.json"
+    assert manifest["hero"] == build_data.HERO_FIXTURE
+    assert manifest["n_calls"] == len(build_data._golden_fixtures())
+    hook = manifest["ingest"]
+    # No dependency on W3-A existing: the slot is declared, empty, with the
+    # producer contract a turnstile_ingest report must satisfy to plug in.
+    assert hook["report_path"] is None
+    assert "W3-A" in hook["status"]
+    contract = hook["contract"]
+    assert set(contract["report_envelope"]) == {"label", "n", "note", "provenance"}
+    assert "call-<id>.json" in contract["per_call_files"]
+    assert "verdict" in contract["index_row_keys"] and "detail" in contract["index_row_keys"]
+    assert "verdict" in contract["detail_keys"] and "findings" in contract["detail_keys"]
+    assert "D6/D7/D8" in contract["acoustic_rule"]

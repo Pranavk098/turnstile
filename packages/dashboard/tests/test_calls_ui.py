@@ -69,3 +69,14 @@ def test_call_navigation_is_keyboard_accessible():
     assert 'getElementById("hero-title").focus(' in html
     # Plain #fleet-style anchors still work: the router only claims #/call/.
     assert r"/^#\/call\/" in html
+
+
+def test_ingest_hook_renders_golden_data_until_w3a_lands():
+    html = _html()
+    # The dashboard reads the manifest, attempts the hooked report path only
+    # when declared, and says plainly which source the list shows.
+    assert 'loadJSON("sample/manifest.json")' in html
+    assert "loadOptional(ingestPath)" in html
+    assert 'id="ingest-note"' in html
+    assert "renderIngestNote(" in html
+    assert "is not wired yet" in html
