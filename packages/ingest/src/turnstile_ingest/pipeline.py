@@ -127,10 +127,35 @@ def run_call(
         "stage_costs_usd": dict(priced.stage_costs),
         "coverage": {str(k): v for k, v in coverage.items()},
         "findings": [
-            {**f.model_dump(mode="json"), "call_id": call.id} for f in findings
+            {**_finding_dump(f), "call_id": call.id} for f in findings
         ],
         "excluded_absent_classes": dropped,
         "n_turns": len(call.turns),
+    }
+
+
+def _finding_dump(f) -> dict[str, Any]:
+    """Dashboard-shaped finding dump: ``proposed_variant`` carries only the
+    set keys (same ``exclude_none=True`` as the dashboard's own
+    ``build_data._analyze``), so the dashboard's variant column shows the one
+    or two keys that matter, not six nulls."""
+    data = f.model_dump(mode="json")
+    data["proposed_variant"] = f.proposed_variant.model_dump(mode="json", exclude_none=True)
+    return data
+
+
+def _top_waste(findings: list) -> dict[str, Any] | None:
+    """Dashboard-shaped index top-waste: the max finding's
+    class/span/turn pointer, or None -- EXACTLY the golden calls.json shape
+    (the dashboard renders ``top_waste.class_id``/``waste_usd``)."""
+    if not findings:
+        return None
+    top = max(findings, key=lambda f: f.waste_usd)
+    return {
+        "class_id": top.class_id,
+        "waste_usd": top.waste_usd,
+        "span_id": top.span_id,
+        "turn_index": top.turn_index,
     }
 
 
@@ -166,7 +191,7 @@ def _detail_file(
         "conv_cost": priced.conv_cost,
         "stage_costs": dict(priced.stage_costs),
         "verdict": verdict.model_dump(mode="json"),
-        "findings": [f.model_dump(mode="json") for f in findings],
+        "findings": [_finding_dump(f) for f in findings],
         "top_waste_usd": max((f.waste_usd for f in findings), default=None),
         "_provenance": {
             "ingest_call": call.id,
@@ -185,15 +210,17 @@ def _detail_file(
 
 
 def _recoverable_margin(priced_traces: list[PricedTrace], total_cost: float) -> float:
-    """Same §8.3 gate as the dashboard's build_fleet: proven savings only
-    when the D1-reroute replay preserves outcomes (>= 0.95) with a
-    non-zero-crossing CI; otherwise 0.0 (no claim), never a guess."""
+    """Same §8.3 gate as canonical ``turnstile_experiments.recoverable_margin``
+    (see its ``_passes_gate``): proven savings only when the D1-reroute replay
+    preserves outcomes (>= 0.95) with the savings CI strictly positive --
+    i.e. the bootstrap 95% CI UPPER bound on delta_cost is < 0. A
+    both-positive CI is a measured cost INCREASE, never proven savings, so the
+    old both-CI-same-sign check (which counted it) is gone."""
     if not priced_traces or not total_cost:
         return 0.0
     result = experiment(priced_traces, OVER_MODEL_VARIANT)
-    ci_lo, ci_hi = result.delta_cost_ci95
-    ci_confirms = (ci_lo < 0 and ci_hi < 0) or (ci_lo > 0 and ci_hi > 0)
-    if result.outcome_preservation_rate >= 0.95 and ci_confirms:
+    _ci_lo, ci_hi = result.delta_cost_ci95
+    if result.outcome_preservation_rate >= 0.95 and ci_hi < 0.0:
         return -result.delta_cost_mean * result.n / total_cost * 100.0
     return 0.0
 
@@ -232,7 +259,6 @@ def run_calls(
         dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
         filename = _detail_filename(call.id)
         details[filename] = _detail_file(call, priced, verdict, findings, dropped, coverage, sample)
-        top_waste = max((f.waste_usd for f in findings), default=None)
         rows.append({
             "id": call.id,
             "scenario_id": call.scenario,
@@ -240,11 +266,11 @@ def run_calls(
             "verdict": verdict.label.value,
             "end_reason": call.end_reason.value,
             "n_turns": len(call.turns),
-            "top_waste": top_waste,
+            "top_waste": _top_waste(findings),
             "detail": filename,
         })
         all_findings.extend(
-            {**f.model_dump(mode="json"), "call_id": call.id} for f in findings
+            {**_finding_dump(f), "call_id": call.id} for f in findings
         )
         for class_id, entry in coverage.items():
             if entry["status"] == "present":

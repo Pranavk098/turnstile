@@ -176,3 +176,60 @@ def test_committed_data_artifact_is_dashboard_readable():
         # The dashboard's acoustic rule: no G2 fields -> no D6/D7/D8 findings.
         assert "no data for this input" in coverage["8"]["reason"]
         assert not any(f["class_id"] in (6, 7, 8) for f in detail["findings"])
+
+
+def test_index_top_waste_matches_golden_shape():
+    """The dashboard renders ``top_waste.class_id``/``waste_usd`` -- rows must
+    carry the golden object shape (or null), never a bare float."""
+    artifact, _ = run_calls(
+        [_absent_call(), _present_call()], RATES, BASELINES,
+        label="test", sample=False,
+    )
+    rows = {r["id"]: r for r in artifact["calls"]}
+    assert rows["absent-001"]["top_waste"] is None
+    top = rows["present-001"]["top_waste"]
+    assert set(top) == {"class_id", "waste_usd", "span_id", "turn_index"}
+    assert top["class_id"] == 7 and top["waste_usd"] > 0
+
+
+def test_finding_dumps_strip_unset_variant_keys_like_golden():
+    """Dashboard parity: proposed_variant shows only set keys (no nulls)."""
+    artifact, details = run_calls(
+        [_present_call()], RATES, BASELINES, label="test", sample=False,
+    )
+    for finding in artifact["findings"]:
+        assert all(v is not None for v in finding["proposed_variant"].values())
+    detail = details[artifact["calls"][0]["detail"]]
+    for finding in detail["findings"]:
+        assert all(v is not None for v in finding["proposed_variant"].values())
+
+
+def test_recoverable_margin_uses_the_canonical_ci_upper_gate(monkeypatch):
+    """§8.3 convergence (Item 5.4): only a strictly-negative delta_cost CI
+    (ci_upper < 0, i.e. positive savings CI) gates savings in -- a
+    both-positive CI is a measured cost INCREASE and must yield 0.0, never a
+    negative 'margin'. Mirrors turnstile_experiments.margin._passes_gate."""
+    import types
+
+    import turnstile_ingest.pipeline as pipeline
+
+    def _fake(monkeypatch, mean, ci, preservation=1.0, n=7):
+        result = types.SimpleNamespace(
+            n=n, outcome_preservation_rate=preservation,
+            delta_cost_mean=mean, delta_cost_ci95=ci,
+        )
+        monkeypatch.setattr(pipeline, "experiment", lambda traces, variant: result)
+
+    _fake(monkeypatch, -0.001, (-0.002, -0.0005))
+    assert pipeline._recoverable_margin([object()], 0.05) == (
+        0.001 * 7 / 0.05 * 100.0
+    )
+    # Cost increase with a confirming positive CI: canonical gate says no claim.
+    _fake(monkeypatch, 0.001, (0.0005, 0.002))
+    assert pipeline._recoverable_margin([object()], 0.05) == 0.0
+    # Zero-crossing CI: no claim under either gate.
+    _fake(monkeypatch, -0.001, (-0.002, 0.0005))
+    assert pipeline._recoverable_margin([object()], 0.05) == 0.0
+    # Below-threshold preservation: no claim.
+    _fake(monkeypatch, -0.001, (-0.002, -0.0005), preservation=0.9)
+    assert pipeline._recoverable_margin([object()], 0.05) == 0.0

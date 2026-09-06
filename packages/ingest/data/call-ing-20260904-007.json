@@ -261,13 +261,7 @@
       "waste_usd": 0.004410981481481483,
       "confidence": 0.5,
       "proposed_variant": {
-        "model_routing": null,
-        "context_strategy": null,
-        "prefix_caching": null,
-        "retrieval_policy": null,
-        "tts_chunking": null,
-        "escalation_policy": "threshold:0.85",
-        "tool_batching": null
+        "escalation_policy": "threshold:0.85"
       },
       "evidence": {
         "tier": 1,
