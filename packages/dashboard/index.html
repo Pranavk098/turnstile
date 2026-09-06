@@ -182,8 +182,8 @@ section { border-top: 1px solid var(--line-2); padding: 26px 0 36px; }
 .wrow[open] summary { background: var(--well); }
 .wdetail { padding: 6px 4px 18px; overflow-x: auto; }
 
-/* tables */
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+/* tables: tabular numerals + one shared precision (fmtMoney) so columns align */
+table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
 th { text-align: left; font: 500 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
      color: var(--faint); padding: 8px 10px; border-bottom: 1px solid var(--line-2); }
 td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -224,7 +224,9 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 .rfill-fix { background: var(--llm); }
 
 /* conditional remedies */
-.crow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 168px 26px;
+/* conditional remedies: name | detector | bar | value. The rows are not
+   expandable, so there is deliberately no chevron affordance here. */
+.crow { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 168px max-content;
         align-items: center; gap: 18px; padding: 12px 4px; border-top: 1px solid var(--line); }
 .crow:last-of-type { border-bottom: 1px solid var(--line); }
 .crow .cname { min-width: 0; }
@@ -234,7 +236,6 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 .crow .cval { font: 500 12.5px/1.35 var(--mono); text-align: right; color: var(--ink); }
 .crow .cval small { display: block; color: var(--faint); font-weight: 400; font-size: 10px; }
 .crow.zero .cval { color: var(--faint); font-weight: 400; font-style: italic; letter-spacing: .02em; }
-.crow .chev { color: var(--faint); justify-self: center; }
 .ctotal { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding-top: 22px; }
 .ctotal .big { font: 400 34px/1 var(--serif); }
 .ctotal .sub { color: var(--muted); font-size: 12.5px; }
@@ -334,7 +335,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   .mast-body { grid-template-columns: 1fr; gap: 24px; }
   .tier-row { grid-template-columns: 40px 110px 1fr 200px 30px; }
   .tier-row .t-num { font-size: 44px; }
-  .crow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px 24px; }
+  .crow { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 150px max-content; }
   .wrow summary { grid-template-columns: 30px 190px 1fr 110px 24px; }
   .tier-row::before { left: -16px; }
 }
@@ -346,7 +347,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   #hero .flame-summary { grid-template-columns: 40px 1fr 22px; }
   #hero .flame-summary .tag { display: none; }
   #hero .flame-summary h2 { font-size: 22px; }
-  .crow { grid-template-columns: 1fr 110px 22px; }
+  .crow { grid-template-columns: 1fr max-content; }
   .crow .cdet { display: none; }
   .crow .track { display: none; }
   .wrow summary { grid-template-columns: 26px 1fr 110px 20px; gap: 10px; }
@@ -355,6 +356,8 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   .rp .cell { border-bottom: 1px solid var(--line); }
   .sec-head { grid-template-columns: 40px 1fr; }
   .sec-head .tag { grid-column: 2; text-align: left; }
+  .mast-top { flex-wrap: wrap; row-gap: 10px; }
+  .about-link { margin-left: 0; }
   .mast-top .meta { display: none; }
 }
 </style>
@@ -624,6 +627,9 @@ const fmtC = (v) => {
   const r = Math.round(v * 1e5) / 1e5;
   return "$" + r.toFixed(5).replace(/0+$/, "").replace(/\.$/, "");
 };
+/* fixed-precision money for table COLUMNS: "$0.00034" vs "$0.00150" align;
+ * headlines/singles keep fmtC/fmtUsd, prose keeps full precision */
+const fmtMoney = (v) => "$" + Number(v).toFixed(5);
 
 const STAGE_ORDER = ["asr", "llm", "tts", "telephony"];
 const STAGE_TITLE = { asr: "ASR", llm: "LLM", tts: "TTS", telephony: "Telephony" };
@@ -835,7 +841,7 @@ function renderFindings(findings) {
       "<tr>" +
       '<td class="mono muted">' + esc(f.span_id) + "</td>" +
       "<td>" + f.turn_index + "</td>" +
-      '<td class="num waste">' + fmtUsd(f.waste_usd) + "</td>" +
+      '<td class="num waste">' + fmtMoney(f.waste_usd) + "</td>" +
       '<td class="num">' + fmtPct(f.confidence) + "</td>" +
       '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
       "</tr>");
@@ -845,7 +851,7 @@ function renderFindings(findings) {
       '<span class="wname"><span class="dchip">D' + r.cid + '</span><span class="wtext"><span class="t">' +
       esc(meta.name) + '</span><span class="whint">' + esc(meta.hint) + "</span></span></span>" +
       '<span class="track"><span class="fill" data-w="' + (max ? (r.total / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
-      '<span><span class="wval num" style="display:block;text-align:right">' + fmtC(r.total) + "</span>" +
+      '<span><span class="wval num" style="display:block;text-align:right">' + fmtMoney(r.total) + "</span>" +
       '<span class="wcount">' + r.items.length + " finding" + (r.items.length > 1 ? "s" : "") + "</span></span>" +
       '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>' +
       "</summary>" +
@@ -899,6 +905,7 @@ function renderBargein(b) {
   const tables = document.getElementById("bargein-tables");
   const table = (title, headers, rows, note) => {
     const wrap = document.createElement("div");
+    wrap.className = "tscroll";
     let html = '<div class="t-title">' + esc(title) + "</div>" +
       "<table><thead><tr>" + headers.map((x) => "<th>" + esc(x) + "</th>").join("") + "</tr></thead><tbody>";
     rows.forEach((cells) => { html += "<tr>" + cells.map((c) => "<td>" + c + "</td>").join("") + "</tr>"; });
@@ -907,8 +914,8 @@ function renderBargein(b) {
     tables.appendChild(wrap);
   };
   const share = (p) => "<b>" + fmtPct(p.waste_share_of_tts_spend) + "</b>";
-  const usd = (p) => fmtUsd(p.d7_waste_usd_total);
-  const ci = (p) => "[" + fmtUsd(p.d7_waste_usd_ci95[0]) + ", " + fmtUsd(p.d7_waste_usd_ci95[1]) + "]";
+  const usd = (p) => fmtMoney(p.d7_waste_usd_total);
+  const ci = (p) => "[" + fmtMoney(p.d7_waste_usd_ci95[0]) + ", " + fmtMoney(p.d7_waste_usd_ci95[1]) + "]";
 
   table(
     "Barge-in rate sweep (modeled input, swept: buffer held at " + b.lead_cap_s.toFixed(1) + "s)",
@@ -944,9 +951,8 @@ function renderConditional(c) {
       '<span class="cname"><b>' + esc(pretty[0]) + "</b><small>" + esc(pretty[1]) + "</small></span>" +
       '<span class="cdet">' + esc(v.detector) + "</span>" +
       '<span class="track"><span class="fill" data-w="' + (max > 0 && !zero ? (v.savings_usd / max * 100) : 0) + '%" style="background:var(--warn)"></span></span>' +
-      '<span class="cval num">' + (zero ? "no measured effect" : fmtC(v.savings_usd)) +
-      (zero ? "" : "<small>CI95 [" + fmtC(v.savings_usd_ci95[0]) + ", " + fmtC(v.savings_usd_ci95[1]) + "]</small>") + "</span>" +
-      '<svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
+      '<span class="cval num">' + (zero ? "no measured effect" : fmtMoney(v.savings_usd)) +
+      (zero ? "" : "<small>CI95 [" + fmtMoney(v.savings_usd_ci95[0]) + ", " + fmtMoney(v.savings_usd_ci95[1]) + "]</small>") + "</span>";
     host.appendChild(row);
   });
   document.getElementById("conditional-total").textContent = fmtC(c.total_savings_usd);
@@ -1142,12 +1148,12 @@ function renderCallsList(calls) {
     tr.dataset.call = c.id;
     const top = c.top_waste
       ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
-        ' · <span class="num">' + fmtC(c.top_waste.waste_usd) + "</span>"
+        ' · <span class="num">' + fmtMoney(c.top_waste.waste_usd) + "</span>"
       : '<span class="zero-note">no waste detected</span>';
     tr.innerHTML =
       '<td class="id"><a href="#/call/' + esc(c.id) + '">' + esc(c.id) + "</a></td>" +
       "<td>" + esc(c.scenario_id) + "</td>" +
-      '<td class="num">' + fmtC(c.cost_usd) + "</td>" +
+      '<td class="num">' + fmtMoney(c.cost_usd) + "</td>" +
       "<td>" + verdictChip(c.verdict) + "</td>" +
       "<td>" + top + "</td>";
     body.appendChild(tr);
@@ -1173,7 +1179,7 @@ function renderCallMeta(call) {
     '<td class="mono muted">D' + f.class_id + " " + esc(wasteName(f.class_id)) + "</td>" +
     '<td class="mono muted">' + esc(f.span_id) + "</td>" +
     "<td>" + f.turn_index + "</td>" +
-    '<td class="num waste">' + fmtUsd(f.waste_usd) + "</td>" +
+    '<td class="num waste">' + fmtMoney(f.waste_usd) + "</td>" +
     '<td class="num">' + fmtPct(f.confidence) + "</td>" +
     '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
     "</tr>");
