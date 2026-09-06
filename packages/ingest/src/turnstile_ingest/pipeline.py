@@ -40,7 +40,7 @@ from turnstile_verdict import adjudicate
 from turnstile_ingest.adapter import load, parse_call
 from turnstile_ingest.model import IngestCall
 
-_REPO_ROOT = Path(__file__).resolve().parents[5]
+_REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_BASELINES_PATH = _REPO_ROOT / "fixtures" / "sample" / "baselines.json"
 
 ACOUSTIC_CLASSES = (6, 7, 8)

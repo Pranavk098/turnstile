@@ -23,7 +23,7 @@ from turnstile_ingest.adapter import DEFAULT_RATES_PATH
 from turnstile_ingest.model import classify_file
 from turnstile_ingest.pipeline import DEFAULT_BASELINES_PATH, run_calls
 
-_PACKAGE_DIR = Path(__file__).resolve().parents[3]
+_PACKAGE_DIR = Path(__file__).resolve().parents[2]
 SAMPLE_PATH = _PACKAGE_DIR / "sample" / "calls.json"
 DEFAULT_OUT_DIR = _PACKAGE_DIR / "data"
 
@@ -81,8 +81,8 @@ def main(argv: list[str] | None = None) -> int:
     fleet = artifact["fleet"]
     summary = artifact["coverage_summary"]["calls_with_data_per_class"]
     n = artifact["coverage_summary"]["n_calls"]
-    full = sorted(int(k) for k, v in summary.items() if v == n)
-    partial = sorted((int(k), v) for k, v in summary.items() if v != n)
+    full = [c for c in range(1, 11) if summary.get(str(c), 0) == n]
+    partial = [(c, summary.get(str(c), 0)) for c in range(1, 11) if summary.get(str(c), 0) != n]
     print(f"ingested {n} call(s) from {input_path} -> {out_path}")
     print(f"total cost ${fleet['total_cost_usd']:.4f} over {n} calls, "
           f"{fleet['n_resolved']} resolved; "

@@ -166,11 +166,6 @@ class IngestCall(BaseModel):
 
 # A file holds either one call object or {"calls": [...]} (plus optional
 # "sample"/"note" bookkeeping keys, which are informational only).
-IngestFile = dict[str, Any]
-
-CALLSET_KEYS = frozenset({"calls"})
-BOOKKEEPING_KEYS = frozenset({"sample", "note", "label"})
-
 FileKind = Literal["call", "callset"]
 
 

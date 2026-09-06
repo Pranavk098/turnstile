@@ -29,7 +29,7 @@ from pydantic import ValidationError
 from turnstile_schema import RateTable, Trace, load_rates
 from turnstile_ingest.model import IngestCall, IngestTool, IngestTurn
 
-_REPO_ROOT = Path(__file__).resolve().parents[5]
+_REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_RATES_PATH = _REPO_ROOT / "pricing" / "rates.yaml"
 
 

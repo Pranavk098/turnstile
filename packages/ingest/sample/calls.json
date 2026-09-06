@@ -1,0 +1,241 @@
+{
+  "sample": true,
+  "note": "SAMPLE for turnstile_ingest: seven hand-authored realistic calls in the external ingest format (billing dispute, refund, order status, cancellation, rescheduling, tech support, escalation). Authored generate-first / detect-second: utterances, timings, tokens, and tool outcomes were written to read like real platform logs, never tuned to make detectors fire. No call carries G2 acoustic fields (chars_synthesized/chars_played) -- the typical real-log case -- so D6/D7/D8 are honestly ABSENT on this sample. Not production data; do not present aggregates as measured fleet numbers.",
+  "calls": [
+    {
+      "id": "ing-20260904-001",
+      "scenario": "billing_dispute",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T09:02:11Z",
+      "ended": "2026-09-04T09:02:41Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 34},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 6800, "speaker_first": "caller",
+          "asr": {"transcript": "Hi, I was charged twice for my August bill. Can you fix that?", "start_ms": 200, "duration_ms": 2500},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 820, "output_tokens": 14, "decision_kind": "route", "decision": "billing_dispute", "output_text": "I'll pull up your August bill and sort out that double charge.", "start_ms": 2800, "duration_ms": 700},
+          "tts": {"text": "I'll pull up your August bill and sort out that double charge.", "start_ms": 3600, "duration_ms": 3000}
+        },
+        {
+          "start_ms": 6800, "end_ms": 14400, "speaker_first": "agent",
+          "tools": [{"name": "lookup_invoices", "kind": "lookup", "effect": "none", "args": {"customer_id": "C-10293", "month": "2026-08"}, "start_ms": 6900, "duration_ms": 420}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1050, "output_tokens": 20, "decision_kind": "tool_select", "decision": "lookup_invoices", "output_text": "I found two posted charges for August. Let me compare them line by line.", "start_ms": 7400, "duration_ms": 800},
+          "tts": {"text": "I found two posted charges for August. Let me compare them line by line.", "start_ms": 8300, "duration_ms": 4200}
+        },
+        {
+          "start_ms": 14400, "end_ms": 21600, "speaker_first": "agent",
+          "tools": [{"name": "adjust_billing", "kind": "mutation", "effect": "committed", "args": {"invoice_id": "INV-88231", "action": "void_duplicate", "amount_usd": 42.5}, "start_ms": 14500, "duration_ms": 900}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1300, "output_tokens": 30, "decision_kind": "compose", "decision": "confirm_adjustment", "output_text": "I've voided the duplicate forty-two fifty charge, so your corrected August total is forty-two fifty.", "start_ms": 15500, "duration_ms": 900},
+          "tts": {"text": "I've voided the duplicate forty-two fifty charge, so your corrected August total is forty-two fifty.", "start_ms": 16500, "duration_ms": 4900}
+        },
+        {
+          "start_ms": 21600, "end_ms": 27200, "speaker_first": "caller",
+          "asr": {"transcript": "Great, thanks. That's all I needed.", "start_ms": 21800, "duration_ms": 1700},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1520, "output_tokens": 15, "decision_kind": "compose", "decision": "farewell", "output_text": "You're welcome. Anything else I can help with? Goodbye.", "start_ms": 23600, "duration_ms": 600},
+          "tts": {"text": "You're welcome. Anything else I can help with? Goodbye.", "start_ms": 24300, "duration_ms": 2700}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-002",
+      "scenario": "refund",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T09:14:52Z",
+      "ended": "2026-09-04T09:15:26Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 38},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 7200, "speaker_first": "caller",
+          "asr": {"transcript": "Hi, I'd like to return the headphones I bought last week, order O R D 88121.", "start_ms": 200, "duration_ms": 2800},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 790, "output_tokens": 11, "decision_kind": "route", "decision": "refund", "output_text": "I can help with that return. Let me find your order first.", "start_ms": 3100, "duration_ms": 650},
+          "tts": {"text": "I can help with that return. Let me find your order first.", "start_ms": 3850, "duration_ms": 3200}
+        },
+        {
+          "start_ms": 7200, "end_ms": 15600, "speaker_first": "agent",
+          "tools": [{"name": "lookup_order", "kind": "lookup", "effect": "none", "args": {"order_id": "ORD-88121"}, "start_ms": 7300, "duration_ms": 380}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1030, "output_tokens": 24, "decision_kind": "tool_select", "decision": "lookup_order", "output_text": "I found order O R D 88121, the headphones, delivered last Thursday and still in the return window.", "start_ms": 7800, "duration_ms": 850},
+          "tts": {"text": "I found order O R D 88121, the headphones, delivered last Thursday and still in the return window.", "start_ms": 8750, "duration_ms": 5600}
+        },
+        {
+          "start_ms": 15600, "end_ms": 24800, "speaker_first": "agent",
+          "tools": [{"name": "process_refund", "kind": "mutation", "effect": "committed", "args": {"order_id": "ORD-88121", "amount_usd": 79.99, "reason": "customer_return"}, "start_ms": 15700, "duration_ms": 1100}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1300, "output_tokens": 26, "decision_kind": "compose", "decision": "confirm_refund", "output_text": "Your refund of seventy-nine ninety-nine is processed and should land back on your card in three to five days.", "start_ms": 16900, "duration_ms": 900},
+          "tts": {"text": "Your refund of seventy-nine ninety-nine is processed and should land back on your card in three to five days.", "start_ms": 17900, "duration_ms": 5900}
+        },
+        {
+          "start_ms": 24800, "end_ms": 30200, "speaker_first": "caller",
+          "asr": {"transcript": "Perfect, thank you so much.", "start_ms": 25000, "duration_ms": 1500},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1540, "output_tokens": 12, "decision_kind": "compose", "decision": "farewell", "output_text": "Happy to help. Goodbye, and have a great day.", "start_ms": 26600, "duration_ms": 550},
+          "tts": {"text": "Happy to help. Goodbye, and have a great day.", "start_ms": 27250, "duration_ms": 2800}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-003",
+      "scenario": "order_status",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T10:31:05Z",
+      "ended": "2026-09-04T10:31:27Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 26},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 6200, "speaker_first": "caller",
+          "asr": {"transcript": "Hey, where's my package? My order is O R D 90210.", "start_ms": 200, "duration_ms": 2200},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 740, "output_tokens": 10, "decision_kind": "route", "decision": "order_status", "output_text": "Let me track that package for you right now.", "start_ms": 2600, "duration_ms": 600},
+          "tts": {"text": "Let me track that package for you right now.", "start_ms": 3300, "duration_ms": 2700}
+        },
+        {
+          "start_ms": 6200, "end_ms": 15800, "speaker_first": "agent",
+          "tools": [{"name": "lookup_order", "kind": "lookup", "effect": "none", "args": {"order_id": "ORD-90210"}, "start_ms": 6300, "duration_ms": 350}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 980, "output_tokens": 22, "decision_kind": "compose", "decision": "report_status", "output_text": "Good news, order O R D 90210 ships tomorrow morning and should arrive Thursday.", "start_ms": 6750, "duration_ms": 800},
+          "tts": {"text": "Good news, order O R D 90210 ships tomorrow morning and should arrive Thursday.", "start_ms": 7650, "duration_ms": 4900}
+        },
+        {
+          "start_ms": 15800, "end_ms": 20400, "speaker_first": "caller",
+          "asr": {"transcript": "Thursday works. Thanks, bye.", "start_ms": 16000, "duration_ms": 1400},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1200, "output_tokens": 9, "decision_kind": "compose", "decision": "farewell", "output_text": "You're welcome. Goodbye.", "start_ms": 17500, "duration_ms": 500},
+          "tts": {"text": "You're welcome. Goodbye.", "start_ms": 18100, "duration_ms": 1700}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-004",
+      "scenario": "cancel_subscription",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T11:05:44Z",
+      "ended": "2026-09-04T11:06:22Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 42},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 6600, "speaker_first": "caller",
+          "asr": {"transcript": "I want to cancel my subscription. My account is A C 554.", "start_ms": 200, "duration_ms": 2400},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 810, "output_tokens": 12, "decision_kind": "route", "decision": "cancel_subscription", "output_text": "I can take care of that. Let me pull up your account.", "start_ms": 2700, "duration_ms": 650},
+          "tts": {"text": "I can take care of that. Let me pull up your account.", "start_ms": 3450, "duration_ms": 3000}
+        },
+        {
+          "start_ms": 6600, "end_ms": 15800, "speaker_first": "agent",
+          "tools": [{"name": "lookup_subscription", "kind": "lookup", "effect": "none", "args": {"account_id": "AC-554"}, "start_ms": 6700, "duration_ms": 400}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1060, "output_tokens": 26, "decision_kind": "compose", "decision": "summarize_plan", "output_text": "I found your Premium monthly plan. Before I proceed, can I ask what made you decide to leave?", "start_ms": 7200, "duration_ms": 850},
+          "tts": {"text": "I found your Premium monthly plan. Before I proceed, can I ask what made you decide to leave?", "start_ms": 8150, "duration_ms": 5600}
+        },
+        {
+          "start_ms": 15800, "end_ms": 23800, "speaker_first": "caller",
+          "asr": {"transcript": "I'm just not using it enough to justify the cost.", "start_ms": 16000, "duration_ms": 2100},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1330, "output_tokens": 24, "decision_kind": "slot_fill", "decision": "confirm_cancel", "output_text": "Understood. Just to confirm, should I cancel your Premium plan at the end of this billing cycle?", "start_ms": 18200, "duration_ms": 800},
+          "tts": {"text": "Understood. Just to confirm, should I cancel your Premium plan at the end of this billing cycle?", "start_ms": 19100, "duration_ms": 4500}
+        },
+        {
+          "start_ms": 23800, "end_ms": 34000, "speaker_first": "caller",
+          "asr": {"transcript": "Yes, please go ahead and cancel.", "start_ms": 24000, "duration_ms": 1600},
+          "tools": [{"name": "cancel_subscription", "kind": "mutation", "effect": "pending", "args": {"account_id": "AC-554", "effective": "end_of_cycle"}, "start_ms": 25700, "duration_ms": 1400}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1590, "output_tokens": 22, "decision_kind": "compose", "decision": "acknowledge_pending", "output_text": "I've queued that cancellation request, and you'll get a confirmation email shortly.", "start_ms": 27200, "duration_ms": 850},
+          "tts": {"text": "I've queued that cancellation request, and you'll get a confirmation email shortly.", "start_ms": 28150, "duration_ms": 4900}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-005",
+      "scenario": "appointment_reschedule",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T13:47:19Z",
+      "ended": "2026-09-04T13:47:55Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 40},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 7000, "speaker_first": "caller",
+          "asr": {"transcript": "I need to move my dentist appointment this Friday to sometime next week.", "start_ms": 200, "duration_ms": 2600},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 760, "output_tokens": 11, "decision_kind": "route", "decision": "appointment_reschedule", "output_text": "No problem, let me look at next week's availability.", "start_ms": 2900, "duration_ms": 650},
+          "tts": {"text": "No problem, let me look at next week's availability.", "start_ms": 3650, "duration_ms": 3200}
+        },
+        {
+          "start_ms": 7000, "end_ms": 16600, "speaker_first": "agent",
+          "tools": [{"name": "lookup_appointments", "kind": "lookup", "effect": "none", "args": {"patient_id": "P-7712", "window": "next_week"}, "start_ms": 7100, "duration_ms": 450}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1000, "output_tokens": 28, "decision_kind": "compose", "decision": "offer_slots", "output_text": "I have Tuesday at ten in the morning, or Thursday at three in the afternoon. Which suits you?", "start_ms": 7650, "duration_ms": 900},
+          "tts": {"text": "I have Tuesday at ten in the morning, or Thursday at three in the afternoon. Which suits you?", "start_ms": 8650, "duration_ms": 5600}
+        },
+        {
+          "start_ms": 16600, "end_ms": 25200, "speaker_first": "caller",
+          "asr": {"transcript": "Tuesday morning works for me.", "start_ms": 16800, "duration_ms": 1500},
+          "tools": [{"name": "reschedule_appointment", "kind": "mutation", "effect": "committed", "args": {"appointment_id": "APT-3391", "new_slot": "2026-09-08T10:00"}, "start_ms": 18400, "duration_ms": 800}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1260, "output_tokens": 20, "decision_kind": "slot_fill", "decision": "tuesday_morning", "output_text": "Done, you're booked for Tuesday at ten. You'll get a text reminder the day before.", "start_ms": 19300, "duration_ms": 750},
+          "tts": {"text": "Done, you're booked for Tuesday at ten. You'll get a text reminder the day before.", "start_ms": 20150, "duration_ms": 4800}
+        },
+        {
+          "start_ms": 25200, "end_ms": 30600, "speaker_first": "caller",
+          "asr": {"transcript": "Wonderful, thanks. Bye.", "start_ms": 25400, "duration_ms": 1300},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1500, "output_tokens": 10, "decision_kind": "compose", "decision": "farewell", "output_text": "You're very welcome. Goodbye.", "start_ms": 26800, "duration_ms": 550},
+          "tts": {"text": "You're very welcome. Goodbye.", "start_ms": 27450, "duration_ms": 2100}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-006",
+      "scenario": "tech_support",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T15:22:38Z",
+      "ended": "2026-09-04T15:23:00Z",
+      "end_reason": "caller_hangup",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 26},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 6400, "speaker_first": "caller",
+          "asr": {"transcript": "My router keeps dropping the connection every evening around eight.", "start_ms": 200, "duration_ms": 2500},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 780, "output_tokens": 12, "decision_kind": "route", "decision": "tech_support", "output_text": "That sounds frustrating. Let me find the fix for that model.", "start_ms": 2800, "duration_ms": 650},
+          "tts": {"text": "That sounds frustrating. Let me find the fix for that model.", "start_ms": 3550, "duration_ms": 2700}
+        },
+        {
+          "start_ms": 6400, "end_ms": 16200, "speaker_first": "agent",
+          "tools": [{"name": "lookup_article", "kind": "lookup", "effect": "none", "args": {"topic": "router_evening_disconnects", "model": "RX-500"}, "start_ms": 6500, "duration_ms": 380}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1040, "output_tokens": 38, "decision_kind": "compose", "decision": "give_steps", "output_text": "This is usually the auto channel scan. Open the router app, turn off auto channel, and set channel six. Then restart the router.", "start_ms": 7000, "duration_ms": 950},
+          "tts": {"text": "This is usually the auto channel scan. Open the router app, turn off auto channel, and set channel six. Then restart the router.", "start_ms": 8050, "duration_ms": 6800}
+        },
+        {
+          "start_ms": 16200, "end_ms": 20600, "speaker_first": "caller",
+          "asr": {"transcript": "Let me try that. Okay, it's back online. Thanks!", "start_ms": 16400, "duration_ms": 2000},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1280, "output_tokens": 11, "decision_kind": "compose", "decision": "farewell", "output_text": "Glad that worked. Anything else? Goodbye.", "start_ms": 18500, "duration_ms": 550},
+          "tts": {"text": "Glad that worked. Anything else? Goodbye.", "start_ms": 19150, "duration_ms": 2300}
+        }
+      ]
+    },
+    {
+      "id": "ing-20260904-007",
+      "scenario": "billing_dispute",
+      "agent_version": "voice-agent@3.2.1",
+      "started": "2026-09-04T16:40:02Z",
+      "ended": "2026-09-04T16:40:44Z",
+      "end_reason": "escalated",
+      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 46},
+      "turns": [
+        {
+          "start_ms": 0, "end_ms": 7400, "speaker_first": "caller",
+          "asr": {"transcript": "This is the third time I'm calling about this two hundred dollar fee and nobody fixes it!", "start_ms": 200, "duration_ms": 2900},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 880, "output_tokens": 13, "decision_kind": "route", "decision": "billing_dispute", "output_text": "I hear you, and I'm sorry. Let me dig into that fee right now.", "start_ms": 3200, "duration_ms": 700},
+          "tts": {"text": "I hear you, and I'm sorry. Let me dig into that fee right now.", "start_ms": 4000, "duration_ms": 3200}
+        },
+        {
+          "start_ms": 7400, "end_ms": 17200, "speaker_first": "agent",
+          "tools": [{"name": "lookup_invoices", "kind": "lookup", "effect": "none", "args": {"customer_id": "C-55901", "dispute": "fee_200"}, "start_ms": 7500, "duration_ms": 600}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1140, "output_tokens": 26, "decision_kind": "compose", "decision": "explain_fee", "output_text": "I see the two hundred dollar installation fee from July. It looks valid from here, but let me check the waiver rules.", "start_ms": 8200, "duration_ms": 900},
+          "tts": {"text": "I see the two hundred dollar installation fee from July. It looks valid from here, but let me check the waiver rules.", "start_ms": 9200, "duration_ms": 6200}
+        },
+        {
+          "start_ms": 17200, "end_ms": 26800, "speaker_first": "caller",
+          "asr": {"transcript": "I was promised that fee would be waived. I want a supervisor.", "start_ms": 17400, "duration_ms": 2300},
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1420, "output_tokens": 16, "decision_kind": "escalate_check", "decision": "escalate_now", "output_text": "You shouldn't have to call three times. I'll bring in a specialist who can waive it.", "start_ms": 19800, "duration_ms": 750},
+          "tts": {"text": "You shouldn't have to call three times. I'll bring in a specialist who can waive it.", "start_ms": 20650, "duration_ms": 4800}
+        },
+        {
+          "start_ms": 26800, "end_ms": 36000, "speaker_first": "agent",
+          "tools": [{"name": "transfer_to_specialist", "kind": "handoff", "effect": "committed", "args": {"queue": "billing_supervisors", "reason": "repeat_caller_fee_waiver"}, "start_ms": 26900, "duration_ms": 1500}],
+          "llm": {"model": "gpt-5-mini", "input_tokens": 1680, "output_tokens": 18, "decision_kind": "compose", "decision": "warm_transfer", "output_text": "Connecting you to a billing specialist now. They have your full history. Please hold.", "start_ms": 28500, "duration_ms": 800},
+          "tts": {"text": "Connecting you to a billing specialist now. They have your full history. Please hold.", "start_ms": 29400, "duration_ms": 5200}
+        }
+      ]
+    }
+  ]
+}
