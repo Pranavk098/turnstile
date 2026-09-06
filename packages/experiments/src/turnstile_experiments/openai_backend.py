@@ -33,6 +33,12 @@ from turnstile_schema import VariantSpec
 from turnstile_schema.enums import DecisionKind
 from turnstile_schema.spans import LlmDecide
 from turnstile_replay.backend import ReplayContext, ReplayedDecision
+# Wave-2 Item 2: the decision parser is the SHARED single source in
+# turnstile_replay.decisions (the gate and this backend must parse
+# identically); experiments depends on replay, so this re-import preserves
+# the dependency direction. Behavior unchanged -- this module's tests stay
+# green against the relocated parser.
+from turnstile_replay.decisions import parse_decision_chosen
 
 # A single stalled Chat Completions call must never hang the whole matrix
 # (observed on the first n=30 smoke: no timeout -> the run blocked ~38min on
@@ -62,20 +68,6 @@ DEFAULT_MAX_COMPLETION_TOKENS = 256
 DEFAULT_REASONING_EFFORT = "minimal"
 
 
-# M-2 / Section B4: per-decision_kind parsing of `decision_chosen` (the raw
-# completion utterance stays in `output_text` verbatim). Containment keyword
-# lists are stated constants, same convention as the verdict layer's
-# heuristics; full calibration is Wave-2 (the structured-divergence work this
-# parsing is the prereq for).
-ESCALATE_CONTAINMENT_MARKERS = (
-    "escalate", "escalating", "transfer", "transferring", "specialist",
-    "supervisor", "human agent", "connect you", "connecting you",
-)
-CONTINUE_CONTAINMENT_MARKERS = (
-    "continue", "keep looking", "looking into", "still working",
-    "one moment", "let me check",
-)
-
 # Wave-2 Item 1b: kinds whose bounded label vocabulary is elicited verbatim
 # in the replay prompt (the span's own decision_candidates supply the labels).
 # slot_fill is deliberately absent (single-label, verdict-content-sensitive).
@@ -83,47 +75,6 @@ ELICITED_KINDS = frozenset({
     DecisionKind.route, DecisionKind.compose,
     DecisionKind.tool_select, DecisionKind.escalate_check,
 })
-
-
-def parse_decision_chosen(
-    decision_kind: DecisionKind, text: str, candidates: list[str]
-) -> str:
-    """Parse the raw completion utterance into a `decision_chosen` value for
-    the decision's kind (M-2):
-
-    * ``escalate_check`` -> ``"escalate"``/``"continue"`` by containment: any
-      ESCALATE_CONTAINMENT_MARKERS hit wins (escalation is the load-bearing
-      signal), otherwise ``"continue"`` -- the conservative default, since
-      claiming escalation has consequences. (Neither the utterance nor the
-      corpus's own escalate texts necessarily contain the literal decision
-      verbs -- "I'm connecting you with a specialist now." contains neither
-      "escalate" nor "continue" -- hence the marker lists.)
-    * ``tool_select`` -> the tool name: the longest of the original span's
-      ``decision_candidates`` contained in the utterance (most specific wins;
-      candidates are the valid tool names, e.g. ``retrieve_kb_article``).
-      When NO candidate is contained, the raw text passes through -- a tool
-      choice is never fabricated.
-    * ``route`` / ``compose`` -> same longest-contained-candidate rule over
-      the span's own ``decision_candidates`` (Wave-2 Item 1a; e.g. route
-      ``[scenario_id, "other"]``, compose singletons like ``["close_call"]``).
-      Underscored labels never occur in natural prose, so an unelicited reply
-      passes through -- the elicitation line is load-bearing, and the parser
-      abstains rather than guessing.
-    * ``slot_fill`` and every other kind -> documented passthrough (the raw
-      text): single-label ``["request_slot"]`` carries no discriminating
-      signal (Wave-2 Item 2 must treat it at value level or exclude it).
-    """
-    low = text.lower()
-    if decision_kind is DecisionKind.escalate_check:
-        if any(marker in low for marker in ESCALATE_CONTAINMENT_MARKERS):
-            return "escalate"
-        return "continue"
-    if decision_kind in (DecisionKind.tool_select, DecisionKind.route, DecisionKind.compose):
-        matches = [c for c in candidates if c.lower() in low]
-        if matches:
-            return max(matches, key=len)
-        return text
-    return text
 
 
 def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[dict[str, str]]:

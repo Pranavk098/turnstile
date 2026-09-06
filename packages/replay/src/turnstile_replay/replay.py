@@ -29,19 +29,35 @@ workloads -- the gated one the corpus's synthetic-scale tokens, the
 companion the real rendered tokens (far smaller) -- so their absolute
 magnitudes are not directly comparable; each is internally a clean arbitrage.
 
-Divergence (PRD Sec.8.1): the FIRST replayed decision at or after `from_turn`
-(the "pivot" -- PRD Sec.8.1's "utterance at turn k") is compared to the
-original via `difflib.SequenceMatcher.ratio()` on `output_text`, the
-documented Wave-1 proxy for semantic similarity (no embedding model this
-wave). Below `DIVERGENCE_SIMILARITY_THRESHOLD` the pinned caller audio is no
-longer a valid continuation ("the conversation has forked") -- the trial is
-marked `status="divergent"` and is NOT re-priced (`delta_cost`,
-`delta_latency_ms`, `outcome_preserved` are all `None`). Wave 1 has no
-open-loop fallback (PRD Sec.8.1's stretch mode), so divergent trials stay
-`"divergent"` rather than becoming `"excluded"` -- `aggregate_experiment`
-counts them toward `n` and lists them in `divergent_exemplars`, which is how
-the exclusion/fork rate gets reported honestly (PRD Sec.8.3) instead of
-hidden.
+Divergence (PRD Sec.8.1, Wave-2 kind-aware gate): the FIRST replayed decision
+at or after `from_turn` (the "pivot" -- PRD Sec.8.1's "utterance at turn k")
+determines fork vs. continuation.
+  * Bounded-vocab kinds (`route`, `tool_select`, `escalate_check`, `compose`
+    -- `decisions.BOUNDED_LABEL_KINDS`): divergent iff the replayed decision's
+    parsed label differs from the original span's recorded (parsed) label.
+    The replayed side is parsed by the SHARED parser
+    (`decisions.parse_decision_chosen`, relocated from experiments so gate and
+    backend parse identically) at the backend boundary; the gate compares the
+    resulting values directly and never re-parses them -- a deliberately
+    poisoned non-label value (MockBackend's `__diverged__:` prefix) must not
+    be containment-unpacked back into a label. An unparseable replayed reply
+    (raw passthrough, no in-vocab label) is divergent -- you cannot confirm
+    the same decision, so it is never folded as preserved. This gate replaced
+    the Wave-1 difflib-on-full-text proxy, which measured 217/217 divergent
+    (paid, 2026-09-06) on sensible real replies -- a lexical null, not a
+    decision signal.
+  * `slot_fill` and any other/unbounded kind: the difflib text gate below --
+    single-label slot_fill's verdict rides on utterance CONTENT (clean-close),
+    so its divergence stays the `_similarity` comparison + re-adjudication
+    (the W3-C authored probes depend on this exact behavior).
+Below the gate the pinned caller audio is no longer a valid continuation
+("the conversation has forked") -- the trial is marked `status="divergent"`
+and is NOT re-priced (`delta_cost`, `delta_latency_ms`, `outcome_preserved`
+are all `None`). Wave 1 has no open-loop fallback (PRD Sec.8.1's stretch
+mode), so divergent trials stay `"divergent"` rather than becoming
+`"excluded"` -- `aggregate_experiment` counts them toward `n` and lists them
+in `divergent_exemplars`, which is how the exclusion/fork rate gets reported
+honestly (PRD Sec.8.3) instead of hidden.
 
 `status="excluded"` is reserved for trials that could not be attempted at
 all: `from_turn` at or past the end of the trace, or no `llm.decide` span
@@ -65,6 +81,7 @@ from turnstile_stats import aggregate_experiment
 
 from turnstile_replay._rates import get_rates
 from turnstile_replay.backend import ReplayContext, ReplayedDecision, get_backend
+from turnstile_replay.decisions import BOUNDED_LABEL_KINDS
 
 # PRD Sec.8.1, verbatim: "if the variant agent's utterance at turn k has
 # semantic similarity < 0.75 to the original, the conversation has forked."
@@ -182,11 +199,21 @@ def replay_with_real_usage_cost(
         replaced[span.span_id] = backend(context, span, variant)
 
     # -- Divergence gate: the pivot is the FIRST replayed decision at/after
-    #    from_turn (PRD Sec.8.1's "utterance at turn k"). ---------------------
+    #    from_turn (PRD Sec.8.1's "utterance at turn k"). Kind-aware (Wave-2):
+    #    bounded kinds compare the parsed DECISION label (backend-parsed via
+    #    the shared parser; raw passthrough != label -> divergent, never
+    #    folded); slot_fill / unbounded kinds keep the content/_similarity
+    #    path. ------------------------------------------------------------
     _pivot_turn_idx, pivot_span = targets[0]
     pivot_decision = replaced[pivot_span.span_id]
-    similarity = _similarity(pivot_span.output_text, pivot_decision.output_text)
-    if similarity < DIVERGENCE_SIMILARITY_THRESHOLD:
+    if pivot_span.decision_kind in BOUNDED_LABEL_KINDS:
+        divergent = pivot_decision.decision_chosen != pivot_span.decision_chosen
+    else:
+        divergent = (
+            _similarity(pivot_span.output_text, pivot_decision.output_text)
+            < DIVERGENCE_SIMILARITY_THRESHOLD
+        )
+    if divergent:
         return ReplayOutcome(
             Trial(trace_id=trace_id, status="divergent",
                   delta_cost=None, delta_latency_ms=None, outcome_preserved=None),

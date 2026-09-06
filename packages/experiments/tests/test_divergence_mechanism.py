@@ -1,14 +1,16 @@
-﻿"""The divergence-mechanism test at the EXPERIMENTS layer (audit 07 Â§3's
-still-missing gap): a fake backend returning a low-similarity pivot must mark
+﻿"""The divergence-mechanism test at the EXPERIMENTS layer (audit 07 §3's
+still-missing gap): a fake backend forking the PIVOT DECISION must mark
 trials ``status="divergent"``, and those trials must be EXCLUDED from the
-Î”cost aggregates while still counting toward ``n`` and being listed as
+Δcost aggregates while still counting toward ``n`` and being listed as
 divergent exemplars -- end-to-end through ``run_matrix`` (and the checkpointed
 paid path), not just at the replay layer.
 
-The fake backend re-routes every decision to gpt-5-nano (rate arbitrage gives
-each trial a hand-computable nonzero Î”) and rewrites the pivot utterance only
-for a chosen pair of traces, so the ok/divergent split is controlled and the
-exclusion is observable: the aggregate equals the OK-trials-only mean, which
+Wave-2 (kind-aware gate): the pivot is a bounded-vocab ``route`` decision, so
+the fork is induced through the LABEL channel -- the fake backend returns a
+different parsed label for the chosen pair of traces (a different-text/same-
+label reply is NOT divergent anymore; that case is the paraphrase signal the
+gate exists to measure). The ok/divergent split stays controlled and the
+exclusion observable: the aggregate equals the OK-trials-only mean, which
 differs from the all-trials mean because the divergent traces' would-be
 deltas are deliberately much larger.
 """
@@ -32,7 +34,10 @@ NANO = RATES.llm["openai/gpt-5-nano"]
 VARIANT = VariantSpec(model_routing={"route": "gpt-5-nano"})
 
 DIVERGENT_IDS = {"c2", "c3"}
-DIVERGENT_TEXT = "a totally unrelated utterance with no overlap whatsoever"
+# A different parsed label: the kind-aware gate reads this as a fork. ("other"
+# is a valid route label in the corpus's own vocabulary, so this is a real
+# decision difference, not an unparseable passthrough.)
+DIVERGENT_LABEL = "other"
 
 
 def _trial_delta_cost_usd(input_tokens: int, output_tokens: int = 15) -> float:
@@ -62,13 +67,13 @@ def _corpus():
 
 def _split_backend(context, original_span, variant):
     if context.conversation_id in DIVERGENT_IDS:
-        output_text = DIVERGENT_TEXT  # similarity ~0 -> the pivot forks
+        decision_chosen = DIVERGENT_LABEL  # parsed label differs -> the pivot forks
     else:
-        output_text = original_span.output_text  # identical -> no divergence
+        decision_chosen = original_span.decision_chosen  # same label -> no divergence
     return ReplayedDecision(
         model="gpt-5-nano",
-        output_text=output_text,
-        decision_chosen=original_span.decision_chosen,
+        output_text=original_span.output_text,
+        decision_chosen=decision_chosen,
         input_tokens=original_span.input_tokens,
         output_tokens=original_span.output_tokens,
         latency_ms=original_span.latency_ms,
@@ -128,7 +133,8 @@ def test_divergence_exclusion_survives_the_checkpointed_path(tmp_path):
 def test_no_divergence_when_the_pivot_is_identical():
     # Control: an identity backend (same model, same text, same usage)
     # produces zero divergences and a zero-delta aggregate -- the mechanism
-    # fires on SIMILARITY, not on rerouting or on cost changes.
+    # fires on the DECISION (parsed label), not on rerouting or on cost
+    # changes.
     reset_backend()
     corpus = _corpus()
 

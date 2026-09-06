@@ -8,6 +8,10 @@ from turnstile_replay.backend import (
     reset_backend,
     set_backend,
 )
+from turnstile_replay.decisions import (
+    BOUNDED_LABEL_KINDS,
+    parse_decision_chosen,
+)
 from turnstile_replay.replay import (
     DELTA_COST_REAL_USAGE_LABEL,
     DIVERGENCE_SIMILARITY_THRESHOLD,
@@ -34,4 +38,6 @@ __all__ = [
     "set_backend",
     "reset_backend",
     "MOCK_SAFE_REROUTE_MODELS",
+    "BOUNDED_LABEL_KINDS",
+    "parse_decision_chosen",
 ]
