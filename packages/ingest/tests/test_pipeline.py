@@ -76,6 +76,13 @@ def _present_call():
     }
 
 
+def test_describe_coverage_marks_acoustic_classes_absent():
+    coverage = describe_coverage(parse_call(_absent_call()))
+    assert len(coverage) == 10
+    for class_id in (6, 7, 8):
+        assert coverage[class_id]["status"] == "absent"
+
+
 def test_absence_full_pipeline_runs_and_labels_d6_d7_d8_absent():
     report = run_call(_absent_call(), RATES, BASELINES)
     assert report["verdict"]["label"] == "RESOLVED"
