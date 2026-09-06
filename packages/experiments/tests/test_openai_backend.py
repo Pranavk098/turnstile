@@ -410,3 +410,78 @@ def test_tool_select_with_no_contained_candidate_passes_through(monkeypatch):
     decision = backend(ctx, span, VariantSpec())
     # A tool choice is never fabricated: no candidate contained -> raw passthrough.
     assert decision.decision_chosen == "I would check the shipping database."
+
+
+# --------------------------------------------------------------------------- #
+# Truncation audit: reasoning split + finish_reason are captured so the next  #
+# paid stderr can tell "reasoning ate the cap" from "content was clipped".    #
+# --------------------------------------------------------------------------- #
+
+class _FakeDetails:
+    def __init__(self, reasoning_tokens: int) -> None:
+        self.reasoning_tokens = reasoning_tokens
+
+
+class _FakeChoiceWithFinish:
+    def __init__(self, content: str, finish_reason: str | None) -> None:
+        self.message = _FakeMessage(content)
+        self.finish_reason = finish_reason
+
+
+class _FakeResponseWithDetails:
+    def __init__(self, content: str, prompt_tokens: int, completion_tokens: int,
+                 reasoning_tokens: int | None, finish_reason: str | None) -> None:
+        self.choices = [_FakeChoiceWithFinish(content, finish_reason)]
+        self.usage = _FakeUsage(prompt_tokens, completion_tokens)
+        if reasoning_tokens is not None:
+            self.usage.completion_tokens_details = _FakeDetails(reasoning_tokens)
+
+
+def test_reasoning_tokens_are_returned_not_dropped(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponseWithDetails(
+        "visible reply", 42, 200, reasoning_tokens=150, finish_reason="stop"))
+    backend = OpenAIBackend(client=fake_client)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    decision = backend(
+        ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    assert decision.reasoning_tokens == 150
+    assert decision.output_tokens == 200
+
+
+def test_cap_warning_reports_finish_reason_and_reasoning_split(monkeypatch, capsys):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponseWithDetails(
+        "x" * 50, 10, 256, reasoning_tokens=240, finish_reason="length"))
+    backend = OpenAIBackend(client=fake_client)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    backend(ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    err = capsys.readouterr().err
+    assert "truncation" in err
+    assert "finish_reason=length" in err
+    assert "reasoning_tokens=240" in err
+
+
+def test_missing_details_block_degrades_to_zero_reasoning(monkeypatch):
+    """Old-shape responses (no details block, like the existing fakes) keep
+    working: reasoning degrades to 0, nothing else changes."""
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+
+    fake_client = _FakeClient(_FakeResponse("plain reply", 10, 20))
+    backend = OpenAIBackend(client=fake_client)
+
+    ctx = ReplayContext(conversation_id="c1", scenario_id="s", turn_index=0, turns_before=())
+    decision = backend(
+        ctx, llm("l1", decision_kind=DecisionKind.route, model="gpt-5"), VariantSpec())
+
+    assert decision.reasoning_tokens == 0
+    assert decision.output_text == "plain reply"

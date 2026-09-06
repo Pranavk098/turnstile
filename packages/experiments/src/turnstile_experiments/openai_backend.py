@@ -209,13 +209,24 @@ class OpenAIBackend:
         choice = response.choices[0]
         text = choice.message.content or ""
         usage = response.usage
+        # Truncation audit: on reasoning models completion_tokens INCLUDES
+        # reasoning, so split it and report finish_reason -- otherwise the
+        # next paid stderr can't tell "reasoning ate the cap" (harmless, raise
+        # the cap or budget reasoning separately) from "content was clipped"
+        # (a forced divergent trial that must be flagged, never silently
+        # scored). Defensive getattr: test fakes carry no details block.
+        details = getattr(usage, "completion_tokens_details", None)
+        reasoning_tokens = getattr(details, "reasoning_tokens", 0) or 0
+        finish_reason = getattr(choice, "finish_reason", None)
         if usage.completion_tokens >= self._max_completion_tokens:
             # M-3: a reply this long likely hit the cap and was truncated --
             # log it so the trial can be audited rather than silently biased.
             print(
                 f"[OpenAIBackend] WARNING: completion reached max_tokens "
                 f"cap ({usage.completion_tokens} >= {self._max_completion_tokens}); "
-                f"model={model} -- possible truncation",
+                f"model={model} finish_reason={finish_reason} "
+                f"reasoning_tokens={reasoning_tokens} content_chars={len(text)} "
+                f"-- possible truncation",
                 file=sys.stderr,
                 flush=True,
             )
@@ -233,5 +244,6 @@ class OpenAIBackend:
             ),
             input_tokens=usage.prompt_tokens,
             output_tokens=usage.completion_tokens,
+            reasoning_tokens=reasoning_tokens,
             latency_ms=latency_ms,
         )
