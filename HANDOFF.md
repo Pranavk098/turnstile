@@ -57,6 +57,24 @@ Goal reframed: **no demo video** — build the product into a live CTO walkthrou
   the brief/report ceremony — just a clean commit; no empty-message merge commits;
   keep this HANDOFF + `docs/DECISIONS.md` current.
 
+### Wave-3 architecture target (audit Task-2 — migrate ONCE, into this shape)
+The simplification audit's value is a target layout; do the structural moves *as part
+of* Wave-3 (which already adds a package + reshapes toward a product), not as separate
+pre-emptive churn. Target: `schema` (frozen) · `engine` (pricing+verdict+replay+stats)
+· `corpus` · `experiments` · `acoustic` (detectors+agent+recorder) · new `ingest` ·
+CLIs. Do during the Wave-3 migration:
+- **B/C — package merges:** `stats` → `replay` (import rename in 3 files); `otel`
+  recorder → `agent` (merge only — do NOT drop the OTel SDK emission or change the
+  post-G1 timing model; both are load-bearing). Cosmetic value, workspace-wide churn —
+  hence bundled into the one migration.
+- **G — conftest sys.path shims:** the root dev group installs every member editable,
+  so the `verdict/pricing/corpus/detectors/conftest.py` `sys.path` inserts may be dead;
+  verify by removing one + `uv run pytest packages/verdict -q`, remove all if green.
+- **A — DONE** (this session): `experiments/__init__.py` lazily loads the acoustic
+  extras so the headline path imports without the spike stack.
+- Skipped as not-worth-it: E (`run_matrix`/empty `RESERVED_VARIANTS` — honest doc
+  artifacts) and F (CLI consolidation — cosmetic).
+
 ## 5. How to continue
 GLM gets acceptance-criteria'd briefs in `docs/superpowers/briefs/`, builds overnight
 on `opencode/*`, Claude reviews + merges. Never edit `schema/` or `fixtures/golden/`
