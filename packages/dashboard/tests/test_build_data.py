@@ -1,9 +1,9 @@
-"""Tests for the dashboard's data builder (batch 2 T3/T4).
+"""Tests for the dashboard's data builder (batch 2 T3/T4, W3-B Items 1-2).
 
 The load-bearing assertions: the barge-in panel's numbers TRACE to the
-harness report (nothing recomputed or hardcoded), the provenance string is
-carried through verbatim, and index.html carries the panel + its embedded
-file:// fallback in sync."""
+harness report (nothing recomputed or hardcoded), per-call data traces to
+the real pipeline over every golden fixture, and the build writes ONLY
+data -- running it modifies no .html file."""
 from __future__ import annotations
 
 import json
@@ -197,3 +197,74 @@ def test_index_html_carries_the_conditional_panel():
     # Visually + textually separated: the heading itself carries the label.
     assert "preservation unverified (Wave-2)" in html
     assert "NOT the proven margin" in html
+
+
+# --------------------------------------------------------------------------- #
+# W3-B Item 2 -- per-call data for ALL calls traces to the real pipeline.     #
+# --------------------------------------------------------------------------- #
+
+def _rates_and_baselines():
+    rates = build_data.load_rates(build_data.RATES_PATH)
+    baselines = build_data.Baselines.model_validate(
+        json.loads(build_data.BASELINES_PATH.read_text(encoding="utf-8")))
+    return rates, baselines
+
+
+def test_calls_index_covers_every_golden_fixture():
+    rates, baselines = _rates_and_baselines()
+    index, _ = build_data.build_calls(rates, baselines)
+    assert [row["id"] for row in index] == [
+        p.stem for p in build_data._golden_fixtures()]
+    for row in index:
+        assert row["cost_usd"] > 0
+        assert row["n_turns"] > 0
+        assert row["verdict"] in ("RESOLVED", "PARTIALLY_RESOLVED", "UNRESOLVED",
+                                    "ESCALATED", "ABANDONED", "MISROUTED", "FALSE_RESOLVE")
+        assert row["detail"] == f"call-{row['id']}.json"
+
+
+def test_calls_index_traces_to_the_pipeline():
+    rates, baselines = _rates_and_baselines()
+    index, details = build_data.build_calls(rates, baselines)
+    # Spot-check the hero fixture end to end: cost, verdict, top waste all
+    # recomputed here from the pipeline must match the built rows.
+    hero = next(r for r in index if r["id"] == build_data.HERO_FIXTURE)
+    path = build_data.GOLDEN / f"{build_data.HERO_FIXTURE}.json"
+    priced, verdict, findings = build_data._analyze(path, rates, baselines)
+    assert hero["cost_usd"] == pytest.approx(priced.conv_cost)
+    assert hero["verdict"] == verdict.label.value
+    assert hero["n_turns"] == len(priced.trace.turns)
+    if findings:
+        top = max(findings, key=lambda f: f["waste_usd"])
+        assert hero["top_waste"]["class_id"] == top["class_id"]
+        assert hero["top_waste"]["waste_usd"] == pytest.approx(top["waste_usd"])
+    else:
+        assert hero["top_waste"] is None
+    # Index costs sum to the fleet total (same priced objects, no second math).
+    fleet = build_data.build_fleet(
+        rates, baselines, build_data.build_experiments(rates)[0])
+    assert sum(r["cost_usd"] for r in index) == pytest.approx(fleet["total_cost_usd"])
+
+
+def test_call_detail_files_carry_the_drill_down_shape():
+    rates, baselines = _rates_and_baselines()
+    _, details = build_data.build_calls(rates, baselines)
+    assert len(details) == len(build_data._golden_fixtures())
+    for call_id, data in details.items():
+        # Everything the detail view renders: flame graph, verdict, findings.
+        for key in ("trace", "span_costs", "turn_costs", "conv_cost",
+                    "stage_costs", "verdict", "findings"):
+            assert key in data, (call_id, key)
+        assert data["_provenance"]["fixture"] == call_id
+        assert abs(sum(data["stage_costs"].values()) - data["conv_cost"]) < 1e-9
+
+
+def test_build_main_writes_per_call_data(tmp_path, monkeypatch):
+    monkeypatch.setattr(build_data, "SAMPLE_DIR", tmp_path)
+    build_data.main()
+    payload = json.loads((tmp_path / "calls.json").read_text(encoding="utf-8"))
+    assert payload["n"] == len(build_data._golden_fixtures())
+    assert len(payload["calls"]) == payload["n"]
+    for row in payload["calls"]:
+        detail = json.loads((tmp_path / row["detail"]).read_text(encoding="utf-8"))
+        assert detail["conv_cost"] == pytest.approx(row["cost_usd"])

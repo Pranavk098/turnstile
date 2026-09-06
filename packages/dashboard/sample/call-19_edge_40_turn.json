@@ -1,0 +1,2333 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000019",
+      "agent_version": "agent@abc123",
+      "scenario_id": "long_technical_support",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 2900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_0",
+            "decision_candidates": [
+              "step_0"
+            ],
+            "output_text": "Okay, step 0 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 500,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 0 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 1700,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 2900,
+        "wall_end_ms": 5800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 2900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_1",
+            "decision_candidates": [
+              "step_1"
+            ],
+            "output_text": "Okay, step 1 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 3400,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 1 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p1",
+            "start_offset_ms": 4600,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "caller",
+        "wall_start_ms": 5800,
+        "wall_end_ms": 8700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l2",
+            "start_offset_ms": 5800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_2",
+            "decision_candidates": [
+              "step_2"
+            ],
+            "output_text": "Okay, step 2 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t2",
+            "start_offset_ms": 6300,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 2 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p2",
+            "start_offset_ms": 7500,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "agent",
+        "wall_start_ms": 8700,
+        "wall_end_ms": 11600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l3",
+            "start_offset_ms": 8700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_3",
+            "decision_candidates": [
+              "step_3"
+            ],
+            "output_text": "Okay, step 3 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t3",
+            "start_offset_ms": 9200,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 3 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p3",
+            "start_offset_ms": 10400,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 4,
+        "speaker_first": "caller",
+        "wall_start_ms": 11600,
+        "wall_end_ms": 14500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l4",
+            "start_offset_ms": 11600,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_4",
+            "decision_candidates": [
+              "step_4"
+            ],
+            "output_text": "Okay, step 4 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t4",
+            "start_offset_ms": 12100,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 4 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p4",
+            "start_offset_ms": 13300,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 5,
+        "speaker_first": "agent",
+        "wall_start_ms": 14500,
+        "wall_end_ms": 17400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l5",
+            "start_offset_ms": 14500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_5",
+            "decision_candidates": [
+              "step_5"
+            ],
+            "output_text": "Okay, step 5 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t5",
+            "start_offset_ms": 15000,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 5 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p5",
+            "start_offset_ms": 16200,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 6,
+        "speaker_first": "caller",
+        "wall_start_ms": 17000,
+        "wall_end_ms": 19900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l6",
+            "start_offset_ms": 17000,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_6",
+            "decision_candidates": [
+              "step_6"
+            ],
+            "output_text": "Okay, step 6 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t6",
+            "start_offset_ms": 17500,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 6 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p6",
+            "start_offset_ms": 18700,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 7,
+        "speaker_first": "agent",
+        "wall_start_ms": 19900,
+        "wall_end_ms": 22800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l7",
+            "start_offset_ms": 19900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_7",
+            "decision_candidates": [
+              "step_7"
+            ],
+            "output_text": "Okay, step 7 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t7",
+            "start_offset_ms": 20400,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 7 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p7",
+            "start_offset_ms": 21600,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 8,
+        "speaker_first": "caller",
+        "wall_start_ms": 22800,
+        "wall_end_ms": 25700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l8",
+            "start_offset_ms": 22800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_8",
+            "decision_candidates": [
+              "step_8"
+            ],
+            "output_text": "Okay, step 8 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t8",
+            "start_offset_ms": 23300,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 8 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p8",
+            "start_offset_ms": 24500,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 9,
+        "speaker_first": "agent",
+        "wall_start_ms": 25700,
+        "wall_end_ms": 28600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l9",
+            "start_offset_ms": 25700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_9",
+            "decision_candidates": [
+              "step_9"
+            ],
+            "output_text": "Okay, step 9 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t9",
+            "start_offset_ms": 26200,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 9 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p9",
+            "start_offset_ms": 27400,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 10,
+        "speaker_first": "caller",
+        "wall_start_ms": 28600,
+        "wall_end_ms": 31500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l10",
+            "start_offset_ms": 28600,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_10",
+            "decision_candidates": [
+              "step_10"
+            ],
+            "output_text": "Okay, step 10 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t10",
+            "start_offset_ms": 29100,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 10 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p10",
+            "start_offset_ms": 30300,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 11,
+        "speaker_first": "agent",
+        "wall_start_ms": 31500,
+        "wall_end_ms": 34400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l11",
+            "start_offset_ms": 31500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_11",
+            "decision_candidates": [
+              "step_11"
+            ],
+            "output_text": "Okay, step 11 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t11",
+            "start_offset_ms": 32000,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 11 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p11",
+            "start_offset_ms": 33200,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 12,
+        "speaker_first": "caller",
+        "wall_start_ms": 34400,
+        "wall_end_ms": 37300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l12",
+            "start_offset_ms": 34400,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_12",
+            "decision_candidates": [
+              "step_12"
+            ],
+            "output_text": "Okay, step 12 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t12",
+            "start_offset_ms": 34900,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 12 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p12",
+            "start_offset_ms": 36100,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 13,
+        "speaker_first": "agent",
+        "wall_start_ms": 37300,
+        "wall_end_ms": 40200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l13",
+            "start_offset_ms": 37300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_13",
+            "decision_candidates": [
+              "step_13"
+            ],
+            "output_text": "Okay, step 13 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t13",
+            "start_offset_ms": 37800,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 13 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p13",
+            "start_offset_ms": 39000,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 14,
+        "speaker_first": "caller",
+        "wall_start_ms": 40200,
+        "wall_end_ms": 43100,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l14",
+            "start_offset_ms": 40200,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_14",
+            "decision_candidates": [
+              "step_14"
+            ],
+            "output_text": "Okay, step 14 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t14",
+            "start_offset_ms": 40700,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 14 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p14",
+            "start_offset_ms": 41900,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 15,
+        "speaker_first": "agent",
+        "wall_start_ms": 43100,
+        "wall_end_ms": 46000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l15",
+            "start_offset_ms": 43100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_15",
+            "decision_candidates": [
+              "step_15"
+            ],
+            "output_text": "Okay, step 15 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t15",
+            "start_offset_ms": 43600,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 15 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p15",
+            "start_offset_ms": 44800,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 16,
+        "speaker_first": "caller",
+        "wall_start_ms": 46000,
+        "wall_end_ms": 48900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l16",
+            "start_offset_ms": 46000,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_16",
+            "decision_candidates": [
+              "step_16"
+            ],
+            "output_text": "Okay, step 16 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t16",
+            "start_offset_ms": 46500,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 16 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p16",
+            "start_offset_ms": 47700,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 17,
+        "speaker_first": "agent",
+        "wall_start_ms": 48900,
+        "wall_end_ms": 51800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l17",
+            "start_offset_ms": 48900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_17",
+            "decision_candidates": [
+              "step_17"
+            ],
+            "output_text": "Okay, step 17 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t17",
+            "start_offset_ms": 49400,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 17 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p17",
+            "start_offset_ms": 50600,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 18,
+        "speaker_first": "caller",
+        "wall_start_ms": 51800,
+        "wall_end_ms": 54700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l18",
+            "start_offset_ms": 51800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_18",
+            "decision_candidates": [
+              "step_18"
+            ],
+            "output_text": "Okay, step 18 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t18",
+            "start_offset_ms": 52300,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 18 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p18",
+            "start_offset_ms": 53500,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 19,
+        "speaker_first": "agent",
+        "wall_start_ms": 54700,
+        "wall_end_ms": 57600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l19",
+            "start_offset_ms": 54700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_19",
+            "decision_candidates": [
+              "step_19"
+            ],
+            "output_text": "Okay, step 19 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t19",
+            "start_offset_ms": 55200,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 19 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p19",
+            "start_offset_ms": 56400,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 20,
+        "speaker_first": "caller",
+        "wall_start_ms": 57600,
+        "wall_end_ms": 60500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l20",
+            "start_offset_ms": 57600,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_20",
+            "decision_candidates": [
+              "step_20"
+            ],
+            "output_text": "Okay, step 20 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t20",
+            "start_offset_ms": 58100,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 20 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p20",
+            "start_offset_ms": 59300,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 21,
+        "speaker_first": "agent",
+        "wall_start_ms": 60500,
+        "wall_end_ms": 63400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l21",
+            "start_offset_ms": 60500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_21",
+            "decision_candidates": [
+              "step_21"
+            ],
+            "output_text": "Okay, step 21 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t21",
+            "start_offset_ms": 61000,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 21 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p21",
+            "start_offset_ms": 62200,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 22,
+        "speaker_first": "caller",
+        "wall_start_ms": 63400,
+        "wall_end_ms": 66300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l22",
+            "start_offset_ms": 63400,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_22",
+            "decision_candidates": [
+              "step_22"
+            ],
+            "output_text": "Okay, step 22 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t22",
+            "start_offset_ms": 63900,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 22 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p22",
+            "start_offset_ms": 65100,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 23,
+        "speaker_first": "agent",
+        "wall_start_ms": 66300,
+        "wall_end_ms": 69200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l23",
+            "start_offset_ms": 66300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_23",
+            "decision_candidates": [
+              "step_23"
+            ],
+            "output_text": "Okay, step 23 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t23",
+            "start_offset_ms": 66800,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 23 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p23",
+            "start_offset_ms": 68000,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 24,
+        "speaker_first": "caller",
+        "wall_start_ms": 69200,
+        "wall_end_ms": 72100,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l24",
+            "start_offset_ms": 69200,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_24",
+            "decision_candidates": [
+              "step_24"
+            ],
+            "output_text": "Okay, step 24 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t24",
+            "start_offset_ms": 69700,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 24 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p24",
+            "start_offset_ms": 70900,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 25,
+        "speaker_first": "agent",
+        "wall_start_ms": 72100,
+        "wall_end_ms": 75000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l25",
+            "start_offset_ms": 72100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_25",
+            "decision_candidates": [
+              "step_25"
+            ],
+            "output_text": "Okay, step 25 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t25",
+            "start_offset_ms": 72600,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 25 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p25",
+            "start_offset_ms": 73800,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 26,
+        "speaker_first": "caller",
+        "wall_start_ms": 75000,
+        "wall_end_ms": 77900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l26",
+            "start_offset_ms": 75000,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_26",
+            "decision_candidates": [
+              "step_26"
+            ],
+            "output_text": "Okay, step 26 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t26",
+            "start_offset_ms": 75500,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 26 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p26",
+            "start_offset_ms": 76700,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 27,
+        "speaker_first": "agent",
+        "wall_start_ms": 77900,
+        "wall_end_ms": 80800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l27",
+            "start_offset_ms": 77900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_27",
+            "decision_candidates": [
+              "step_27"
+            ],
+            "output_text": "Okay, step 27 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t27",
+            "start_offset_ms": 78400,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 27 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p27",
+            "start_offset_ms": 79600,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 28,
+        "speaker_first": "caller",
+        "wall_start_ms": 80800,
+        "wall_end_ms": 83700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l28",
+            "start_offset_ms": 80800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_28",
+            "decision_candidates": [
+              "step_28"
+            ],
+            "output_text": "Okay, step 28 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t28",
+            "start_offset_ms": 81300,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 28 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p28",
+            "start_offset_ms": 82500,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 29,
+        "speaker_first": "agent",
+        "wall_start_ms": 83700,
+        "wall_end_ms": 86600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l29",
+            "start_offset_ms": 83700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_29",
+            "decision_candidates": [
+              "step_29"
+            ],
+            "output_text": "Okay, step 29 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t29",
+            "start_offset_ms": 84200,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 29 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p29",
+            "start_offset_ms": 85400,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 30,
+        "speaker_first": "caller",
+        "wall_start_ms": 86600,
+        "wall_end_ms": 89500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l30",
+            "start_offset_ms": 86600,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_30",
+            "decision_candidates": [
+              "step_30"
+            ],
+            "output_text": "Okay, step 30 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t30",
+            "start_offset_ms": 87100,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 30 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p30",
+            "start_offset_ms": 88300,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 31,
+        "speaker_first": "agent",
+        "wall_start_ms": 89500,
+        "wall_end_ms": 92400,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l31",
+            "start_offset_ms": 89500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_31",
+            "decision_candidates": [
+              "step_31"
+            ],
+            "output_text": "Okay, step 31 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t31",
+            "start_offset_ms": 90000,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 31 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p31",
+            "start_offset_ms": 91200,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 32,
+        "speaker_first": "caller",
+        "wall_start_ms": 92400,
+        "wall_end_ms": 95300,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l32",
+            "start_offset_ms": 92400,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_32",
+            "decision_candidates": [
+              "step_32"
+            ],
+            "output_text": "Okay, step 32 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t32",
+            "start_offset_ms": 92900,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 32 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p32",
+            "start_offset_ms": 94100,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 33,
+        "speaker_first": "agent",
+        "wall_start_ms": 95300,
+        "wall_end_ms": 98200,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l33",
+            "start_offset_ms": 95300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_33",
+            "decision_candidates": [
+              "step_33"
+            ],
+            "output_text": "Okay, step 33 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t33",
+            "start_offset_ms": 95800,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 33 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p33",
+            "start_offset_ms": 97000,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 34,
+        "speaker_first": "caller",
+        "wall_start_ms": 98200,
+        "wall_end_ms": 101100,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l34",
+            "start_offset_ms": 98200,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_34",
+            "decision_candidates": [
+              "step_34"
+            ],
+            "output_text": "Okay, step 34 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t34",
+            "start_offset_ms": 98700,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 34 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p34",
+            "start_offset_ms": 99900,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 35,
+        "speaker_first": "agent",
+        "wall_start_ms": 101100,
+        "wall_end_ms": 104000,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l35",
+            "start_offset_ms": 101100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_35",
+            "decision_candidates": [
+              "step_35"
+            ],
+            "output_text": "Okay, step 35 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t35",
+            "start_offset_ms": 101600,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 35 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p35",
+            "start_offset_ms": 102800,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 36,
+        "speaker_first": "caller",
+        "wall_start_ms": 104000,
+        "wall_end_ms": 106900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l36",
+            "start_offset_ms": 104000,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_36",
+            "decision_candidates": [
+              "step_36"
+            ],
+            "output_text": "Okay, step 36 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t36",
+            "start_offset_ms": 104500,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 36 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p36",
+            "start_offset_ms": 105700,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 37,
+        "speaker_first": "agent",
+        "wall_start_ms": 106900,
+        "wall_end_ms": 109800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l37",
+            "start_offset_ms": 106900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_37",
+            "decision_candidates": [
+              "step_37"
+            ],
+            "output_text": "Okay, step 37 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t37",
+            "start_offset_ms": 107400,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 37 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p37",
+            "start_offset_ms": 108600,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 38,
+        "speaker_first": "caller",
+        "wall_start_ms": 109800,
+        "wall_end_ms": 112700,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l38",
+            "start_offset_ms": 109800,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_38",
+            "decision_candidates": [
+              "step_38"
+            ],
+            "output_text": "Okay, step 38 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t38",
+            "start_offset_ms": 110300,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 38 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p38",
+            "start_offset_ms": 111500,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 39,
+        "speaker_first": "agent",
+        "wall_start_ms": 112700,
+        "wall_end_ms": 115600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l39",
+            "start_offset_ms": 112700,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "step_39",
+            "decision_candidates": [
+              "step_39"
+            ],
+            "output_text": "Okay, step 39 done.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t39",
+            "start_offset_ms": 113200,
+            "duration_ms": 1200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 18,
+            "audio_seconds_generated": 1.2,
+            "text": "Okay, step 39 done."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p39",
+            "start_offset_ms": 114400,
+            "duration_ms": 1200,
+            "chars_played": 18,
+            "audio_seconds_played": 1.2,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 116000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 116
+    }
+  },
+  "span_costs": {
+    "l0": 0.000155,
+    "t0": 0.00045,
+    "l1": 0.000155,
+    "t1": 0.00045,
+    "l2": 0.000155,
+    "t2": 0.00045,
+    "l3": 0.000155,
+    "t3": 0.00045,
+    "l4": 0.000155,
+    "t4": 0.00045,
+    "l5": 0.000155,
+    "t5": 0.00045,
+    "l6": 0.000155,
+    "t6": 0.00045,
+    "l7": 0.000155,
+    "t7": 0.00045,
+    "l8": 0.000155,
+    "t8": 0.00045,
+    "l9": 0.000155,
+    "t9": 0.00045,
+    "l10": 0.000155,
+    "t10": 0.00045,
+    "l11": 0.000155,
+    "t11": 0.00045,
+    "l12": 0.000155,
+    "t12": 0.00045,
+    "l13": 0.000155,
+    "t13": 0.00045,
+    "l14": 0.000155,
+    "t14": 0.00045,
+    "l15": 0.000155,
+    "t15": 0.00045,
+    "l16": 0.000155,
+    "t16": 0.00045,
+    "l17": 0.000155,
+    "t17": 0.00045,
+    "l18": 0.000155,
+    "t18": 0.00045,
+    "l19": 0.000155,
+    "t19": 0.00045,
+    "l20": 0.000155,
+    "t20": 0.00045,
+    "l21": 0.000155,
+    "t21": 0.00045,
+    "l22": 0.000155,
+    "t22": 0.00045,
+    "l23": 0.000155,
+    "t23": 0.00045,
+    "l24": 0.000155,
+    "t24": 0.00045,
+    "l25": 0.000155,
+    "t25": 0.00045,
+    "l26": 0.000155,
+    "t26": 0.00045,
+    "l27": 0.000155,
+    "t27": 0.00045,
+    "l28": 0.000155,
+    "t28": 0.00045,
+    "l29": 0.000155,
+    "t29": 0.00045,
+    "l30": 0.000155,
+    "t30": 0.00045,
+    "l31": 0.000155,
+    "t31": 0.00045,
+    "l32": 0.000155,
+    "t32": 0.00045,
+    "l33": 0.000155,
+    "t33": 0.00045,
+    "l34": 0.000155,
+    "t34": 0.00045,
+    "l35": 0.000155,
+    "t35": 0.00045,
+    "l36": 0.000155,
+    "t36": 0.00045,
+    "l37": 0.000155,
+    "t37": 0.00045,
+    "l38": 0.000155,
+    "t38": 0.00045,
+    "l39": 0.000155,
+    "t39": 0.00045
+  },
+  "turn_costs": [
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334,
+    0.0010158333333333334
+  ],
+  "conv_cost": 0.04063333333333334,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.006199999999999999,
+    "tts": 0.018000000000000006,
+    "telephony": 0.016433333333333335
+  },
+  "_provenance": {
+    "fixture": "19_edge_40_turn",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": false,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": []
+}

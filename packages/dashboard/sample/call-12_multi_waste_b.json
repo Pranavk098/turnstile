@@ -1,0 +1,325 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000012",
+      "agent_version": "agent@abc123",
+      "scenario_id": "refund",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "agent",
+        "wall_start_ms": 0,
+        "wall_end_ms": 500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 22,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "internal_note",
+            "decision_candidates": [
+              "internal_note"
+            ],
+            "output_text": "Here is extra info nobody hears.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 500,
+        "wall_end_ms": 16000,
+        "barge_in": true,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 500,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5",
+            "input_tokens": 1200,
+            "output_tokens": 140,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "long_explanation",
+            "decision_candidates": [
+              "long_explanation"
+            ],
+            "output_text": "Here is a very long explanation of our refund policy ...",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 1000,
+            "duration_ms": 11200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 184,
+            "audio_seconds_generated": 11.2,
+            "text": "Here is a very long explanation of our refund policy that continues well past where the caller interrupts."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p1",
+            "start_offset_ms": 12200,
+            "duration_ms": 3800,
+            "chars_played": 61,
+            "audio_seconds_played": 3.8,
+            "truncated_by": "barge_in"
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 16000,
+        "wall_end_ms": 17800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l2",
+            "start_offset_ms": 16300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 14,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "confirm_update",
+            "decision_candidates": [
+              "confirm_update"
+            ],
+            "output_text": "Updating your address.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool2",
+            "start_offset_ms": 16000,
+            "duration_ms": 300,
+            "tool_name": "process_refund",
+            "args_hash": "sha256:dupAddr9",
+            "args_json": "{}",
+            "result_hash": "sha256:updok9",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t2",
+            "start_offset_ms": 16800,
+            "duration_ms": 1000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 22,
+            "audio_seconds_generated": 1.0,
+            "text": "Updating your address."
+          }
+        ],
+        "playback": []
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "agent",
+        "wall_start_ms": 17800,
+        "wall_end_ms": 19600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l3",
+            "start_offset_ms": 18100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 520,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "confirm_update_retry",
+            "decision_candidates": [
+              "confirm_update_retry"
+            ],
+            "output_text": "Trying that update again.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool3",
+            "start_offset_ms": 17800,
+            "duration_ms": 300,
+            "tool_name": "process_refund",
+            "args_hash": "sha256:dupAddr9",
+            "args_json": "{}",
+            "result_hash": "sha256:updok9",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t3",
+            "start_offset_ms": 18600,
+            "duration_ms": 1000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 25,
+            "audio_seconds_generated": 1.0,
+            "text": "Trying that update again."
+          }
+        ],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 20000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 20
+    }
+  },
+  "span_costs": {
+    "l0": 0.000169,
+    "l1": 0.0029,
+    "t1": 0.0046,
+    "l2": 0.000153,
+    "t2": 0.00055,
+    "l3": 0.00015999999999999999,
+    "t3": 0.0006250000000000001
+  },
+  "turn_costs": [
+    0.00024127891156462586,
+    0.009740646258503401,
+    0.0009632040816326532,
+    0.0010452040816326532
+  ],
+  "conv_cost": 0.011990333333333334,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.0033819999999999996,
+    "tts": 0.005775000000000001,
+    "telephony": 0.0028333333333333335
+  },
+  "_provenance": {
+    "fixture": "12_multi_waste_b",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.9,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "process_refund",
+        "tool_kind": "mutation",
+        "effect": "committed",
+        "tool_status": "ok",
+        "turn_index": 3,
+        "rule": "resolved_requires_effect_committed"
+      }
+    ],
+    "turn_of_no_return": 3
+  },
+  "findings": [
+    {
+      "class_id": 6,
+      "turn_index": 0,
+      "span_id": "l0",
+      "waste_usd": 4.4e-05,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "output_text": "Here is extra info nobody hears.",
+        "tts_texts": [],
+        "voiced_fraction": 0.0,
+        "unmatched_output_tokens": 22.0
+      }
+    },
+    {
+      "class_id": 7,
+      "turn_index": 1,
+      "span_id": "t1",
+      "waste_usd": 0.0040108695652173905,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 184,
+        "chars_played": 61,
+        "wasted_chars": 123,
+        "tts_waste_usd": 0.0030749999999999996,
+        "llm_waste_usd": 0.0009358695652173913
+      }
+    },
+    {
+      "class_id": 10,
+      "turn_index": 3,
+      "span_id": "tool3",
+      "waste_usd": 0.0010452040816326532,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tool_batching": true
+      },
+      "evidence": {
+        "tool_name": "process_refund",
+        "args_hash": "sha256:dupAddr9",
+        "turn_cost_usd": 0.0010452040816326532,
+        "tool_cost_usd": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000020",
+      "agent_version": "agent@abc123",
+      "scenario_id": "cancel_subscription",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 3900,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 650,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "cancel_subscription",
+            "decision_candidates": [
+              "cancel_subscription",
+              "retain_customer"
+            ],
+            "output_text": "Let me cancel that for you.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 500,
+            "duration_ms": 1700,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 27,
+            "audio_seconds_generated": 1.7,
+            "text": "Let me cancel that for you."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 2200,
+            "duration_ms": 1700,
+            "chars_played": 27,
+            "audio_seconds_played": 1.7,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 3900,
+        "wall_end_ms": 20800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 11900,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 680,
+            "output_tokens": 24,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "hedge_uncertain",
+            "decision_candidates": [
+              "hedge_uncertain"
+            ],
+            "output_text": "I'm having trouble confirming that went through -- I'll flag it for a specialist to verify.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool1",
+            "start_offset_ms": 3900,
+            "duration_ms": 8000,
+            "tool_name": "cancel_subscription",
+            "args_hash": "sha256:cancelargs1",
+            "args_json": "{}",
+            "result_hash": "sha256:timeout_no_response",
+            "latency_ms": 8000,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "error",
+            "effect": "unknown"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 12400,
+            "duration_ms": 4200,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 88,
+            "audio_seconds_generated": 4.2,
+            "text": "I'm having trouble confirming that went through -- I'll flag it for a specialist to verify."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p1",
+            "start_offset_ms": 16600,
+            "duration_ms": 4200,
+            "chars_played": 88,
+            "audio_seconds_played": 4.2,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 21000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 21
+    }
+  },
+  "span_costs": {
+    "l0": 0.00019449999999999998,
+    "t0": 0.000675,
+    "l1": 0.000218,
+    "t1": 0.0022
+  },
+  "turn_costs": [
+    0.0014273125000000002,
+    0.0048351875
+  ],
+  "conv_cost": 0.006262500000000001,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.0004125,
+    "tts": 0.002875,
+    "telephony": 0.002975
+  },
+  "_provenance": {
+    "fixture": "20_unknown_mutation",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "UNRESOLVED",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "rule": "unknown_blocks_confident_verdict",
+        "tool_name": "cancel_subscription",
+        "tool_kind": "mutation",
+        "effect": "unknown",
+        "tool_status": "error",
+        "turn_index": 1,
+        "note": "required mutation effect=unknown -- outcome genuinely ambiguous; declining to fabricate. confidence capped, RESOLVED/FALSE_RESOLVE forbidden."
+      }
+    ],
+    "turn_of_no_return": 1
+  },
+  "findings": []
+}

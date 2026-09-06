@@ -101,6 +101,22 @@ def _priced_and_verdict(path: Path, rates):
     return priced, verdict
 
 
+def _analyze(path: Path, rates, baselines):
+    """Run the real pipeline over one fixture: priced trace, verdict, findings."""
+    priced, verdict = _priced_and_verdict(path, rates)
+    findings = []
+    for finding in detect(priced, verdict, baselines):
+        data = finding.model_dump(mode="json")
+        # VariantSpec sets only the knobs it changes (see contracts.py) --
+        # drop the unset ones here so the dashboard's "proposed variant"
+        # column shows the one or two keys that matter, not six nulls.
+        data["proposed_variant"] = finding.proposed_variant.model_dump(
+            mode="json", exclude_none=True
+        )
+        findings.append(data)
+    return priced, verdict, findings
+
+
 # --------------------------------------------------------------------------- #
 # 1. findings.sample.json -- detect() over every fixture, real output          #
 # --------------------------------------------------------------------------- #
@@ -108,16 +124,8 @@ def _priced_and_verdict(path: Path, rates):
 def build_findings(rates, baselines) -> list[dict]:
     findings: list[dict] = []
     for path in _golden_fixtures():
-        priced, verdict = _priced_and_verdict(path, rates)
-        for finding in detect(priced, verdict, baselines):
-            data = finding.model_dump(mode="json")
-            # VariantSpec sets only the knobs it changes (see contracts.py) --
-            # drop the unset ones here so the dashboard's "proposed variant"
-            # column shows the one or two keys that matter, not six nulls.
-            data["proposed_variant"] = finding.proposed_variant.model_dump(
-                mode="json", exclude_none=True
-            )
-            findings.append(data)
+        _, _, per_call = _analyze(path, rates, baselines)
+        findings.extend(per_call)
     return findings
 
 
@@ -370,6 +378,61 @@ def build_conditional_savings(rates, corpus) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# 7. calls.json + call-<id>.json -- per-call data for ALL calls (W3-B Item 2)#
+# --------------------------------------------------------------------------- #
+
+def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
+    """Per-call index rows + per-call detail payloads for every golden fixture.
+
+    The index row carries what the call list shows (id, scenario, cost,
+    verdict, top waste); the detail payload carries what the drill-down
+    shows (the full priced trace for the flame graph, the verdict, this
+    call's own findings). The dashboard renders these payloads verbatim --
+    nothing is recomputed in the browser."""
+    index: list[dict] = []
+    details: dict[str, dict] = {}
+    for path in _golden_fixtures():
+        call_id = path.stem
+        priced, verdict, findings = _analyze(path, rates, baselines)
+        top = max(findings, key=lambda f: f["waste_usd"], default=None)
+        index.append(
+            {
+                "id": call_id,
+                "scenario_id": priced.trace.conversation.scenario_id,
+                "cost_usd": priced.conv_cost,
+                "verdict": verdict.label.value,
+                "end_reason": priced.trace.conversation.end_reason.value,
+                "n_turns": len(priced.trace.turns),
+                "top_waste": (
+                    None
+                    if top is None
+                    else {
+                        "class_id": top["class_id"],
+                        "waste_usd": top["waste_usd"],
+                        "span_id": top["span_id"],
+                        "turn_index": top["turn_index"],
+                    }
+                ),
+                "detail": f"call-{call_id}.json",
+            }
+        )
+        data = priced.model_dump(mode="json")
+        data["_provenance"] = {
+            "fixture": call_id,
+            "note": (
+                "Per-call priced trace over a golden fixture (same tiers as "
+                "the fleet: LLM stage measured from real token counts, "
+                "acoustic stages modeled by the fixture generator; verdict "
+                "and findings from the real pipeline -- see docs/METHOD.md)."
+            ),
+        }
+        data["verdict"] = verdict.model_dump(mode="json")
+        data["findings"] = findings
+        details[call_id] = data
+    return index, details
+
+
+# --------------------------------------------------------------------------- #
 # Entry point                                                                  #
 # --------------------------------------------------------------------------- #
 
@@ -393,6 +456,19 @@ def main() -> None:
     (SAMPLE_DIR / "bargein.sample.json").write_text(json.dumps(bargein, indent=2), encoding="utf-8")
     (SAMPLE_DIR / "conditional.sample.json").write_text(json.dumps(conditional, indent=2), encoding="utf-8")
 
+    calls_index, call_details = build_calls(rates, baselines)
+    calls_payload = {
+        "label": "All calls -- per-call cost, verdict, and top waste",
+        "source": "golden-fixtures",
+        "n": len(calls_index),
+        "calls": calls_index,
+    }
+    (SAMPLE_DIR / "calls.json").write_text(json.dumps(calls_payload, indent=2), encoding="utf-8")
+    for call_id, data in call_details.items():
+        (SAMPLE_DIR / f"call-{call_id}.json").write_text(
+            json.dumps(data, indent=2), encoding="utf-8"
+        )
+
     print(f"wrote {SAMPLE_DIR / 'priced_trace.json'}  (hero fixture: {HERO_FIXTURE})")
     print(f"wrote {SAMPLE_DIR / 'fleet.json'}  cprc_naive={fleet['cprc_naive']:.6f}  cprc_loaded={fleet['cprc_loaded']:.6f}")
     print(f"wrote {SAMPLE_DIR / 'findings.sample.json'}  n_findings={len(findings)}")
@@ -404,6 +480,8 @@ def main() -> None:
     print(f"wrote {SAMPLE_DIR / 'conditional.sample.json'}  "
           f"total conditional savings ${conditional['total_savings_usd']:.4f} "
           f"({CONDITIONAL_SAVINGS_LABEL}) -- NOT the gated margin")
+    print(f"wrote {SAMPLE_DIR / 'calls.json'}  n_calls={len(calls_index)} "
+          f"+ {len(call_details)} per-call detail files")
 
 
 if __name__ == "__main__":

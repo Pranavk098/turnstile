@@ -1,0 +1,198 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000010",
+      "agent_version": "agent@abc123",
+      "scenario_id": "account_update",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "agent",
+        "wall_start_ms": 0,
+        "wall_end_ms": 1800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 300,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 500,
+            "output_tokens": 14,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "confirm_update",
+            "decision_candidates": [
+              "confirm_update"
+            ],
+            "output_text": "Updating your address.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool0",
+            "start_offset_ms": 0,
+            "duration_ms": 300,
+            "tool_name": "update_address",
+            "args_hash": "sha256:dupAddr1",
+            "args_json": "{}",
+            "result_hash": "sha256:updok1",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 800,
+            "duration_ms": 1000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 22,
+            "audio_seconds_generated": 1.0,
+            "text": "Updating your address."
+          }
+        ],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 1800,
+        "wall_end_ms": 3600,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l1",
+            "start_offset_ms": 2100,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 520,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "confirm_update_retry",
+            "decision_candidates": [
+              "confirm_update_retry"
+            ],
+            "output_text": "Trying that update again.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "tool1",
+            "start_offset_ms": 1800,
+            "duration_ms": 300,
+            "tool_name": "update_address",
+            "args_hash": "sha256:dupAddr1",
+            "args_json": "{}",
+            "result_hash": "sha256:updok1",
+            "latency_ms": 300,
+            "cost_usd": 0.0,
+            "tool_kind": "mutation",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "t1",
+            "start_offset_ms": 2600,
+            "duration_ms": 1000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 25,
+            "audio_seconds_generated": 1.0,
+            "text": "Trying that update again."
+          }
+        ],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 4000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 4
+    }
+  },
+  "span_costs": {
+    "l0": 0.000153,
+    "t0": 0.00055,
+    "l1": 0.00015999999999999999,
+    "t1": 0.0006250000000000001
+  },
+  "turn_costs": [
+    0.0009863333333333334,
+    0.0010683333333333335
+  ],
+  "conv_cost": 0.002054666666666667,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.000313,
+    "tts": 0.0011750000000000003,
+    "telephony": 0.0005666666666666667
+  },
+  "_provenance": {
+    "fixture": "10_tool_thrash",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.9,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "update_address",
+        "tool_kind": "mutation",
+        "effect": "committed",
+        "tool_status": "ok",
+        "turn_index": 1,
+        "rule": "resolved_requires_effect_committed"
+      }
+    ],
+    "turn_of_no_return": 1
+  },
+  "findings": [
+    {
+      "class_id": 10,
+      "turn_index": 1,
+      "span_id": "tool1",
+      "waste_usd": 0.0010683333333333335,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tool_batching": true
+      },
+      "evidence": {
+        "tool_name": "update_address",
+        "args_hash": "sha256:dupAddr1",
+        "turn_cost_usd": 0.0010683333333333335,
+        "tool_cost_usd": 0.0
+      }
+    }
+  ]
+}

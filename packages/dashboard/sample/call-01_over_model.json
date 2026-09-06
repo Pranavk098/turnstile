@@ -1,0 +1,132 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "00000000-0000-0000-0000-000000000001",
+      "agent_version": "agent@abc123",
+      "scenario_id": "order_status",
+      "started_at": "2026-08-30T00:00:00Z",
+      "ended_at": "2026-08-30T00:02:00Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 2500,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "l0",
+            "start_offset_ms": 0,
+            "duration_ms": 500,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5",
+            "input_tokens": 500,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status",
+              "billing"
+            ],
+            "output_text": "Order status.",
+            "latency_ms": 500,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "t0",
+            "start_offset_ms": 500,
+            "duration_ms": 1000,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 13,
+            "audio_seconds_generated": 1.0,
+            "text": "Order status."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "p0",
+            "start_offset_ms": 1500,
+            "duration_ms": 1000,
+            "chars_played": 13,
+            "audio_seconds_played": 1.0,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "leg",
+      "start_offset_ms": 0,
+      "duration_ms": 3000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 3
+    }
+  },
+  "span_costs": {
+    "l0": 0.0007750000000000001,
+    "t0": 0.000325
+  },
+  "turn_costs": [
+    0.001525
+  ],
+  "conv_cost": 0.001525,
+  "stage_costs": {
+    "asr": 0.0,
+    "llm": 0.0007750000000000001,
+    "tts": 0.000325,
+    "telephony": 0.00042500000000000003
+  },
+  "_provenance": {
+    "fixture": "01_over_model",
+    "note": "Per-call priced trace over a golden fixture (same tiers as the fleet: LLM stage measured from real token counts, acoustic stages modeled by the fixture generator; verdict and findings from the real pipeline -- see docs/METHOD.md)."
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": false,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "l0",
+      "waste_usd": 0.0007440000000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 15,
+        "actual_cost_usd": 0.0007750000000000001,
+        "cheapest_tier_cost_usd": 3.1e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      }
+    }
+  ]
+}
