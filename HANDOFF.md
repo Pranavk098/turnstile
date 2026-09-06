@@ -5,11 +5,15 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `e62ac76` · 136 commits ·
-**770 passed / 4 skipped**, `ruff check packages/` clean. Wave-3 core COMPLETE:
+**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `64803ce` · 140 commits ·
+**781 passed / 4 skipped**, `ruff check packages/` clean. Wave-3 core COMPLETE:
 W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
-with honest D6/D7/D8 absence) all merged. Product ingests real-format call logs and
-renders them honestly, end to end.
+with honest D6/D7/D8 absence) merged; all three recoverable-margin gates converged on
+the canonical `ci_upper < 0`. W3-C preservation-measurement **scaffolding** merged
+(`fixtures/preservation/` + `experiments/preservation.py`): the deterministic harness
+proves outcome-preservation is now a real function of the replayed decision
+(preservation_rate 0.5, divergence 0.33 on authored non-pinned probes) — the one
+remaining step to a *measured* number is the owner-gated paid run (see §4).
 
 ---
 
@@ -59,8 +63,16 @@ Goal reframed: **no demo video** — build the product into a live CTO walkthrou
 - **OPEN (Task-2 residue):** `build_data.build_fleet`'s margin still uses the looser
   both-CI-same-sign gate — the 2nd of the 3 divergent gate copies (ingest is now the
   canonical one). Agrees with canonical on current data; converge it when next in that file.
-- **Deferred:** live conversational agent (Pipecat/WSL2); measurement completion
-  (W3-C: authored utterances → structured divergence → real preservation number).
+- **W3-C — preservation measurement:** scaffolding **DONE** (merged `64803ce`). The
+  deterministic harness (`turnstile_experiments.preservation.run_preservation`) drives
+  the REAL `adjudicate()` + replay path over `fixtures/preservation/` via an authored
+  `DecisionBackend`, and shows preservation is decision-sensitive (break case: RESOLVED→
+  ABANDONED at 0.87 similarity, non-divergent; preservation_rate 0.5 ∈ (0,1)). **OPEN,
+  owner-gated:** the actual *measured* number needs a small paid run — swap the real
+  OpenAI backend into the labeled SWAP POINT in `preservation.py` (`run_preservation`)
+  and run it on real cheaper-model decisions; then land the `docs/METHOD.md` /
+  `LIMITATIONS.md` update. NO paid run has happened; this is the next explicit yes.
+- **Deferred:** live conversational agent (Pipecat/WSL2).
 - **Process (audit Task-1):** trivial changes (<~50 lines, no schema/contract) skip
   the brief/report ceremony — just a clean commit; no empty-message merge commits;
   keep this HANDOFF + `docs/DECISIONS.md` current.
