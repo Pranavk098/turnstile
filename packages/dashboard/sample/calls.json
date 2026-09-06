@@ -2,6 +2,7 @@
   "label": "All calls -- per-call cost, verdict, and top waste",
   "source": "golden-fixtures",
   "n": 23,
+  "hero": "09_escalation_debt",
   "calls": [
     {
       "id": "00_baseline_clean",

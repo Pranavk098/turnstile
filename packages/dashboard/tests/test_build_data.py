@@ -265,6 +265,8 @@ def test_build_main_writes_per_call_data(tmp_path, monkeypatch):
     payload = json.loads((tmp_path / "calls.json").read_text(encoding="utf-8"))
     assert payload["n"] == len(build_data._golden_fixtures())
     assert len(payload["calls"]) == payload["n"]
+    assert payload["hero"] == build_data.HERO_FIXTURE
+    assert any(row["id"] == payload["hero"] for row in payload["calls"])
     for row in payload["calls"]:
         detail = json.loads((tmp_path / row["detail"]).read_text(encoding="utf-8"))
         assert detail["conv_cost"] == pytest.approx(row["cost_usd"])

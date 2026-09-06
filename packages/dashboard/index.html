@@ -190,6 +190,19 @@ td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: to
 tbody tr:hover { background: var(--well); }
 td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 
+/* scroll container: a wide table scrolls inside its own box; the page
+   itself never scrolls sideways (see the <680px check) */
+.tscroll { overflow-x: auto; }
+.tscroll table { min-width: 560px; }
+
+/* call list */
+#calls-body td.id { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+#calls-body td.id a { color: var(--ink); border-bottom: 1px solid var(--line-2); padding-bottom: 1px; }
+#calls-body td.id a:hover { color: var(--accent); border-color: var(--accent); }
+#calls-body td.id a[aria-current="true"] { color: var(--accent); border-color: var(--accent); }
+/* degenerate rows: "checked, it is zero" -- muted italic, never blank */
+.zero-note { color: var(--faint); font-style: italic; }
+
 /* measured headline */
 .hnum { font: 400 clamp(72px, 9vw, 118px)/0.95 var(--serif); letter-spacing: -.01em; }
 .hnum .unit { font-size: .38em; color: var(--faint); }
@@ -358,6 +371,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         <span class="brand-sub">Voice-AI margin dashboard</span>
       </div>
       <div class="meta" id="head-meta"></div>
+      <a class="about-link" href="#calls">All calls</a>
       <a class="about-link" href="home.html">What is this?</a>
     </div>
   </header>
@@ -504,16 +518,33 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       <div id="replay-grid"></div>
     </section>
 
-    <!-- ============ 07 explore one call ============ -->
+    <!-- ============ 07 all calls ============ -->
+    <section id="calls" aria-label="All calls">
+      <div class="sec-head">
+        <span class="idx">07</span>
+        <h2 id="calls-title" tabindex="-1">All calls</h2>
+        <span class="tag" id="calls-chip">per-call cost · verdict · top waste</span>
+      </div>
+      <div class="tscroll">
+        <table id="calls-table">
+          <thead><tr><th>Call</th><th>Scenario</th><th>Cost</th><th>Verdict</th><th>Top waste</th></tr></thead>
+          <tbody id="calls-body"></tbody>
+        </table>
+      </div>
+      <div class="t-note" id="calls-note"></div>
+    </section>
+
+    <!-- ============ 08 explore one call ============ -->
     <section id="hero" aria-label="Explore one call">
       <details id="hero-details">
         <summary class="flame-summary">
-          <span class="idx">07</span>
-          <h2>Explore one call: the flame graph</h2>
+          <span class="idx">08</span>
+          <h2 id="hero-title" tabindex="-1">Explore one call: the flame graph</h2>
           <span class="tag" id="hero-chip">fixture</span>
           <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>
         </summary>
         <div class="flame-body">
+          <div id="hero-verdict" style="margin-bottom:22px"></div>
           <div class="split">
             <div>
               <div class="block-label" id="hero-total"></div>
@@ -526,6 +557,8 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
               <div class="t-note" id="hero-provenance" style="margin-top:16px"></div>
             </div>
           </div>
+          <div class="t-title">Findings on this call</div>
+          <div class="tscroll"><div id="hero-findings"></div></div>
         </div>
       </details>
     </section>
@@ -970,6 +1003,7 @@ function renderFlame(pt) {
     " · end_reason " + esc(trace.conversation.end_reason);
 
   const legend = document.getElementById("hero-legend");
+  legend.innerHTML = "";
   STAGE_ORDER.filter((st) => (pt.stage_costs[st] || 0) > 0).forEach((st) => {
     const c = pt.stage_costs[st] || 0;
     const item = document.createElement("span");
@@ -1082,6 +1116,109 @@ function tidyLabels() {
 }
 
 /* ------------------------------------------------------------------ *
+ * 07+08. All calls: hash-routed list -> per-call detail.
+ * Routes are `#/call/<fixture-id>` (static-friendly: no server rewrite
+ * rules). Plain `#fleet`-style anchors are left to the browser.
+ * ------------------------------------------------------------------ */
+function verdictChip(v) {
+  const cls = v === "RESOLVED" ? "chip save"
+    : (v === "ESCALATED" || v === "ABANDONED" || v === "FALSE_RESOLVE" || v === "MISROUTED")
+      ? "chip warn" : "chip";
+  return '<span class="' + cls + '">' + esc(v) + "</span>";
+}
+
+function wasteName(cid) {
+  const meta = CLASS_META[cid];
+  return meta ? meta.name : "Class " + cid;
+}
+
+function renderCallsList(calls) {
+  const rows = [...calls.calls].sort((a, b) => b.cost_usd - a.cost_usd);
+  document.getElementById("calls-chip").textContent =
+    calls.n + " calls · " + calls.source + " · click a call to drill down";
+  const body = document.getElementById("calls-body");
+  rows.forEach((c) => {
+    const tr = document.createElement("tr");
+    tr.dataset.call = c.id;
+    const top = c.top_waste
+      ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
+        ' · <span class="num">' + fmtC(c.top_waste.waste_usd) + "</span>"
+      : '<span class="zero-note">no waste detected</span>';
+    tr.innerHTML =
+      '<td class="id"><a href="#/call/' + esc(c.id) + '">' + esc(c.id) + "</a></td>" +
+      "<td>" + esc(c.scenario_id) + "</td>" +
+      '<td class="num">' + fmtC(c.cost_usd) + "</td>" +
+      "<td>" + verdictChip(c.verdict) + "</td>" +
+      "<td>" + top + "</td>";
+    body.appendChild(tr);
+  });
+  document.getElementById("calls-note").textContent =
+    "Costs, verdicts, and top waste computed by the real pipeline over " +
+    calls.n + " " + calls.source + " calls (sample/calls.json).";
+}
+
+function renderCallMeta(call) {
+  const v = call.verdict;
+  document.getElementById("hero-verdict").innerHTML =
+    verdictChip(v.label) + " <span class='muted'>" + esc(call.trace.conversation.scenario_id) +
+    "</span> <span class='faint mono' style='font-size:11px'>· end_reason " +
+    esc(call.trace.conversation.end_reason) + " · " + call.trace.turns.length + " turns</span>";
+  const host = document.getElementById("hero-findings");
+  if (!call.findings.length) {
+    host.innerHTML = '<span class="zero-note">no waste detected on this call — every detector came back clean.</span>';
+    return;
+  }
+  const rows = [...call.findings].sort((a, b) => b.waste_usd - a.waste_usd).map((f) =>
+    "<tr>" +
+    '<td class="mono muted">D' + f.class_id + " " + esc(wasteName(f.class_id)) + "</td>" +
+    '<td class="mono muted">' + esc(f.span_id) + "</td>" +
+    "<td>" + f.turn_index + "</td>" +
+    '<td class="num waste">' + fmtUsd(f.waste_usd) + "</td>" +
+    '<td class="num">' + fmtPct(f.confidence) + "</td>" +
+    '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
+    "</tr>");
+  host.innerHTML = "<table><thead><tr><th>Waste class</th><th>Span</th><th>Turn</th>" +
+    "<th>Waste (USD)</th><th>Confidence</th><th>Proposed variant</th></tr></thead><tbody>" +
+    rows.join("") + "</tbody></table>";
+}
+
+const callCache = new Map();
+function getCall(id) {
+  if (!callCache.has(id)) callCache.set(id, loadJSON("sample/call-" + id + ".json"));
+  return callCache.get(id);
+}
+
+/* Render the call the URL names (default: the hero fixture), and move
+ * keyboard focus into the detail when the user followed a link here. */
+async function routeCall(calls, focus) {
+  const m = location.hash.match(/^#\/call\/([\w-]+)$/);
+  const ids = new Set(calls.calls.map((c) => c.id));
+  const id = (m && ids.has(m[1])) ? m[1] : calls.hero;
+  if (m && !ids.has(m[1])) {
+    document.getElementById("hero-verdict").innerHTML =
+      '<span style="color:var(--warn)">unknown call ' + esc(m[1]) + "</span>" +
+      ' <span class="faint">— showing the hero call instead; ' +
+      '<a href="#calls" style="border-bottom:1px solid var(--line-2)">see all calls</a></span>';
+  }
+  const call = await getCall(id);
+  renderFlame(call);
+  renderCallMeta(call);
+  document.querySelectorAll("#calls-body tr").forEach((tr) => {
+    const a = tr.querySelector("a");
+    if (a) {
+      if (tr.dataset.call === id) a.setAttribute("aria-current", "true");
+      else a.removeAttribute("aria-current");
+    }
+  });
+  requestAnimationFrame(tidyLabels);
+  if (focus) {
+    document.getElementById("hero-details").open = true;
+    document.getElementById("hero").scrollIntoView();
+    document.getElementById("hero-title").focus({ preventScroll: true });
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * Footer: every panel's provenance, verbatim, one deliberate click away.
  * ------------------------------------------------------------------ */
 function renderProvenance(priced, fleet, bargein, experiments, conditional) {
@@ -1103,13 +1240,14 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
  * ------------------------------------------------------------------ */
 (async function main() {
   try {
-    const [bargein, priced, fleet, findings, experiments, conditional] = await Promise.all([
+    const [bargein, priced, fleet, findings, experiments, conditional, calls] = await Promise.all([
       loadJSON("sample/bargein.sample.json"),
       loadJSON("sample/priced_trace.json"),
       loadJSON("sample/fleet.json"),
       loadJSON("sample/findings.sample.json"),
       loadJSON("sample/experiments.sample.json"),
       loadJSON("sample/conditional.sample.json"),
+      loadJSON("sample/calls.json"),
     ]);
 
     renderMasthead(fleet);
@@ -1119,8 +1257,15 @@ function renderProvenance(priced, fleet, bargein, experiments, conditional) {
     renderBargein(bargein);
     renderConditional(conditional);
     renderReplay(experiments);
-    renderFlame(priced);
+    renderCallsList(calls);
     renderProvenance(priced, fleet, bargein, experiments, conditional);
+    window.addEventListener("hashchange", () => {
+      routeCall(calls, true).catch((err) => {
+        document.getElementById("hero-verdict").textContent =
+          "Could not load that call: " + err.message;
+      });
+    });
+    await routeCall(calls, /^#\/call\//.test(location.hash));
 
     document.querySelectorAll(".fill[data-w], .seg[data-w]").forEach(animateWidth);
     document.querySelectorAll("[data-count]").forEach(countUp);

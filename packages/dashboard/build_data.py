@@ -461,6 +461,8 @@ def main() -> None:
         "label": "All calls -- per-call cost, verdict, and top waste",
         "source": "golden-fixtures",
         "n": len(calls_index),
+        # The drill-down's default call (also the fleet hero flame graph).
+        "hero": HERO_FIXTURE,
         "calls": calls_index,
     }
     (SAMPLE_DIR / "calls.json").write_text(json.dumps(calls_payload, indent=2), encoding="utf-8")
