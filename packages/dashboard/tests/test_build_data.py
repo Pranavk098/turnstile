@@ -287,13 +287,23 @@ def test_build_main_writes_manifest_with_ingest_hook(tmp_path, monkeypatch):
     assert manifest["hero"] == build_data.HERO_FIXTURE
     assert manifest["n_calls"] == len(build_data._golden_fixtures())
     hook = manifest["ingest"]
-    # No dependency on W3-A existing: the slot is declared, empty, with the
-    # producer contract a turnstile_ingest report must satisfy to plug in.
-    assert hook["report_path"] is None
-    assert "W3-A" in hook["status"]
+    # W3 Item 5 wired: the committed ingest artifact is published into
+    # sample/ and the hook points at it (no hardcoded numbers -- the build
+    # copies the artifact verbatim, asserted in test_ingest_wire.py).
+    assert hook["status"] == "available"
+    assert hook["report_path"] == "sample/ingest.json"
+    assert (tmp_path / "ingest.json").exists()
     contract = hook["contract"]
     assert set(contract["report_envelope"]) == {"label", "n", "note", "provenance"}
     assert "call-<id>.json" in contract["per_call_files"]
     assert "verdict" in contract["index_row_keys"] and "detail" in contract["index_row_keys"]
     assert "verdict" in contract["detail_keys"] and "findings" in contract["detail_keys"]
     assert "D6/D7/D8" in contract["acoustic_rule"]
+
+
+def test_build_ingest_returns_none_when_artifact_absent(tmp_path, monkeypatch):
+    monkeypatch.setattr(build_data, "INGEST_SOURCE_FILE", tmp_path / "missing.json")
+    assert build_data.build_ingest(tmp_path) is None
+    manifest = build_data.build_manifest([], None)
+    assert manifest["ingest"]["report_path"] is None
+    assert "W3-A" in manifest["ingest"]["status"]

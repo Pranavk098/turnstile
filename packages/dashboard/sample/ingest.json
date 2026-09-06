@@ -1,0 +1,137 @@
+{
+  "label": "ingested sample (7 calls)",
+  "n": 7,
+  "note": "SAMPLE aggregate over ingested calls -- not a production fleet. Ingested call logs via turnstile_ingest. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
+  "provenance": "turnstile_ingest report over the bundled 7-call SAMPLE (not production data). LLM/tool layers from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry; D6/D7/D8 reported ABSENT where it does not.",
+  "sample": true,
+  "fleet": {
+    "label": "ingested sample (7 calls)",
+    "note": "SAMPLE aggregate over ingested calls -- not a production fleet. CPRC_naive/CPRC_loaded per PRD Sec.4.3. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
+    "n_conversations": 7,
+    "n_resolved": 5,
+    "total_cost_usd": 0.0464965,
+    "resolved_cost_usd": 0.030428499999999997,
+    "cprc_loaded": 0.0092993,
+    "cprc_naive": 0.0060856999999999994,
+    "recoverable_margin_pct": 2.685793554353553,
+    "stage_costs_usd": {
+      "asr": 0.0023864999999999997,
+      "llm": 0.00841,
+      "tts": 0.0,
+      "telephony": 0.0357
+    },
+    "_provenance": {
+      "n": 7,
+      "sample": true,
+      "note": "Ingested (non-synthetic) call logs via turnstile_ingest. LLM/tool layers measured from the log's own tokens and tool outcomes; acoustic layer (ASR/TTS/telephony) priced only where the log carries rate-resolvable telemetry. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings."
+    }
+  },
+  "coverage_summary": {
+    "n_calls": 7,
+    "calls_with_data_per_class": {
+      "1": 7,
+      "2": 7,
+      "3": 7,
+      "4": 7,
+      "5": 7,
+      "9": 7,
+      "10": 7
+    }
+  },
+  "calls": [
+    {
+      "id": "ing-20260904-001",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.006448166666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260904-001.json"
+    },
+    {
+      "id": "ing-20260904-002",
+      "scenario_id": "refund",
+      "cost_usd": 0.0070025,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260904-002.json"
+    },
+    {
+      "id": "ing-20260904-003",
+      "scenario_id": "order_status",
+      "cost_usd": 0.004753333333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260904-003.json"
+    },
+    {
+      "id": "ing-20260904-004",
+      "scenario_id": "cancel_subscription",
+      "cost_usd": 0.007752666666666667,
+      "verdict": "PARTIALLY_RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260904-004.json"
+    },
+    {
+      "id": "ing-20260904-005",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.007321666666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260904-005.json"
+    },
+    {
+      "id": "ing-20260904-006",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.004902833333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260904-006.json"
+    },
+    {
+      "id": "ing-20260904-007",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.008315333333333334,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.004410981481481483,
+        "span_id": "ing-20260904-007:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260904-007.json"
+    }
+  ],
+  "findings": [
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260904-007:t2:llm",
+      "waste_usd": 0.004410981481481483,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 3,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260904-007"
+    }
+  ]
+}

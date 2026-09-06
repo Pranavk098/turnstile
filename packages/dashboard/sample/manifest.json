@@ -5,8 +5,8 @@
   "hero": "09_escalation_debt",
   "n_calls": 23,
   "ingest": {
-    "status": "awaiting W3-A Item 5",
-    "report_path": null,
+    "status": "available",
+    "report_path": "sample/ingest.json",
     "contract": {
       "report_envelope": {
         "label": "str",

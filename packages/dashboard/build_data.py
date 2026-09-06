@@ -440,11 +440,13 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
 
 # Where the turnstile_ingest report (W3-A Item 5) plugs in. The dashboard
 # NEVER depends on it existing: manifest["ingest"]["report_path"] is null
-# until W3-A lands, and index.html renders the golden-fleet data with an
-# honest "ingest absent" note. When W3-A Item 5 lands, it EITHER drops a
-# report envelope at the path below (the dashboard surfaces its label +
-# provenance verbatim) OR -- the full motion -- writes calls.json-shaped
-# per-call files itself. Contract for the producer:
+# until the ingest artifact is wired, and index.html renders the golden-fleet
+# data with an honest "ingest absent" note. Wired, build_ingest() below copies
+# the committed ingest artifact (packages/ingest/data/data.json + its
+# call-<id>.json details, filenames unchanged so the dashboard's existing
+# per-call router resolves them) into sample/ as sample/ingest.json, and the
+# manifest declares status "available" + that report_path. Contract for the
+# producer:
 INGEST_CONTRACT = {
     # Minimal envelope the dashboard surfaces verbatim (no other keys read).
     "report_envelope": {"label": "str", "n": "int", "note": "str", "provenance": "str"},
@@ -467,18 +469,74 @@ INGEST_CONTRACT = {
 }
 
 
-def build_manifest(calls_index: list[dict]) -> dict:
+# The committed turnstile_ingest output this builder publishes into
+# sample/. Filenames are preserved verbatim (ingest call ids never collide
+# with golden ids), so the dashboard's existing `sample/call-<id>.json`
+# router resolves ingest drill-downs with no new fetch path.
+INGEST_DATA_DIR = ROOT / "packages" / "ingest" / "data"
+INGEST_SOURCE_FILE = INGEST_DATA_DIR / "data.json"
+INGEST_REPORT_FILE = "ingest.json"
+
+
+def build_ingest(sample_dir: Path = SAMPLE_DIR) -> dict | None:
+    """Publish the committed ingest report into the dashboard's sample dir.
+
+    Reads ``packages/ingest/data/data.json`` (NO number is recomputed or
+    hardcoded -- the artifact's own fleet/calls/findings/coverage travel
+    verbatim) plus every per-call file its index rows point at, and writes
+    them to ``sample/ingest.json`` + ``sample/call-<id>.json``. Returns the
+    manifest hook (``status``/``report_path``) or None when the artifact is
+    absent -- the dashboard then honestly renders golden-only data."""
+    if not INGEST_SOURCE_FILE.exists():
+        return None
+    artifact = json.loads(INGEST_SOURCE_FILE.read_text(encoding="utf-8"))
+    # Minimal envelope check (manifest INGEST_CONTRACT): the dashboard reads
+    # exactly these keys, so fail loud here rather than ship a half-report.
+    for key in ("label", "n", "note", "provenance", "fleet",
+                "coverage_summary", "calls", "findings"):
+        if key not in artifact:
+            raise ValueError(
+                f"ingest artifact {INGEST_SOURCE_FILE} lacks {key!r} "
+                f"(see manifest ingest.contract) -- regenerate it: "
+                f"`uv run python -m turnstile_ingest --sample`"
+            )
+    for row in artifact["calls"]:
+        if set(row) != set(INGEST_CONTRACT["index_row_keys"]):
+            raise ValueError(
+                f"ingest index row {row.get('id')!r} keys {sorted(row)} != "
+                f"dashboard contract {INGEST_CONTRACT['index_row_keys']}"
+            )
+        detail_src = INGEST_DATA_DIR / row["detail"]
+        if not detail_src.exists():
+            raise ValueError(
+                f"ingest per-call file missing: {detail_src} "
+                f"(row {row.get('id')!r}) -- regenerate it: "
+                f"`uv run python -m turnstile_ingest --sample`"
+            )
+        sample_dir.mkdir(parents=True, exist_ok=True)
+        (sample_dir / row["detail"]).write_text(
+            detail_src.read_text(encoding="utf-8"), encoding="utf-8")
+    sample_dir.mkdir(parents=True, exist_ok=True)
+    (sample_dir / INGEST_REPORT_FILE).write_text(
+        json.dumps(artifact, indent=2), encoding="utf-8")
+    return {"status": "available", "report_path": f"sample/{INGEST_REPORT_FILE}"}
+
+
+def build_manifest(calls_index: list[dict], ingest: dict | None = None) -> dict:
+    hook = {
+        "status": "awaiting W3-A Item 5",
+        "report_path": None,
+        "contract": INGEST_CONTRACT,
+    }
+    if ingest is not None:
+        hook = {**hook, **ingest}
     return {
         "label": "Turnstile dashboard data manifest",
         "source": "golden-fixtures",
         "calls_index": "sample/calls.json",
         "hero": HERO_FIXTURE,
         "n_calls": len(calls_index),
-        "ingest": {
-            "status": "awaiting W3-A Item 5",
-            "report_path": None,
-            "contract": INGEST_CONTRACT,
-        },
+        "ingest": hook,
     }
 
 
@@ -521,7 +579,8 @@ def main() -> None:
             json.dumps(data, indent=2), encoding="utf-8"
         )
 
-    manifest = build_manifest(calls_index)
+    ingest_hook = build_ingest(SAMPLE_DIR)
+    manifest = build_manifest(calls_index, ingest_hook)
     (SAMPLE_DIR / "manifest.json").write_text(
         json.dumps(manifest, indent=2), encoding="utf-8"
     )
@@ -541,6 +600,12 @@ def main() -> None:
           f"+ {len(call_details)} per-call detail files")
     print(f"wrote {SAMPLE_DIR / 'manifest.json'}  source=golden-fixtures "
           f"ingest={manifest['ingest']['status']}")
+    if ingest_hook is not None:
+        report = json.loads((SAMPLE_DIR / INGEST_REPORT_FILE).read_text(encoding="utf-8"))
+        print(f"wrote {SAMPLE_DIR / INGEST_REPORT_FILE}  n={report['n']} "
+              f"margin={report['fleet']['recoverable_margin_pct']:.2f}% "
+              f"over these {report['n']} ingest calls "
+              f"+ {len(report['calls'])} per-call detail files")
 
 
 if __name__ == "__main__":
