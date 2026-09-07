@@ -5,8 +5,8 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-06 · branch `wave0-foundation` · tip `9d43afd` · 149 commits ·
-**807 passed / 4 skipped**, `ruff check packages/` clean. **Wave-2 Item 2 MERGED**
+**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `f318a00` · 154 commits ·
+**833 passed / 4 skipped**, `ruff check packages/` clean. **Wave-2 Item 2 MERGED**
 (kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
 (`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
 diverge iff the replayed parsed label ≠ original label (unparseable = divergent, never
@@ -23,11 +23,19 @@ preservation number: 3 content-driven flips under identical routing), **margin 0
 [0.481, 0.667]** (paid n=250/seed 8; compare to seed-8 mock 0.55%, NOT the seed-0 0.57%
 headline — the ~0.57% rounding match is coincidental, different populations). `docs/METHOD.md`
 + `docs/DECISIONS.md` updated (preservation reclassified Measured→**Partially-measured**);
-paid result JSONs are gitignored (live in the OpenCode clone). **OPEN:** preservation
-*under a divergent decision* still unobserved (17 forks excluded, not re-adjudicated) —
-needs harder decisions (larger candidate sets than route's 2-way `[scenario_id,"other"]`)
-or a real-baseline build; Item 3 truncation policy (2/1,734, non-distorting) noted.
-Only doc-only `opencode/perf-audit` remains stray.
+paid result JSONs are gitignored (live in the OpenCode clone). **Preservation-under-
+divergence — the modeled BRIDGE is built (Item 2, merged):** `turnstile_verdict.fork_oracle`
+judges a fork against ground-truth intent via the registry (never re-adjudicates through
+pinned tools), reported as a SEPARATE modeled figure (`preservation_under_divergence_modeled`,
+Instrumented tier, never folded into the measured 0.985). Re-analysis entry:
+`python -m turnstile_experiments.preservation_divergence --result <paid json> [--sidecar labels.json]`.
+**BUT no number yet — data gap:** the paid matrix did NOT persist forked labels, so the
+real 17 forks are all `unrecorded` → `modeled=None` (None by data, not modeling weakness).
+To get a modeled number: capture forked labels — either a ≤17-call owner-gated recovery run
+producing a `--sidecar labels.json`, or a future fork-persisting matrix run. **OPEN (real
+measured ceiling):** preservation under divergence *measured* (not modeled) still needs
+open-loop execution of the divergent path (the deferred live agent). Item 3 truncation
+policy (2/1,734, non-distorting) noted. Only doc-only `opencode/perf-audit` remains stray.
 Wave-3 core COMPLETE:
 W3-A ingest + W3-B explorable UI + W3 Item 5 (ingest report wired into the dashboard
 with honest D6/D7/D8 absence) merged; all three recoverable-margin gates converged on
