@@ -1,0 +1,8 @@
+{
+  "case_id": "compose-attempts-required-terminal-act",
+  "intent": "refund",
+  "original": { "kind": "compose", "label": "inform" },
+  "forked": { "kind": "compose", "label": "complete_mutation" },
+  "expected": true,
+  "rule": "The fork attempts the registry-required terminal act, under the stated, sweepable FORKED_MUTATION_ATTEMPT_SERVES_INTENT=True assumption that the forked path's mutation would be the intent's own tool."
+}

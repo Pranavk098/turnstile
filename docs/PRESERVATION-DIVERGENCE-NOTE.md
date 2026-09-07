@@ -97,3 +97,49 @@ reporting a made-up fraction would be exactly the guessing this brief forbids.
 
 **The measured 0.985 identity-preservation number is untouched by all of the
 above and is never merged with any modeled figure.**
+
+---
+
+## Item 2 (built on owner go) — the intent-preservation oracle
+
+**TDD:** `packages/verdict/tests/test_fork_oracle.py` (21 tests, written red)
++ `packages/experiments/tests/test_preservation_divergence.py` (5 tests,
+written red), both green; suite green, ruff clean.
+
+- **The oracle** — `turnstile_verdict.fork_oracle.preserved_under_divergence(
+  trace_intent, original, forked) -> bool | None`: a pure function judging the
+  forked decision against the registry's ground-truth intent. Never re-adjudicates
+  through pinned tools (no `replay()` call anywhere in the oracle path).
+  Rules per kind (all stated in the docstring): **route** cross-scenario →
+  False (registry requirement incompatibility), same-requirement → True
+  (stated; no such pair exists), `"other"`/unparseable → None; **escalate_check**
+  `continue→escalate` → True under the stated sweepable
+  `ASSUME_ESCALATION_COMMITS=True`, `escalate→continue` → None (unpinned
+  downstream); **tool_select** decidable only against the registry-required
+  tool (gained → True, dropped → False, neither → None); **compose** on a
+  mutation intent by the required terminal act (attempted → True under
+  `FORKED_MUTATION_ATTEMPT_SERVES_INTENT`, dropped → False, mid-flow → None),
+  lookup intent → None; **slot_fill**/unknown → None (content-driven).
+- **Both modeling constants are sweep-tested** — flipping either degrades the
+  corresponding rule to None, no silent claim.
+- **Authored fixtures** — `fixtures/forks/*.json` (12 cases, NEW dir;
+  `fixtures/golden/` + `fixtures/preservation/` untouched): one unambiguous
+  ground-truth case per decidable rule + four explicit-`null` undecidable
+  cases (`"other"`, raw passthrough, escalate-drop, unregistered intent).
+  Tests load and assert every fixture exactly.
+- **Re-analysis entry** — `turnstile_experiments.preservation_divergence`
+  (`analyze_forks(result_json, sidecar=None)` + CLI
+  `python -m turnstile_experiments.preservation_divergence --result …
+  [--sidecar …]`): regenerates the corpus deterministically, selects each
+  fork's pivot via replay's own single-source helpers, and reports the MODELED
+  figure under its own key with the separation stamped in a `tier` label.
+  Structurally tested: the measured key (`outcome_preservation_rate`) never
+  appears in the report.
+- **Real-fork output (free, no sidecar — the honest current state):**
+  `n_forks=17, n_unrecorded=17, n_decidable=0,
+  preservation_under_divergence_modeled=None` — every fork is
+  undecidable-by-data until forked labels exist (sidecar from a fork-persisting
+  future run, or the owner-gated ≤17-call label recovery). The modeled figure
+  is None BY DATA, not by modeling weakness: the moment labels land, the same
+  entry computes `preserved/decidable` with undecidables listed.
+- **Open-loop execution remains the named, deferred real-measurement ceiling.**

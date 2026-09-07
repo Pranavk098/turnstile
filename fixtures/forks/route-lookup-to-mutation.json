@@ -1,0 +1,8 @@
+{
+  "case_id": "route-lookup-to-mutation",
+  "intent": "order_status",
+  "original": { "kind": "route", "label": "order_status" },
+  "forked": { "kind": "route", "label": "cancel_subscription" },
+  "expected": false,
+  "rule": "A lookup intent (requires_mutation=null) routed to a mutation intent: per the registry's own comment, a mutation would already be a misroute -- not preserved."
+}

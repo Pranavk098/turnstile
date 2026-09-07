@@ -1,0 +1,8 @@
+{
+  "case_id": "route-unparseable-undecidable",
+  "intent": "tech_support",
+  "original": { "kind": "route", "label": "tech_support" },
+  "forked": { "kind": "route", "label": "I will take care of that for you right away." },
+  "expected": null,
+  "rule": "Unparseable forked label (raw passthrough, what the gate already excluded): intent-servation is not answerable from a free-text value -> None."
+}

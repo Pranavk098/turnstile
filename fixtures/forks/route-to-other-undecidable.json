@@ -1,0 +1,8 @@
+{
+  "case_id": "route-to-other-undecidable",
+  "intent": "cancel_subscription",
+  "original": { "kind": "route", "label": "cancel_subscription" },
+  "forked": { "kind": "route", "label": "other" },
+  "expected": null,
+  "rule": "No registry entry for 'other': a non-resolution with no registry rule -> honest None. (The candidate rule 'non-resolution -> not preserved' awaits owner ratification and is NOT assumed.)"
+}

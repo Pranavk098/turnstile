@@ -1,0 +1,8 @@
+{
+  "case_id": "compose-drops-required-terminal-act",
+  "intent": "refund",
+  "original": { "kind": "compose", "label": "complete_mutation" },
+  "forked": { "kind": "compose", "label": "inform" },
+  "expected": false,
+  "rule": "The original attempted the registry-required terminal act (complete_mutation on a mutation intent) and the fork dropped it -> the requirement lost its path -> not preserved."
+}

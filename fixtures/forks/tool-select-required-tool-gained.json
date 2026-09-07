@@ -1,0 +1,8 @@
+{
+  "case_id": "tool-select-required-tool-gained",
+  "intent": "refund",
+  "original": { "kind": "tool_select", "label": "lookup_account" },
+  "forked": { "kind": "tool_select", "label": "process_refund" },
+  "expected": true,
+  "rule": "The forked tool IS the registry-required mutation tool: the intent's requirement becomes the executed path -> preserved."
+}

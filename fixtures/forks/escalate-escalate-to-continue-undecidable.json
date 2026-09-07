@@ -1,0 +1,8 @@
+{
+  "case_id": "escalate-escalate-to-continue-undecidable",
+  "intent": "refund",
+  "original": { "kind": "escalate_check", "label": "escalate" },
+  "forked": { "kind": "escalate_check", "label": "continue" },
+  "expected": null,
+  "rule": "Dropping the handoff: whether the scenario's own path would still resolve depends on unpinned downstream (would the mutation commit? would containment hold?) -> honest None, not a guess."
+}

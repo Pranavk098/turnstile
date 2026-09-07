@@ -1,0 +1,8 @@
+{
+  "case_id": "escalate-continue-to-escalate",
+  "intent": "refund",
+  "original": { "kind": "escalate_check", "label": "continue" },
+  "forked": { "kind": "escalate_check", "label": "escalate" },
+  "expected": true,
+  "rule": "Escalation is intent-agnostic resolution (adjudicator: committed handoff -> ESCALATED @ 0.90 for any scenario), under the stated, sweepable ASSUME_ESCALATION_COMMITS=True assumption that the forked path's handoff would commit."
+}

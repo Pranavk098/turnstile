@@ -1,0 +1,8 @@
+{
+  "case_id": "route-cross-scenario-mutation",
+  "intent": "cancel_subscription",
+  "original": { "kind": "route", "label": "cancel_subscription" },
+  "forked": { "kind": "route", "label": "refund" },
+  "expected": false,
+  "rule": "Cross-intent route: registry requirements differ (cancel_subscription vs process_refund) -- the agent understood the call as another intent; the trace's requirement is not served."
+}

@@ -1,0 +1,8 @@
+{
+  "case_id": "compose-lookup-intent-undecidable",
+  "intent": "order_status",
+  "original": { "kind": "compose", "label": "inform" },
+  "forked": { "kind": "compose", "label": "close_call" },
+  "expected": null,
+  "rule": "A lookup intent carries no registry requirement, and informational resolution rides on utterance CONTENT (adjudicator's clean-close), not the label -> None."
+}

@@ -1,0 +1,8 @@
+{
+  "case_id": "tool-select-required-tool-dropped",
+  "intent": "refund",
+  "original": { "kind": "tool_select", "label": "process_refund" },
+  "forked": { "kind": "tool_select", "label": "lookup_account" },
+  "expected": false,
+  "rule": "The original selected the registry-required tool and the fork dropped it: the intent's requirement lost its path -> not preserved."
+}
