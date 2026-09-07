@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).parent
-for _pkg in ("ingest", "pricing", "verdict", "detectors", "replay", "stats"):
+for _pkg in ("ingest", "pricing", "verdict", "detectors", "replay"):
     _src = _ROOT.parent / _pkg / "src"
     if str(_src) not in sys.path:
         sys.path.insert(0, str(_src))

@@ -77,11 +77,11 @@ from turnstile_pricing import price_trace
 # never drift from the pricing engine's own math.
 from turnstile_pricing.pricing import _cost_llm
 from turnstile_verdict import adjudicate
-from turnstile_stats import aggregate_experiment
 
 from turnstile_replay._rates import get_rates
 from turnstile_replay.backend import ReplayContext, ReplayedDecision, get_backend
 from turnstile_replay.decisions import BOUNDED_LABEL_KINDS
+from turnstile_replay.stats import aggregate_experiment
 
 # PRD Sec.8.1, verbatim: "if the variant agent's utterance at turn k has
 # semantic similarity < 0.75 to the original, the conversation has forked."
@@ -391,7 +391,7 @@ def map_trials(traces: list[PricedTrace], variant: VariantSpec) -> list[Trial]:
 
 def experiment(traces: list[PricedTrace], variant: VariantSpec) -> ExperimentResult:
     """Replay every trace under `variant`, aggregate via
-    `turnstile_stats.aggregate_experiment` (PRD Sec.5 / Sec.8.3). Expressed
+    `turnstile_replay.stats.aggregate_experiment` (PRD Sec.5 / Sec.8.3). Expressed
     as map (`map_trials`) + reduce (`aggregate_experiment`) -- the single
     implementation concurrent drivers compose, so aggregates can never drift
     from the sequential path."""

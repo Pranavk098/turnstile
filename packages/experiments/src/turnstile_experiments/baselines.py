@@ -26,7 +26,7 @@ def compute_baselines(corpus: list[PricedTrace]) -> Baselines:
     ``scenario_id``.
 
     * ``p50_turns`` / ``p75_turns`` -- 50th/75th percentile (numpy's default
-      linear interpolation, same convention ``turnstile_stats`` uses) of turn
+      linear interpolation, same convention ``turnstile_replay.stats`` uses) of turn
       counts (``len(trace.turns)``), one sample per conversation.
     * ``mean_cost_per_turn`` -- mean of every individual turn's cost
       (``PricedTrace.turn_costs``), pooled across every conversation sharing

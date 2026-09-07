@@ -26,7 +26,7 @@ the conversation's outcome, which is unmeasurable on the synthetic corpus
   lands.
 
 CI convention: the same deterministic percentile bootstrap as the gated
-numbers (``turnstile_stats.bootstrap_ci``, seed 12345); delta_cost follows
+numbers (``turnstile_replay.bootstrap_ci``, seed 12345); delta_cost follows
 the replay convention (negative = saving).
 """
 from __future__ import annotations
@@ -35,7 +35,7 @@ from dataclasses import dataclass
 
 from turnstile_schema import PricedTrace, RateTable, VariantSpec, load_rates
 from turnstile_pricing import price_trace
-from turnstile_stats import bootstrap_ci
+from turnstile_replay import bootstrap_ci
 
 from turnstile_experiments.transforms import (
     REPRICING_TRANSFORMS,

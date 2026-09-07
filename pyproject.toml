@@ -11,8 +11,8 @@ members = ["packages/*"]
 
 [dependency-groups]
 # Depend on every workspace member so `uv sync` installs them all (and their
-# deps, e.g. otel's opentelemetry, stats' numpy). Without this, a plain
-# `uv sync` drops non-root-reachable member deps and otel/stats fail to import.
+# deps, e.g. agent's opentelemetry, replay's numpy). Without this, a plain
+# `uv sync` drops non-root-reachable member deps and agent/replay fail to import.
 dev = [
     "pytest>=8.0",
     "turnstile-schema",
@@ -20,7 +20,6 @@ dev = [
     "turnstile-verdict",
     "turnstile-otel",
     "turnstile-detectors",
-    "turnstile-stats",
     "turnstile-replay",
     "turnstile-corpus",
     "turnstile-experiments",
@@ -45,7 +44,6 @@ turnstile-pricing = { workspace = true }
 turnstile-verdict = { workspace = true }
 turnstile-otel = { workspace = true }
 turnstile-detectors = { workspace = true }
-turnstile-stats = { workspace = true }
 turnstile-replay = { workspace = true }
 turnstile-corpus = { workspace = true }
 turnstile-experiments = { workspace = true }
