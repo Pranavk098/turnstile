@@ -21,7 +21,7 @@ PURE TTS character-accounting waste, which is precisely the novel quantity.
 """
 from __future__ import annotations
 
-from turnstile_otel.recorder import TraceRecorder
+from turnstile_agent.recorder import TraceRecorder
 from turnstile_schema.enums import EndReason, SpeakerFirst
 from turnstile_schema.trace import Trace
 

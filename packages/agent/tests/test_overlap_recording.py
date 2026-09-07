@@ -22,7 +22,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from turnstile_schema import Baselines, Verdict, VerdictLabel, Trace, load_rates
 from turnstile_pricing import price_trace
 from turnstile_detectors.d08_silence_tax import detect_silence_tax
-from turnstile_otel import TraceRecorder
+from turnstile_agent import TraceRecorder
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 RATES = Path(__file__).parents[3] / "pricing" / "rates.yaml"

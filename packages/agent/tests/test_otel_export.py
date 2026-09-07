@@ -9,7 +9,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from turnstile_otel import TraceRecorder
+from turnstile_agent import TraceRecorder
 
 
 def _recorder_with_exporter():
