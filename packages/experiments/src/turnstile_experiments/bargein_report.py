@@ -30,8 +30,8 @@ from turnstile_agent.tts import GRANULARITIES
 from turnstile_detectors import detect
 from turnstile_pricing import price_trace
 from turnstile_replay._rates import get_rates
+from turnstile_replay import bootstrap_ci
 from turnstile_schema import Baselines, RateTable
-from turnstile_stats import bootstrap_ci
 from turnstile_verdict import adjudicate
 
 # Sweep band: the SAME cited range the corpus D7 sweep uses

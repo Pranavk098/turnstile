@@ -15,7 +15,6 @@ members = [
     "turnstile-pricing",
     "turnstile-replay",
     "turnstile-schema",
-    "turnstile-stats",
     "turnstile-verdict",
 ]
 
@@ -1519,7 +1518,6 @@ dev = [
     { name = "turnstile-pricing" },
     { name = "turnstile-replay" },
     { name = "turnstile-schema" },
-    { name = "turnstile-stats" },
     { name = "turnstile-verdict" },
 ]
 embed = [
@@ -1543,7 +1541,6 @@ dev = [
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
-    { name = "turnstile-stats", editable = "packages/stats" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
 ]
 embed = [{ name = "sentence-transformers", specifier = ">=2.2" }]
@@ -1687,17 +1684,17 @@ name = "turnstile-replay"
 version = "0.0.0"
 source = { editable = "packages/replay" }
 dependencies = [
+    { name = "numpy" },
     { name = "turnstile-pricing" },
     { name = "turnstile-schema" },
-    { name = "turnstile-stats" },
     { name = "turnstile-verdict" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-schema", editable = "packages/schema" },
-    { name = "turnstile-stats", editable = "packages/stats" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
 ]
 
@@ -1714,21 +1711,6 @@ dependencies = [
 requires-dist = [
     { name = "pydantic", specifier = ">=2.6" },
     { name = "pyyaml", specifier = ">=6.0" },
-]
-
-[[package]]
-name = "turnstile-stats"
-version = "0.0.0"
-source = { editable = "packages/stats" }
-dependencies = [
-    { name = "numpy" },
-    { name = "turnstile-schema" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "turnstile-schema", editable = "packages/schema" },
 ]
 
 [[package]]

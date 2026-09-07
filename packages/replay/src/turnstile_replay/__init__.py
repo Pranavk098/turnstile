@@ -21,6 +21,11 @@ from turnstile_replay.replay import (
     replay,
     replay_with_real_usage_cost,
 )
+from turnstile_replay.stats import (
+    aggregate_experiment,
+    bootstrap_ci,
+    wilson_interval,
+)
 
 __all__ = [
     "replay",
@@ -29,6 +34,9 @@ __all__ = [
     "DELTA_COST_REAL_USAGE_LABEL",
     "experiment",
     "map_trials",
+    "aggregate_experiment",
+    "bootstrap_ci",
+    "wilson_interval",
     "DIVERGENCE_SIMILARITY_THRESHOLD",
     "DecisionBackend",
     "MockBackend",

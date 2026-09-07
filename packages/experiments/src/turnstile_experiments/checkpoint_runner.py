@@ -31,7 +31,7 @@ from turnstile_replay.replay import (
     _earliest_applicable_turn,
     replay_with_real_usage_cost,
 )
-from turnstile_stats import aggregate_experiment
+from turnstile_replay import aggregate_experiment
 
 from turnstile_experiments.guard import assert_backend_executable, assert_variant_executable
 

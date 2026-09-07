@@ -1,4 +1,5 @@
-"""Tests for the stats package (packages/stats).
+"""Tests for the stats module (turnstile_replay.stats, folded in from the
+former packages/stats -- pure move, zero behavior change).
 
 The oracle for this module: known reference values for the Wilson interval, a
 deterministic bootstrap, and a hand-built list of Trials that must collapse to
@@ -16,7 +17,7 @@ import numpy as np
 import pytest
 
 from turnstile_schema import Trial
-from turnstile_stats import aggregate_experiment, bootstrap_ci, wilson_interval
+from turnstile_replay import aggregate_experiment, bootstrap_ci, wilson_interval
 
 # --------------------------------------------------------------------------- #
 # wilson_interval                                                              #
