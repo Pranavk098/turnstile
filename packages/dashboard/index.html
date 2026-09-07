@@ -295,6 +295,9 @@ details.drawer .body { padding-bottom: 18px; font-size: 12px; color: var(--muted
 
 /* explore one call */
 #hero details { cursor: default; }
+/* back-navigation affordance in the per-call drill-down (guided tour) */
+#hero-back a { color: var(--faint); border-bottom: 1px solid var(--line-2); padding-bottom: 1px; transition: color .15s ease, border-color .15s ease; }
+#hero-back a:hover { color: var(--accent); border-color: var(--accent); }
 #hero .flame-summary {
   display: grid; grid-template-columns: 64px 1fr auto 26px; align-items: baseline; gap: 18px;
   cursor: pointer; list-style: none; padding: 2px 0;
@@ -381,6 +384,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
   .mast-top { flex-wrap: wrap; row-gap: 10px; }
   .about-link { margin-left: 0; }
   .mast-top .meta { display: none; }
+  #tooltip { max-width: calc(100vw - 16px); }
 }
 </style>
 </head>
@@ -397,7 +401,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       </div>
       <div class="meta" id="head-meta"></div>
       <a class="about-link" href="#calls">All calls</a>
-      <a class="about-link" href="home.html">What is this?</a>
+      <a class="about-link" href="#about">What is this?</a>
     </div>
   </header>
 
@@ -409,6 +413,19 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
     <button class="src-btn" type="button" data-source="golden" aria-pressed="true"></button>
     <button class="src-btn" type="button" data-source="ingest" aria-pressed="false"></button>
   </div>
+  <p class="t-note" id="dataset-note" hidden></p>
+
+  <!-- Guided-tour legibility: the report explains itself without leaving the
+       page. The masthead "What is this?" link opens this drawer; home.html
+       remains the fuller landing page. -->
+  <details class="drawer" id="about">
+    <summary><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>What is this? A 30-second orientation</summary>
+    <div class="body">
+      <div class="prov-line"><b>What am I looking at</b>: a static report over one fleet of voice-AI calls — what the calls cost span by span, where the money leaks, and how much of the leak is proven recoverable. Every number was computed by the Turnstile pipeline and shipped as JSON; this page only renders it and computes nothing itself. No backend, no network.</div>
+      <div class="prov-line"><b>Why trust these numbers</b>: every figure wears one of three honesty labels. <span class="chip save" data-tip-tier="proven"><span class="dot"></span>Proven</span> — replayed on a cheaper path with the outcome preserved; the only tier counted as recovered money. <span class="chip live" data-tip-tier="measured"><span class="dot"></span>Measured</span> — measured directly (real synthesis or exact arithmetic) with confidence intervals. <span class="chip warn" data-tip-tier="conditional"><span class="dot"></span>Conditional</span> — waste we found and priced, fix unverified; never mixed into the proven number.</div>
+      <div class="prov-line"><b>How to move</b>: the three rows in section 01 link to their sections; “All calls” (top right) opens the call list, and each call drills down to its own detail with a back link. Want the whole story in one screen first? <a href="home.html" style="border-bottom:1px solid var(--line-2)">Open the landing page</a>.</div>
+    </div>
+  </details>
 
   <main>
     <!-- ============ 01 the verdict ============ -->
@@ -421,7 +438,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
 
       <a class="tier-row" href="#fleet">
         <span class="t-idx">i.</span>
-        <span class="chip save"><span class="dot"></span>Proven</span>
+        <span class="chip save" data-tip-tier="proven"><span class="dot"></span>Proven</span>
         <span class="t-text">
           <span class="t-name">Recoverable margin</span>
           <span class="t-sub" id="v-proven-sub"></span>
@@ -432,7 +449,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
 
       <a class="tier-row" href="#bargein">
         <span class="t-idx">ii.</span>
-        <span class="chip live"><span class="dot"></span>Measured</span>
+        <span class="chip live" data-tip-tier="measured"><span class="dot"></span>Measured</span>
         <span class="t-text">
           <span class="t-name">Unheard TTS waste</span>
           <span class="t-sub" id="v-measured-sub"></span>
@@ -443,7 +460,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
 
       <a class="tier-row" href="#conditional">
         <span class="t-idx">iii.</span>
-        <span class="chip warn"><span class="dot"></span>Conditional</span>
+        <span class="chip warn" data-tip-tier="conditional"><span class="dot"></span>Conditional</span>
         <span class="t-text">
           <span class="t-name">Additional savings</span>
           <span class="t-sub" id="v-cond-sub"></span>
@@ -580,6 +597,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
           <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>
         </summary>
         <div class="flame-body">
+          <div class="t-note" id="hero-back"><a href="#calls">← Back to all calls</a></div>
           <div id="hero-verdict" style="margin-bottom:22px"></div>
           <div class="split">
             <div>
@@ -697,12 +715,33 @@ function bindTooltip(el, rows) {
   el.addEventListener("mousemove", (e) => {
     tip.innerHTML = rows;
     tip.style.display = "block";
-    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 400) + "px";
+    /* clamp inside the viewport (<680px: never spill off-screen right) */
+    tip.style.left = Math.max(8, Math.min(e.clientX + 14, window.innerWidth - 400)) + "px";
     tip.style.top = (e.clientY + 14) + "px";
   });
   el.addEventListener("mouseleave", () => { tip.style.display = "none"; });
 }
 const trow = (k, v) => '<div class="t-row"><span class="k">' + esc(k) + '</span><span>' + esc(v) + "</span></div>";
+
+/* Guided-tour legibility: plain-language tooltips on each honesty-tier chip
+ * (01 verdict + the "What is this?" copies). Mirrors home.html's wording. */
+const TIER_TIPS = {
+  proven:
+    '<div class="t-title">Proven</div>' +
+    trow("reads as", "replayed on a cheaper path and the outcome stayed the same") +
+    trow("counts as", "recovered money — the only tier that does"),
+  measured:
+    '<div class="t-title">Measured</div>' +
+    trow("reads as", "measured directly (real synthesis or exact arithmetic), with confidence intervals") +
+    trow("counts as", "strong evidence — not yet counted as recovered"),
+  conditional:
+    '<div class="t-title">Conditional</div>' +
+    trow("reads as", "waste found and priced, but the fix is unverified") +
+    trow("counts as", "stated separately — never mixed into the proven number"),
+};
+function bindTierTips() {
+  document.querySelectorAll("[data-tip-tier]").forEach((el) => bindTooltip(el, TIER_TIPS[el.dataset.tipTier]));
+}
 
 /* ------------------------- bar animation --------------------------- */
 function animateWidth(el) {
@@ -937,6 +976,7 @@ function renderFindings(findings, coverage, stamp) {
       bindTooltip(row,
         '<div class="t-title">D' + cid + " " + esc(meta.name) + ": absent</div>" +
         trow("status", "no data for this input -- not zero waste") +
+        trow("why", "this log lacks the acoustic fields these detectors read (chars synthesized / chars played), so the class could not run — a data gap, not zero waste") +
         (meta.hint ? trow("class", meta.hint) : ""));
       list.appendChild(row);
     });
@@ -1264,6 +1304,17 @@ function renderHeroCoverage(call) {
   host.textContent =
     "Coverage on this call: " + classList(present) + " measured" +
     (absent.length ? " · " + classList(absent) + " absent — no data for this input" : "") + ".";
+  if (absent.length) {
+    /* absent != zero: the strip carries the same data-gap explainer as the
+     * fleet leaderboard (bound once; re-renders only change the text). */
+    if (!host.dataset.tipBound) {
+      bindTooltip(host,
+        '<div class="t-title">Absent classes</div>' +
+        trow("reads as", classList(absent) + " could not run: a data gap, not zero waste") +
+        trow("why", "the log lacks the acoustic fields these detectors read (chars synthesized / chars played)"));
+      host.dataset.tipBound = "1";
+    }
+  }
   return { present, absent };
 }
 
@@ -1407,6 +1458,11 @@ async function renderDataset(key) {
   renderFindings(d.findings, d.coverage, d.stamp);
   renderCallsList(d.calls);
   renderIngestNote(DATASETS.manifest, DATASETS.ingestReport, key);
+  /* Plain-language toggle summary (guided tour): state what changed -- and
+   * what deliberately did not -- every time the dataset switches. */
+  document.getElementById("dataset-note").innerHTML =
+    "Now viewing: <b>" + esc(d.datasetName) + "</b> — the verdict, fleet anatomy, waste leaderboard, call list, and drill-down all switched to these " +
+    d.stamp.n + " " + esc(d.stamp.name) + ". Barge-in, conditional, and replay did not switch: they stay golden-fixture mechanism demos.";
   renderProvenance(DATASETS.golden.priced, d.fleet, DATASETS.golden.bargein,
     DATASETS.golden.experiments, DATASETS.golden.conditional);
   await routeCall(d.calls, false);
@@ -1461,6 +1517,7 @@ async function renderDataset(key) {
       };
       const sw = document.getElementById("source-switch");
       sw.hidden = false;
+      document.getElementById("dataset-note").hidden = false;
       const buttons = sw.querySelectorAll(".src-btn");
       buttons[0].textContent = "Golden fixtures · n = " + calls.n;
       buttons[1].textContent = "Ingested sample · n = " + ingestReport.n;
@@ -1509,6 +1566,15 @@ async function renderDataset(key) {
 
     document.querySelectorAll(".fill[data-w], .seg[data-w]").forEach(animateWidth);
     document.querySelectorAll("[data-count]").forEach(countUp);
+
+    /* guided-tour legibility: tier-chip tooltips (one-time binding) */
+    bindTierTips();
+    /* the "What is this?" link opens the on-page explainer drawer */
+    const openAbout = () => {
+      if (location.hash === "#about") document.getElementById("about").open = true;
+    };
+    openAbout();
+    window.addEventListener("hashchange", openAbout);
 
     const heroDetails = document.getElementById("hero-details");
     heroDetails.addEventListener("toggle", () => {
