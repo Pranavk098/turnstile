@@ -66,7 +66,13 @@ class ReplayedDecision:
     parsed decision value. MockBackend echoes the original span's parsed
     value; OpenAIBackend currently passes the raw completion text through.
     Per-decision_kind parsing (escalate_check -> escalate/continue,
-    tool_select -> tool name) is queued, not built, this wave."""
+    tool_select -> tool name) is queued, not built, this wave.
+
+    Wave-2 exp-hardening Item 1: `finish_reason` is the API's completion
+    finish reason (`"stop"`, `"length"`, ...). OpenAIBackend returns it;
+    MockBackend leaves it `None`. A `"length"` finish means the reply was
+    clipped by the completion cap -- the trial is truncated (flag-and-exclude,
+    never scored), not a fork and not preserved."""
     model: str
     output_text: str
     decision_chosen: str
@@ -76,6 +82,7 @@ class ReplayedDecision:
     cache_write_tokens: int = 0
     reasoning_tokens: int = 0
     latency_ms: int = 0
+    finish_reason: str | None = None
 
 
 class DecisionBackend(Protocol):

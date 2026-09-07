@@ -6,10 +6,11 @@ over its divergent exemplars, judging each fork against the trace's
 deterministically regenerated ground-truth intent -- deliberately NEVER by
 re-adjudicating the fork through pinned downstream tools.
 
-Forked labels come from an optional sidecar JSON (``--sidecar``,
-``{trace_id: label}``): the paid runs did not persist them (Item 1's data
-gap), so a fork without a sidecar label is ``unrecorded`` and can only be
-reported as undecidable-by-data.
+Forked labels come from the result JSON's ``divergent_records`` block
+(Wave-2 exp-hardening Item 1: fresh runs self-document their forks, so no
+sidecar is needed); ``--sidecar`` (``{trace_id: label}``) remains as a legacy
+override for runs that predated fork-persistence. A fork with neither is
+``unrecorded`` and can only be reported as undecidable-by-data.
 
 HARD SEPARATION: the output is a MODELED figure
 (``preservation_under_divergence_modeled = preserved / decidable``) under its
@@ -84,6 +85,11 @@ def analyze_forks(
 ) -> dict:
     """Run the intent oracle over the result JSON's divergent exemplars.
 
+    Forked labels come from the result JSON's ``divergent_records`` block
+    (Wave-2 exp-hardening Item 1: fresh paid runs self-document their forks)
+    with an optional ``--sidecar`` JSON as a legacy override (sidecar wins on
+    conflict). A fork with neither is ``unrecorded`` (undecidable-by-data).
+
     Returns a report dict whose tier label states the MODELED separation;
     ``preservation_under_divergence_modeled`` is ``preserved / decidable``
     over RECORDED forks only (None when nothing is decidable), and unrecorded
@@ -104,9 +110,21 @@ def analyze_forks(
             price_trace(t, rates) for t in generate_corpus(result["n_corpus"], result["seed"])
         )
     }
-    forked_labels: dict[str, str] = {}
+    # Item 1: fresh result JSONs carry their own fork labels; the sidecar is
+    # a legacy override for runs that predated fork-persistence.
+    forked_labels: dict[str, str | None] = {}
+    forked_texts: dict[str, str | None] = {}
+    forked_reasons: dict[str, str | None] = {}
+    for rec in matrix[variant].get("divergent_records", []) or []:
+        tid = rec.get("trace_id")
+        if tid is None:
+            continue
+        forked_labels[tid] = rec.get("forked_label")
+        forked_texts[tid] = rec.get("forked_text")
+        forked_reasons[tid] = rec.get("finish_reason")
     if sidecar_path is not None:
-        forked_labels = json.loads(Path(sidecar_path).read_text(encoding="utf-8"))
+        sidecar_labels = json.loads(Path(sidecar_path).read_text(encoding="utf-8"))
+        forked_labels.update(sidecar_labels)
 
     rows = []
     for trace_id in sorted(exemplars):
@@ -130,6 +148,8 @@ def analyze_forks(
             "pivot_kind": pivot.decision_kind.value,
             "original_label": pivot.decision_chosen,
             "forked_label": forked_label,
+            "forked_text": forked_texts.get(trace_id),
+            "finish_reason": forked_reasons.get(trace_id),
             "verdict": verdict,
             "classification": classification,
         })

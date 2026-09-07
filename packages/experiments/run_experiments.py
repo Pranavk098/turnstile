@@ -45,6 +45,7 @@ from turnstile_experiments import (
     run_matrix_checkpointed_detailed,
     run_repricing_matrix,
 )
+from turnstile_experiments.checkpoint_runner import CheckpointStore, variant_extras
 from turnstile_replay import DELTA_COST_REAL_USAGE_LABEL
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -147,6 +148,20 @@ def main(argv: list[str] | None = None) -> None:
     matrix, real_usage = run_matrix_checkpointed_detailed(
         corpus, VARIANTS, checkpoint_path, backend=backend, max_workers=args.workers)
 
+    # Wave-2 exp-hardening Items 1+2: enrich each variant block with its
+    # fork/truncation side blocks (alongside, never inside, the frozen
+    # ExperimentResult). Divergent trials self-document (forked_label /
+    # forked_text / finish_reason) so analyze_forks needs no sidecar;
+    # truncated trials (finish_reason == "length") are already excluded from
+    # every aggregate via status="excluded" and are counted + listed here.
+    # Mock runs yield empty records and n_truncated == 0 (no drift).
+    store = CheckpointStore(checkpoint_path)
+    matrix_json: dict[str, dict] = {}
+    for name, result in matrix.items():
+        block = result.model_dump()
+        block.update(variant_extras(store, name, corpus))
+        matrix_json[name] = block
+
     # Section A: deterministic re-pricing remedies -- no backend, no spend,
     # no fabricated preservation. Their savings land in the margin's
     # SEPARATE conditional bucket (preservation unverified, Wave-2), never
@@ -162,7 +177,7 @@ def main(argv: list[str] | None = None) -> None:
         "backend": backend_name,
         "manifest": manifest,
         "baselines": baselines.model_dump(),
-        "matrix": {name: result.model_dump() for name, result in matrix.items()},
+        "matrix": matrix_json,
         # CR-B companion figure, NOT gated: priced on the REAL replayed usage
         # (far smaller than the corpus's synthetic token counts), so its
         # absolute magnitude is not directly comparable to the gated figure.

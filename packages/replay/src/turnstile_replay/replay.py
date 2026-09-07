@@ -156,9 +156,31 @@ class ReplayOutcome(NamedTuple):
     two figures (the gated one prices the corpus's synthetic-scale token
     counts, the real rendered usage is far smaller), so their absolute
     magnitudes are not directly comparable. Informational only, NEVER gated
-    (PRD Sec.8.3's gate applies to `Trial.delta_cost` alone)."""
+    (PRD Sec.8.3's gate applies to `Trial.delta_cost` alone).
+
+    Wave-2 exp-hardening: the outcome also carries the fork/truncation
+    metadata the frozen `Trial` cannot hold (same pattern as CR-B's companion
+    figure -- alongside, never inside, the schema):
+
+    * divergent trials: `forked_label` (pivot's replayed `decision_chosen`),
+      `forked_text` (pivot's replayed `output_text`), `finish_reason`
+      (pivot's finish reason);
+    * truncated trials (`finish_reason == "length"` on ANY replaced
+      decision): `truncated` True, `finish_reason` `"length"`, and the
+      reasoning/content split (`truncated_reasoning_tokens` /
+      `truncated_output_tokens` from the first clipped decision) for the
+      `truncated_exemplars` block. The trial itself is `status="excluded"`
+      so every aggregate excludes it (out of numerator AND denominator);
+    * ok trials: `finish_reason` is the pivot's reason, fork fields None,
+      `truncated` False."""
     trial: Trial
     delta_cost_real_usage: float | None
+    forked_label: str | None = None
+    forked_text: str | None = None
+    finish_reason: str | None = None
+    truncated: bool = False
+    truncated_reasoning_tokens: int | None = None
+    truncated_output_tokens: int | None = None
 
 
 DELTA_COST_REAL_USAGE_LABEL = (
@@ -198,14 +220,42 @@ def replay_with_real_usage_cost(
         )
         replaced[span.span_id] = backend(context, span, variant)
 
+    # -- Truncation gate (Wave-2 exp-hardening Item 2, flag-and-exclude):
+    #    ANY replaced decision with finish_reason == "length" is a clipped
+    #    reply whose parsed decision is untrustworthy. The trial is truncated
+    #    (status="excluded" so every aggregate excludes it out of numerator
+    #    AND denominator), never scored and never marked divergent -- a
+    #    clipped decision is not a fork. Takes precedence over the divergence
+    #    gate below. The cap is NOT raised (owner decision). -------------
+    _pivot_turn_idx, pivot_span = targets[0]
+    pivot_decision = replaced[pivot_span.span_id]
+    truncated_decision: ReplayedDecision | None = None
+    for _, span in targets:
+        candidate = replaced[span.span_id]
+        if candidate.finish_reason == "length":
+            truncated_decision = candidate
+            break
+    if truncated_decision is not None:
+        return ReplayOutcome(
+            Trial(trace_id=trace_id, status="excluded",
+                  delta_cost=None, delta_latency_ms=None, outcome_preserved=None),
+            None,
+            None,
+            None,
+            "length",
+            True,
+            truncated_decision.reasoning_tokens,
+            truncated_decision.output_tokens,
+        )
+
     # -- Divergence gate: the pivot is the FIRST replayed decision at/after
     #    from_turn (PRD Sec.8.1's "utterance at turn k"). Kind-aware (Wave-2):
     #    bounded kinds compare the parsed DECISION label (backend-parsed via
     #    the shared parser; raw passthrough != label -> divergent, never
     #    folded); slot_fill / unbounded kinds keep the content/_similarity
     #    path. ------------------------------------------------------------
-    _pivot_turn_idx, pivot_span = targets[0]
-    pivot_decision = replaced[pivot_span.span_id]
+    #    (pivot_span / pivot_decision already bound above for the truncation
+    #    gate -- the SAME pivot the gate judges.)
     if pivot_span.decision_kind in BOUNDED_LABEL_KINDS:
         divergent = pivot_decision.decision_chosen != pivot_span.decision_chosen
     else:
@@ -214,9 +264,18 @@ def replay_with_real_usage_cost(
             < DIVERGENCE_SIMILARITY_THRESHOLD
         )
     if divergent:
+        # Item 1: self-document the fork on the outcome (alongside, never
+        # inside, the frozen Trial) so the checkpointed paid path can persist
+        # forked_label / forked_text / finish_reason with no sidecar.
         return ReplayOutcome(
             Trial(trace_id=trace_id, status="divergent",
                   delta_cost=None, delta_latency_ms=None, outcome_preserved=None),
+            None,
+            pivot_decision.decision_chosen,
+            pivot_decision.output_text,
+            pivot_decision.finish_reason,
+            False,
+            None,
             None,
         )
 
@@ -272,6 +331,12 @@ def replay_with_real_usage_cost(
             outcome_preserved=(new_verdict.label == original_verdict.label),
         ),
         delta_cost_real_usage,
+        None,
+        None,
+        pivot_decision.finish_reason,
+        False,
+        None,
+        None,
     )
 
 

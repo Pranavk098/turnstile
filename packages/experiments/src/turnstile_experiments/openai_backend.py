@@ -223,6 +223,9 @@ class OpenAIBackend:
         # candidate tool name contained in the utterance; every other kind ->
         # documented passthrough). The RAW completion utterance stays in
         # `output_text` verbatim. See parse_decision_chosen.
+        # Wave-2 exp-hardening Item 1: the API's finish_reason rides on the
+        # decision (Mock leaves None) so divergent/truncated trials can
+        # self-document -- the replay layer persists it, never the schema.
         return ReplayedDecision(
             model=model,
             output_text=text,
@@ -233,4 +236,5 @@ class OpenAIBackend:
             output_tokens=usage.completion_tokens,
             reasoning_tokens=reasoning_tokens,
             latency_ms=latency_ms,
+            finish_reason=finish_reason,
         )

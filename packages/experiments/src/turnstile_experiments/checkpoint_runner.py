@@ -40,6 +40,55 @@ def _trace_id(pt: PricedTrace) -> str:
     return pt.trace.conversation.conversation_id
 
 
+def variant_extras(
+    store: CheckpointStore, variant_name: str, corpus: list[PricedTrace]
+) -> dict:
+    """Build the result-JSON side blocks for one variant from the checkpoint
+    store (Wave-2 exp-hardening Items 1+2).
+
+    Returns ``{"divergent_records": [...], "n_truncated": int,
+    "truncated_exemplars": [...]}`` where each divergent record carries
+    ``trace_id`` / ``forked_label`` / ``forked_text`` / ``finish_reason`` and
+    each truncated exemplar carries ``trace_id`` / ``finish_reason`` plus the
+    reasoning/content split (``reasoning_tokens`` / ``output_tokens``).
+
+    These live ALONGSIDE the frozen ``ExperimentResult`` in the CLI's result
+    JSON (never inside it): truncated trials are already excluded from every
+    aggregate via ``status="excluded"`` (out of numerator AND denominator),
+    and divergent records let ``analyze_forks`` run with no sidecar. Mock
+    runs yield empty records and ``n_truncated == 0``."""
+    divergent_records: list[dict] = []
+    truncated_exemplars: list[dict] = []
+    for pt in corpus:
+        trace_id = _trace_id(pt)
+        key = f"{variant_name}\t{trace_id}"
+        if store.is_truncated(key):
+            trunc = store.get_truncation(key) or {}
+            truncated_exemplars.append({
+                "trace_id": trace_id,
+                "finish_reason": trunc.get("finish_reason", "length"),
+                "reasoning_tokens": trunc.get("reasoning_tokens"),
+                "output_tokens": trunc.get("output_tokens"),
+            })
+            continue
+        fork = store.get_fork(key)
+        if fork is not None:
+            divergent_records.append({
+                "trace_id": trace_id,
+                "forked_label": fork.get("forked_label"),
+                "forked_text": fork.get("forked_text"),
+                "finish_reason": fork.get("finish_reason"),
+            })
+    # Corpus order is deterministic; sort records by trace_id for stable JSON.
+    divergent_records.sort(key=lambda r: r["trace_id"])
+    truncated_exemplars.sort(key=lambda r: r["trace_id"])
+    return {
+        "divergent_records": divergent_records,
+        "n_truncated": len(truncated_exemplars),
+        "truncated_exemplars": truncated_exemplars,
+    }
+
+
 class CheckpointStore:
     """Append-only JSON-Lines store of completed trials, keyed
     ``"{variant}\\t{trace_id}"``. Tolerates a torn trailing line from a crash
@@ -47,12 +96,22 @@ class CheckpointStore:
     non-gated ``delta_cost_real_usage`` companion figure (CR-B) next to the
     ``Trial`` -- without polluting the frozen ``Trial`` schema -- so a resumed
     run can still report it for trials it did not recompute. Legacy records
-    without the field read back as ``None``."""
+    without the field read back as ``None``.
+
+    Wave-2 exp-hardening: records additionally carry the fork/truncation
+    metadata the frozen ``Trial`` cannot hold (same alongside-not-inside
+    pattern): divergent trials persist ``forked_label`` / ``forked_text`` /
+    ``finish_reason`` so ``analyze_forks`` needs no sidecar; truncated trials
+    (``finish_reason == "length"``) persist ``truncated`` plus the
+    reasoning/content split. Legacy records without these keys read back as
+    no-fork / not-truncated."""
 
     def __init__(self, path: Path) -> None:
         self.path = path
         self._done: dict[str, Trial] = {}
         self._real_usage: dict[str, float] = {}
+        self._forks: dict[str, dict] = {}
+        self._truncated: dict[str, dict] = {}
         # L-1 (audit 06 Sec.6.1): under a worker pool, put() calls race on the
         # append+fsync AND on the in-memory dicts. One lock guards both; keys
         # are unique per worker task, so no dedup logic is needed.
@@ -72,6 +131,28 @@ class CheckpointStore:
                     real_usage = rec.get("delta_cost_real_usage")
                     if real_usage is not None:
                         self._real_usage[rec["key"]] = real_usage
+                    forked_label = rec.get("forked_label")
+                    if forked_label is not None:
+                        self._forks[rec["key"]] = {
+                            "forked_label": forked_label,
+                            "forked_text": rec.get("forked_text"),
+                            "finish_reason": rec.get("finish_reason"),
+                        }
+                    elif rec.get("finish_reason") is not None and self._done[rec["key"]].status == "divergent":
+                        # Divergent record with a finish reason but no label
+                        # (should not happen from new writers; kept for
+                        # forward-compat reads).
+                        self._forks[rec["key"]] = {
+                            "forked_label": None,
+                            "forked_text": rec.get("forked_text"),
+                            "finish_reason": rec.get("finish_reason"),
+                        }
+                    if rec.get("truncated") is True:
+                        self._truncated[rec["key"]] = {
+                            "finish_reason": rec.get("finish_reason", "length"),
+                            "reasoning_tokens": rec.get("truncated_reasoning_tokens"),
+                            "output_tokens": rec.get("truncated_output_tokens"),
+                        }
                 except (json.JSONDecodeError, KeyError):
                     # Torn final line from an interrupted write -> skip; the
                     # trial it half-recorded gets recomputed this run.
@@ -84,16 +165,70 @@ class CheckpointStore:
         """The stored ``delta_cost_real_usage`` for `key`, or ``None``."""
         return self._real_usage.get(key)
 
+    def get_fork(self, key: str) -> dict | None:
+        """The stored fork detail for `key` (``{"forked_label",
+        "forked_text", "finish_reason"}``), or ``None`` when the trial did
+        not diverge or the record predates fork-persistence."""
+        return self._forks.get(key)
+
+    def is_truncated(self, key: str) -> bool:
+        """Whether `key`'s trial was flagged truncated (``finish_reason ==
+        "length"``). Legacy records read back as ``False``."""
+        return key in self._truncated
+
+    def get_truncation(self, key: str) -> dict | None:
+        """The stored truncation detail for `key` (``{"finish_reason",
+        "reasoning_tokens", "output_tokens"}``), or ``None``."""
+        return self._truncated.get(key)
+
     def put(self, key: str, trial: Trial,
-            delta_cost_real_usage: float | None = None) -> None:
+            delta_cost_real_usage: float | None = None,
+            *,
+            forked_label: str | None = None,
+            forked_text: str | None = None,
+            finish_reason: str | None = None,
+            truncated: bool = False,
+            truncated_reasoning_tokens: int | None = None,
+            truncated_output_tokens: int | None = None) -> None:
         with self._lock:
             self._done[key] = trial
             if delta_cost_real_usage is not None:
                 self._real_usage[key] = delta_cost_real_usage
+            if forked_label is not None:
+                self._forks[key] = {
+                    "forked_label": forked_label,
+                    "forked_text": forked_text,
+                    "finish_reason": finish_reason,
+                }
+            if truncated:
+                self._truncated[key] = {
+                    "finish_reason": finish_reason or "length",
+                    "reasoning_tokens": truncated_reasoning_tokens,
+                    "output_tokens": truncated_output_tokens,
+                }
             self.path.parent.mkdir(parents=True, exist_ok=True)
             rec: dict = {"key": key, "trial": trial.model_dump()}
             if delta_cost_real_usage is not None:
                 rec["delta_cost_real_usage"] = delta_cost_real_usage
+            if forked_label is not None:
+                rec["forked_label"] = forked_label
+                rec["forked_text"] = forked_text
+                rec["finish_reason"] = finish_reason
+            if truncated:
+                rec["truncated"] = True
+                # When a truncated trial also carries a fork label (should not
+                # happen -- truncation takes precedence over divergence), the
+                # fork block above already stored finish_reason; ensure the
+                # truncation block still records it.
+                rec["finish_reason"] = finish_reason or "length"
+                rec["truncated_reasoning_tokens"] = truncated_reasoning_tokens
+                rec["truncated_output_tokens"] = truncated_output_tokens
+            elif finish_reason is not None and forked_label is None and trial.status == "divergent":
+                # Divergent trial whose backend returned no label detail but
+                # did return a finish reason (defensive; new writers always
+                # send the label): persist the reason so the exemplar block
+                # still records it.
+                rec["finish_reason"] = finish_reason
             with self.path.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(rec) + "\n")
                 f.flush()
@@ -133,7 +268,15 @@ def run_experiment_checkpointed(
     pending = [(i, pt) for i, (pt, t) in enumerate(zip(corpus, trials)) if t is None]
 
     def _record(i: int, pt: PricedTrace, outcome) -> None:
-        store.put(keys[i], outcome.trial, outcome.delta_cost_real_usage)
+        store.put(
+            keys[i], outcome.trial, outcome.delta_cost_real_usage,
+            forked_label=getattr(outcome, "forked_label", None),
+            forked_text=getattr(outcome, "forked_text", None),
+            finish_reason=getattr(outcome, "finish_reason", None),
+            truncated=bool(getattr(outcome, "truncated", False)),
+            truncated_reasoning_tokens=getattr(outcome, "truncated_reasoning_tokens", None),
+            truncated_output_tokens=getattr(outcome, "truncated_output_tokens", None),
+        )
         trials[i] = outcome.trial
 
     if max_workers > 1 and pending:
