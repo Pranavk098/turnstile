@@ -5,8 +5,11 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `f318a00` · 154 commits ·
-**833 passed / 4 skipped**, `ruff check packages/` clean. **Wave-2 Item 2 MERGED**
+**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `29d501d` · 158 commits ·
+**859 passed / 4 skipped**, `ruff check packages/` clean. Publish-polish (README + hero +
+`make demo` + dashboard guided-tour) and D-lite (fork-persistence + truncation
+flag-and-exclude) all merged; next delegated item is the SERIAL arch-migrate (see §4).
+**Wave-2 Item 2 MERGED**
 (kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
 (`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
 diverge iff the replayed parsed label ≠ original label (unparseable = divergent, never
@@ -103,18 +106,24 @@ Goal reframed: **no demo video** — build the product into a live CTO walkthrou
 - **Deferred:** live conversational agent (Pipecat/WSL2) — the C lane, and the open-loop
   ceiling for preservation-under-divergence.
 
-### Delegation queue (2026-09-07) — briefs written, ready for OpenCode
+### Delegation queue (2026-09-07)
 Owner-chosen roadmap: **A (publish polish) → D-lite → B (real data) → C (live agent, last).**
-- **A — publish polish:** README rewrite + hero + `make demo` **DONE** (mine). Remaining:
-  `docs/superpowers/briefs/glm-dash-guided-tour.md` (dashboard legibility polish).
-- **D-lite:** `docs/superpowers/briefs/glm-exp-hardening.md` (fork-persistence +
-  truncation flag-and-exclude — policy decided: exclude, do not raise cap).
-- **Architecture migration (Task-2 B/C/G):** `docs/superpowers/briefs/glm-arch-migrate.md`
-  (stats→replay, otel→agent, conftest cleanup) — **run ALONE, after exp-hardening merges.**
-- **Parallel-safe:** `dash-guided-tour` ∥ `exp-hardening` (disjoint files). `arch-migrate`
-  is serial. **B (real-data) and C (live agent) are NOT clean parallel delegations yet**
-  — B touches fixtures/corpus (owner/Claude) + moves measured numbers; C needs its own
-  design/spike. Both stay owner/Claude-driven until scoped.
+- **A — publish polish — DONE:** README rewrite + hero + `make demo` (mine), and the
+  dashboard guided-tour legibility polish (merged `11c791c`).
+- **D-lite — DONE:** fork-persistence + truncation flag-and-exclude (merged `29d501d`):
+  divergent trials self-document `forked_label`/`forked_text`/`finish_reason` (analyze_forks
+  needs no sidecar); `finish_reason=="length"` → `status="excluded"` + `n_truncated`/
+  `truncated_exemplars`, cap not raised. Mock regression unmoved (0.57%/0.55%, 0/0).
+- **NEXT — Architecture migration (Task-2 B/C/G), SERIAL, run ALONE:**
+  `docs/superpowers/briefs/glm-arch-migrate.md` (stats→replay, otel→agent, conftest
+  cleanup). Base = current tip `29d501d`. Pure refactor, no number change. Nothing else
+  in parallel with it.
+- **B (real-data) and C (live agent) are NOT clean parallel delegations yet** — B touches
+  fixtures/corpus (owner/Claude) + moves measured numbers; C needs its own design/spike.
+  Owner/Claude-driven until scoped.
+- **Delegation hygiene:** the executor must push EACH task as its own `opencode/*` branch
+  (the exp-hardening work arrived as loose working-tree edits, not a branch — reviewable
+  only because it was disjoint from the dashboard edits).
 - **Process (audit Task-1):** trivial changes (<~50 lines, no schema/contract) skip
   the brief/report ceremony — just a clean commit; no empty-message merge commits;
   keep this HANDOFF + `docs/DECISIONS.md` current.
