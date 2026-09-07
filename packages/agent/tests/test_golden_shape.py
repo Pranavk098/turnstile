@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from turnstile_schema import Trace, load_trace
-from turnstile_otel import TraceRecorder
+from turnstile_agent import TraceRecorder
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 

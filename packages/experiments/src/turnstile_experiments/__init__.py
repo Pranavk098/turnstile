@@ -6,7 +6,7 @@ checkpoint, margin, manifest, cost_estimate, baselines, openai_backend.
 
 The EXTRAS (`bargein_report`, `coverage`, `sweeps`) are loaded LAZILY via
 ``__getattr__`` (PEP 562): ``bargein_report`` drags in the acoustic stack
-(``turnstile_agent`` → ``turnstile_otel`` → ``opentelemetry-sdk``), and the
+(``turnstile_agent`` → ``opentelemetry-sdk``), and the
 free deterministic run should not have to import — or install — that spike
 stack just to compute the 0.57% headline (audit Task-2 A). Every public name
 stays importable; the acoustic/detector modules are only imported the first

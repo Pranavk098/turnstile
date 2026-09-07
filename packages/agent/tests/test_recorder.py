@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from turnstile_schema import Trace
-from turnstile_otel import TraceRecorder
+from turnstile_agent import TraceRecorder
 
 
 class FakeClock:

@@ -10,7 +10,11 @@ schema-v1.1 traces the built instrument prices and detects on, unchanged.
 * :mod:`turnstile_agent.recording` -- G1 recording of one call
 * :mod:`turnstile_agent.scenarios` -- the scripted readback scenario inputs
 * :mod:`turnstile_agent.harness`   -- N-call driver + provenance string
+* :mod:`turnstile_agent.recorder`  -- the G1 TraceRecorder (moved verbatim
+  from the former turnstile_otel: live OTel emission + post-G1 timing model
+  unchanged)
 """
+from turnstile_agent.recorder import TraceRecorder, TurnRecorder
 from turnstile_agent.sim import CallAccounting, SimClock, simulate_call
 from turnstile_agent.tts import (
     FakeEngine,
@@ -29,4 +33,6 @@ __all__ = [
     "SynthChunk",
     "TtsEngine",
     "split_sentences",
+    "TraceRecorder",
+    "TurnRecorder",
 ]

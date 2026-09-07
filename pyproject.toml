@@ -18,7 +18,6 @@ dev = [
     "turnstile-schema",
     "turnstile-pricing",
     "turnstile-verdict",
-    "turnstile-otel",
     "turnstile-detectors",
     "turnstile-replay",
     "turnstile-corpus",
@@ -42,7 +41,6 @@ embed = ["sentence-transformers>=2.2"]
 turnstile-schema = { workspace = true }
 turnstile-pricing = { workspace = true }
 turnstile-verdict = { workspace = true }
-turnstile-otel = { workspace = true }
 turnstile-detectors = { workspace = true }
 turnstile-replay = { workspace = true }
 turnstile-corpus = { workspace = true }

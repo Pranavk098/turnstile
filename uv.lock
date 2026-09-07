@@ -11,7 +11,6 @@ members = [
     "turnstile-detectors",
     "turnstile-experiments",
     "turnstile-ingest",
-    "turnstile-otel",
     "turnstile-pricing",
     "turnstile-replay",
     "turnstile-schema",
@@ -1514,7 +1513,6 @@ dev = [
     { name = "turnstile-detectors" },
     { name = "turnstile-experiments" },
     { name = "turnstile-ingest" },
-    { name = "turnstile-otel" },
     { name = "turnstile-pricing" },
     { name = "turnstile-replay" },
     { name = "turnstile-schema" },
@@ -1537,7 +1535,6 @@ dev = [
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-experiments", editable = "packages/experiments" },
     { name = "turnstile-ingest", editable = "packages/ingest" },
-    { name = "turnstile-otel", editable = "packages/otel" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
@@ -1551,7 +1548,8 @@ name = "turnstile-agent"
 version = "0.1.0"
 source = { editable = "packages/agent" }
 dependencies = [
-    { name = "turnstile-otel" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
     { name = "turnstile-schema" },
 ]
 
@@ -1562,8 +1560,9 @@ piper = [
 
 [package.metadata]
 requires-dist = [
+    { name = "opentelemetry-api", specifier = ">=1.24" },
+    { name = "opentelemetry-sdk", specifier = ">=1.24" },
     { name = "piper-tts", marker = "extra == 'piper'", specifier = ">=1.2" },
-    { name = "turnstile-otel", editable = "packages/otel" },
     { name = "turnstile-schema", editable = "packages/schema" },
 ]
 provides-extras = ["piper"]
@@ -1649,23 +1648,6 @@ requires-dist = [
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
-]
-
-[[package]]
-name = "turnstile-otel"
-version = "0.0.0"
-source = { editable = "packages/otel" }
-dependencies = [
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-sdk" },
-    { name = "turnstile-schema" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "opentelemetry-api", specifier = ">=1.24" },
-    { name = "opentelemetry-sdk", specifier = ">=1.24" },
-    { name = "turnstile-schema", editable = "packages/schema" },
 ]
 
 [[package]]
