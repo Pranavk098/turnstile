@@ -90,19 +90,31 @@ Goal reframed: **no demo video** — build the product into a live CTO walkthrou
   dataset-stamped (2.69% · 7 ingest calls); ingest `_recoverable_margin` converged onto
   the canonical §8.3 gate (`ci_upper < 0`). Verified: render (DOM: 3 absent rows), tests
   (`test_ingest_wire.py`), 770/4, ruff clean.
-- **OPEN (Task-2 residue):** `build_data.build_fleet`'s margin still uses the looser
-  both-CI-same-sign gate — the 2nd of the 3 divergent gate copies (ingest is now the
-  canonical one). Agrees with canonical on current data; converge it when next in that file.
-- **W3-C — preservation measurement:** scaffolding **DONE** (merged `64803ce`). The
-  deterministic harness (`turnstile_experiments.preservation.run_preservation`) drives
-  the REAL `adjudicate()` + replay path over `fixtures/preservation/` via an authored
-  `DecisionBackend`, and shows preservation is decision-sensitive (break case: RESOLVED→
-  ABANDONED at 0.87 similarity, non-divergent; preservation_rate 0.5 ∈ (0,1)). **OPEN,
-  owner-gated:** the actual *measured* number needs a small paid run — swap the real
-  OpenAI backend into the labeled SWAP POINT in `preservation.py` (`run_preservation`)
-  and run it on real cheaper-model decisions; then land the `docs/METHOD.md` /
-  `LIMITATIONS.md` update. NO paid run has happened; this is the next explicit yes.
-- **Deferred:** live conversational agent (Pipecat/WSL2).
+- **Task-2 gate residue — DONE:** all three recoverable-margin gates (margin.py,
+  build_fleet, ingest) converged on canonical `ci_upper < 0`.
+- **W3-C — preservation measurement — DONE + MEASURED:** the paid runs happened
+  (re-probe → n=30 pilot → n=250/seed 8, ~$1.28 total). The kind-aware divergence gate
+  turned the old lexical null into signal: **7.8% fork rate, 0.985 verdict preservation**
+  on agreement, **margin 0.573%**. `docs/METHOD.md`/`DECISIONS.md` updated (preservation
+  → Partially-measured). Preservation-**under-divergence**: the `turnstile_verdict.fork_oracle`
+  bridge is built (modeled tier, never folded into 0.985) but returns None on this corpus
+  (route forks are all `"other"` → registry-undecidable). Real measured number needs
+  open-loop execution (live agent) OR corpus enrichment (richer route candidates).
+- **Deferred:** live conversational agent (Pipecat/WSL2) — the C lane, and the open-loop
+  ceiling for preservation-under-divergence.
+
+### Delegation queue (2026-09-07) — briefs written, ready for OpenCode
+Owner-chosen roadmap: **A (publish polish) → D-lite → B (real data) → C (live agent, last).**
+- **A — publish polish:** README rewrite + hero + `make demo` **DONE** (mine). Remaining:
+  `docs/superpowers/briefs/glm-dash-guided-tour.md` (dashboard legibility polish).
+- **D-lite:** `docs/superpowers/briefs/glm-exp-hardening.md` (fork-persistence +
+  truncation flag-and-exclude — policy decided: exclude, do not raise cap).
+- **Architecture migration (Task-2 B/C/G):** `docs/superpowers/briefs/glm-arch-migrate.md`
+  (stats→replay, otel→agent, conftest cleanup) — **run ALONE, after exp-hardening merges.**
+- **Parallel-safe:** `dash-guided-tour` ∥ `exp-hardening` (disjoint files). `arch-migrate`
+  is serial. **B (real-data) and C (live agent) are NOT clean parallel delegations yet**
+  — B touches fixtures/corpus (owner/Claude) + moves measured numbers; C needs its own
+  design/spike. Both stay owner/Claude-driven until scoped.
 - **Process (audit Task-1):** trivial changes (<~50 lines, no schema/contract) skip
   the brief/report ceremony — just a clean commit; no empty-message merge commits;
   keep this HANDOFF + `docs/DECISIONS.md` current.
