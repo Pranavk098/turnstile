@@ -5,11 +5,13 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `29d501d` · 158 commits ·
+**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `e62487c` · 162 commits ·
 **859 passed / 4 skipped**, `ruff check packages/` clean. Publish-polish (README + hero +
-`make demo` + dashboard guided-tour) and D-lite (fork-persistence + truncation
-flag-and-exclude) all merged; next delegated item is the SERIAL arch-migrate (see §4).
-**Wave-2 Item 2 MERGED**
+`make demo` + dashboard guided-tour), D-lite (fork-persistence + truncation), and the
+Task-2 **arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup) all merged —
+audit Task-2 target layout reached, zero-drift verified. **`uv sync` after pulling** (the
+package layout changed). All three delegated lanes done; remaining roadmap is B (real
+data) + C (live agent), both owner/Claude-scoped. **Wave-2 Item 2 MERGED**
 (kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
 (`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
 diverge iff the replayed parsed label ≠ original label (unparseable = divergent, never
@@ -60,11 +62,13 @@ owner's edge-inference background. Product spec: `turnstile-prd.md`.
 
 ## 2. State — Waves 0, 1, and 2 are COMPLETE
 The full instrument is built, reviewed, hardened, and honestly framed:
-`schema (v1.1) → pricing → verdict → detectors(×10) → replay → stats → dashboard`,
-plus `corpus` (synthetic generator), `otel` (G1 overlap-capable recorder), `agent`
-(**NOT a spike — the load-bearing barge-in harness that produced the Tier-1 D7
-number**), and `experiments` (matrix + re-pricing remedies + backends + sweeps +
-bargein report). The dashboard is a self-contained editorial report (embedded fonts,
+`schema (v1.1) → pricing → verdict → detectors(×10) → replay → dashboard`,
+plus `corpus` (synthetic generator), `agent` (**NOT a spike — the load-bearing
+barge-in harness that produced the Tier-1 D7 number**, and now home to the G1
+overlap-capable recorder), and `experiments` (matrix + re-pricing remedies + backends
++ sweeps + bargein report). **Package layout (post arch-migration `e62487c`):** `stats`
+folded into `turnstile_replay.stats`, the `otel` recorder into `turnstile_agent`; those
+two packages no longer exist. The dashboard is a self-contained editorial report (embedded fonts,
 SVG charts); a `home.html` landing page landed as a frozen Wave-1 design baseline
 (a35347c), to be **extended not replaced**.
 
@@ -114,11 +118,13 @@ Owner-chosen roadmap: **A (publish polish) → D-lite → B (real data) → C (l
   divergent trials self-document `forked_label`/`forked_text`/`finish_reason` (analyze_forks
   needs no sidecar); `finish_reason=="length"` → `status="excluded"` + `n_truncated`/
   `truncated_exemplars`, cap not raised. Mock regression unmoved (0.57%/0.55%, 0/0).
-- **NEXT — Architecture migration (Task-2 B/C/G), SERIAL, run ALONE:**
-  `docs/superpowers/briefs/glm-arch-migrate.md` (stats→replay, otel→agent, conftest
-  cleanup). Base = current tip `29d501d`. Pure refactor, no number change. Nothing else
-  in parallel with it.
-- **B (real-data) and C (live agent) are NOT clean parallel delegations yet** — B touches
+- **Architecture migration (Task-2 B/C/G) — DONE** (merged `e62487c`): `stats`→
+  `turnstile_replay.stats`, `otel` recorder→`turnstile_agent`, all 10 dead conftest
+  sys.path shims removed, `uv.lock`/root pyproject pruned. Verified zero-drift: 859
+  passed, ruff clean, mock margins byte-identical (0.5731…/0.5471…), recorder.py a 100%
+  verbatim move (OTel emission identity kept). **After pulling, run `uv sync`** — the
+  package layout changed. This completes the audit Task-2 target layout.
+- **NEXT — B (real-data) and C (live agent) are NOT clean parallel delegations yet** — B touches
   fixtures/corpus (owner/Claude) + moves measured numbers; C needs its own design/spike.
   Owner/Claude-driven until scoped.
 - **Delegation hygiene:** the executor must push EACH task as its own `opencode/*` branch
