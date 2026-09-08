@@ -5,14 +5,18 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `62dc7bf` · 163 commits ·
-**859 passed / 4 skipped**, `ruff check packages/` clean. Publish-polish (README + hero +
+**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `0309323` · 165 commits ·
+**865 passed / 4 skipped**, `ruff check packages/` clean. Publish-polish (README + hero +
 `make demo` + dashboard guided-tour), D-lite (fork-persistence + truncation), the Task-2
-**arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup), and **B's ingest
-half** (realistic **50-call** sample fleet via `packages/ingest/sample/build_fleet.py` —
-margin **2.56%**, verdicts spread, D6/D7/D8 firing on 24/50 & absent on 26) all merged.
-**`uv sync` after pulling** (package layout changed). Remaining roadmap: B's corpus-
-enrichment half (deferred — moves the headline) + C (live agent), both owner/Claude-scoped.
+**arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup), **B's ingest half**
+(realistic **50-call** sample fleet, margin **2.56%**), and **B's corpus-enrichment half**
+(route candidates widened to all registered scenarios + `"other"`, RNG-neutral —
+deterministic headline **byte-identical** 0.5731…/0.5471…, verified; the fork oracle now
+decides a registered-scenario fork) all merged. **`uv sync` after pulling** (package layout
+changed). **NEXT (owner-gated paid):** a small paid re-probe on the enriched corpus produces
+real registered-scenario forks → `preservation_divergence` yields the modeled number →
+Claude lands it in METHOD (and retires the "2-way choice inflates agreement" caveat). Then
+only **C (live agent)** remains. Roadmap A→D-lite→B done; C is the last piece.
 **Wave-2 Item 2 MERGED**
 (kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
 (`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
