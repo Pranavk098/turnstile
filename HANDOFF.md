@@ -5,13 +5,15 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `e62487c` · 162 commits ·
+**Stamp:** 2026-09-07 · branch `wave0-foundation` · tip `62dc7bf` · 163 commits ·
 **859 passed / 4 skipped**, `ruff check packages/` clean. Publish-polish (README + hero +
-`make demo` + dashboard guided-tour), D-lite (fork-persistence + truncation), and the
-Task-2 **arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup) all merged —
-audit Task-2 target layout reached, zero-drift verified. **`uv sync` after pulling** (the
-package layout changed). All three delegated lanes done; remaining roadmap is B (real
-data) + C (live agent), both owner/Claude-scoped. **Wave-2 Item 2 MERGED**
+`make demo` + dashboard guided-tour), D-lite (fork-persistence + truncation), the Task-2
+**arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup), and **B's ingest
+half** (realistic **50-call** sample fleet via `packages/ingest/sample/build_fleet.py` —
+margin **2.56%**, verdicts spread, D6/D7/D8 firing on 24/50 & absent on 26) all merged.
+**`uv sync` after pulling** (package layout changed). Remaining roadmap: B's corpus-
+enrichment half (deferred — moves the headline) + C (live agent), both owner/Claude-scoped.
+**Wave-2 Item 2 MERGED**
 (kind-aware divergence gate): `replay.py` now dispatches — bounded kinds
 (`route`/`tool_select`/`escalate_check`/`compose`, `decisions.BOUNDED_LABEL_KINDS`)
 diverge iff the replayed parsed label ≠ original label (unparseable = divergent, never
