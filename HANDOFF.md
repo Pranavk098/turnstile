@@ -5,15 +5,19 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-08 · branch `wave0-foundation` · tip `deb5261` · 166 commits ·
-**868 passed / 4 skipped**, `ruff check packages/` clean. `TURNSTILE_PAID_MODEL_CAP` added
+**Stamp:** 2026-09-08 · branch `wave0-foundation` · tip `d25f5ed` · 169 commits ·
+**883 passed / 4 skipped**, `ruff check packages/` clean. `TURNSTILE_PAID_MODEL_CAP` added
 (paid runs can stay in OpenAI's free 2.5M/day small-model bucket; deterministic path
 untouched). **Preservation-under-divergence number ON HOLD (billing):** the enriched-corpus
 paid run hit `429 credit_balance_exhausted` — OpenAI needs a positive credit balance and
 free tokens do NOT bypass it; the GMU org billing is likely admin-locked → use a personal
-project key + ~$5. A morning reminder is scheduled. **C (live agent) free phases delegated
-overnight** (P0 env spike + P1 text-mode agent→ingest, `docs/superpowers/briefs/glm-live-agent.md`);
-P2/P3 are paid + owner-gated. Publish-polish (README + hero +
+project key + ~$5 (morning reminder scheduled). **C (live agent) — P1 MERGED:** new
+`turnstile-live` package = text-mode agent loop (mock policy + mock tools + virtual clock,
+zero LLM/audio/spend) that emits ingest-format calls the REAL pipeline prices/adjudicates/
+detects (labeled `textmode@mock-1`, D6/7/8 honestly absent). **P0 (Pipecat/WSL2 env) = NO-GO**
+(`docs/LIVE-AGENT.md`): the only WSL distro is Docker's locked utility VM (no pip); needs an
+attended `wsl --install Ubuntu` (~30 min). **C P2 (real-time voice) + P3 (open-loop
+preservation = the real measured number) remain paid + owner-gated.** `uv sync` after pulling. Publish-polish (README + hero +
 `make demo` + dashboard guided-tour), D-lite (fork-persistence + truncation), the Task-2
 **arch-migration** (`stats`→replay, `otel`→agent, conftest cleanup), **B's ingest half**
 (realistic **50-call** sample fleet, margin **2.56%**), and **B's corpus-enrichment half**
