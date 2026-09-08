@@ -1,0 +1,157 @@
+{
+  "calls": [
+    {
+      "id": "live-demo-001",
+      "scenario": "billing_dispute",
+      "started": "2026-09-08T09:00:00Z",
+      "ended": "2026-09-08T09:00:19Z",
+      "end_reason": "caller_hangup",
+      "agent_version": "turnstile-live textmode@mock-1",
+      "telephony": {
+        "provider": "twilio",
+        "direction": "inbound",
+        "billable_seconds": 19
+      },
+      "turns": [
+        {
+          "start_ms": 0,
+          "end_ms": 6000,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "Hi, I was charged twice on my bill.",
+            "start_ms": 200,
+            "duration_ms": 1100,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 654,
+            "output_tokens": 17,
+            "decision_kind": "route",
+            "decision": "billing_dispute",
+            "output_text": "Thanks \u2014 let me look into that for you.",
+            "start_ms": 1500,
+            "duration_ms": 700,
+            "system": "openai",
+            "decision_candidates": [
+              "billing_dispute"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "Thanks \u2014 let me look into that for you.",
+            "start_ms": 3100,
+            "duration_ms": 2200,
+            "system": "piper",
+            "chars_synthesized": null,
+            "chars_played": null
+          },
+          "tools": []
+        },
+        {
+          "start_ms": 6500,
+          "end_ms": 12500,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "It is order ORD-4481, the August bill.",
+            "start_ms": 6700,
+            "duration_ms": 1100,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 648,
+            "output_tokens": 16,
+            "decision_kind": "tool_select",
+            "decision": "lookup_invoices",
+            "output_text": "Let me pull up the records for that.",
+            "start_ms": 8000,
+            "duration_ms": 700,
+            "system": "openai",
+            "decision_candidates": [
+              "lookup_invoices"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "Let me pull up the records for that.",
+            "start_ms": 9600,
+            "duration_ms": 2200,
+            "system": "piper",
+            "chars_synthesized": null,
+            "chars_played": null
+          },
+          "tools": [
+            {
+              "name": "lookup_invoices",
+              "kind": "lookup",
+              "effect": "none",
+              "args": {},
+              "status": "ok",
+              "result": null,
+              "start_ms": 8800,
+              "duration_ms": 300,
+              "cost_usd": 0.0
+            }
+          ]
+        },
+        {
+          "start_ms": 13000,
+          "end_ms": 19000,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "Thanks, that is all. Bye!",
+            "start_ms": 13200,
+            "duration_ms": 1100,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 690,
+            "output_tokens": 23,
+            "decision_kind": "compose",
+            "decision": "close_call",
+            "output_text": "Glad I could help \u2014 is there anything else I can do for you today?",
+            "start_ms": 14500,
+            "duration_ms": 700,
+            "system": "openai",
+            "decision_candidates": [
+              "close_call"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "Glad I could help \u2014 is there anything else I can do for you today?",
+            "start_ms": 16100,
+            "duration_ms": 2200,
+            "system": "piper",
+            "chars_synthesized": null,
+            "chars_played": null
+          },
+          "tools": []
+        }
+      ]
+    }
+  ]
+}

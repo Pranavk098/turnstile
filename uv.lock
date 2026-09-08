@@ -11,6 +11,7 @@ members = [
     "turnstile-detectors",
     "turnstile-experiments",
     "turnstile-ingest",
+    "turnstile-live",
     "turnstile-pricing",
     "turnstile-replay",
     "turnstile-schema",
@@ -1513,6 +1514,7 @@ dev = [
     { name = "turnstile-detectors" },
     { name = "turnstile-experiments" },
     { name = "turnstile-ingest" },
+    { name = "turnstile-live" },
     { name = "turnstile-pricing" },
     { name = "turnstile-replay" },
     { name = "turnstile-schema" },
@@ -1535,6 +1537,7 @@ dev = [
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-experiments", editable = "packages/experiments" },
     { name = "turnstile-ingest", editable = "packages/ingest" },
+    { name = "turnstile-live", editable = "packages/live" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
@@ -1648,6 +1651,21 @@ requires-dist = [
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
+]
+
+[[package]]
+name = "turnstile-live"
+version = "0.0.0"
+source = { editable = "packages/live" }
+dependencies = [
+    { name = "turnstile-ingest" },
+    { name = "turnstile-schema" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "turnstile-ingest", editable = "packages/ingest" },
+    { name = "turnstile-schema", editable = "packages/schema" },
 ]
 
 [[package]]

@@ -1,0 +1,17 @@
+[project]
+name = "turnstile-live"
+version = "0.0.0"
+description = "Live conversational agent, Phase 1: free text-mode loop (mock policy + mock tools) emitting ingest-format calls (docs/superpowers/briefs/glm-live-agent.md)."
+requires-python = ">=3.12"
+dependencies = ["turnstile-schema", "turnstile-ingest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/turnstile_live"]
+
+[tool.uv.sources]
+turnstile-schema = { workspace = true }
+turnstile-ingest = { workspace = true }
