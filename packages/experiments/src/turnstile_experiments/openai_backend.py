@@ -121,6 +121,17 @@ def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[d
     return messages
 
 
+def _cap_model(model: str, cap: str | None) -> str:
+    """Substitute ``cap`` for any larger-bucket model when the cap is set; a
+    model already in the small bucket (id ends ``-mini``/``-nano``) is left
+    untouched. Lets a paid run stay inside OpenAI's shared-traffic small-model
+    daily allowance (2.5M/day, tiers 1-2) instead of the 250k/day larger one.
+    Quota-only: never applied on the deterministic mock path."""
+    if not cap or model.endswith("-mini") or model.endswith("-nano"):
+        return model
+    return cap
+
+
 class OpenAIBackend:
     def __init__(
         self,
@@ -131,6 +142,7 @@ class OpenAIBackend:
         progress_every: int = DEFAULT_PROGRESS_EVERY,
         max_completion_tokens: int = DEFAULT_MAX_COMPLETION_TOKENS,
         reasoning_effort: str = DEFAULT_REASONING_EFFORT,
+        model_cap: str | None = None,
     ) -> None:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise RuntimeError(
@@ -146,6 +158,20 @@ class OpenAIBackend:
         self._progress_every = progress_every
         self._max_completion_tokens = max_completion_tokens
         self._reasoning_effort = reasoning_effort
+        # Free-tier quota lever: cap larger-bucket models (gpt-5) to a smaller-
+        # bucket one on the PAID path, so a run draws from OpenAI's shared-traffic
+        # small-model daily allowance (2.5M/day at tiers 1-2) instead of the
+        # 250k/day larger bucket. Cost/quota-only -- the deterministic mock path
+        # never constructs this backend, so headlines are untouched.
+        self._model_cap = model_cap if model_cap is not None else (
+            os.environ.get("TURNSTILE_PAID_MODEL_CAP") or None)
+        if self._model_cap:
+            print(
+                f"[OpenAIBackend] model cap active: larger-bucket models sent as "
+                f"'{self._model_cap}' (TURNSTILE_PAID_MODEL_CAP) to stay in the "
+                f"small-model free daily allowance.",
+                file=sys.stderr, flush=True,
+            )
         # Change B (audit 06 Sec.6.2): the shared client runs across worker
         # threads; the progress counter is the only cross-call state and must
         # not lose increments or interleave its prints.
@@ -161,6 +187,7 @@ class OpenAIBackend:
         model = original_span.gen_ai_request_model
         if variant.model_routing:
             model = variant.model_routing.get(original_span.decision_kind.value, model)
+        model = _cap_model(model, self._model_cap)
 
         messages = _render_messages(context, original_span)
         start = time.monotonic()

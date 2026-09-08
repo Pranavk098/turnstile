@@ -222,6 +222,43 @@ def test_no_model_routing_at_all_uses_original_model(monkeypatch):
     assert decision.model == "gpt-5"
 
 
+def test_model_cap_substitutes_larger_bucket_on_the_paid_call(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client, model_cap="gpt-5-mini")
+    context = ReplayContext(conversation_id="c1", scenario_id="refund", turn_index=0, turns_before=())
+    original_span = llm("l1", decision_kind=DecisionKind.route, model="gpt-5")
+    decision = backend(context, original_span, VariantSpec())
+    assert fake_client.completions.calls[0]["model"] == "gpt-5-mini"  # gpt-5 -> capped
+    assert decision.model == "gpt-5-mini"
+
+
+def test_model_cap_leaves_small_bucket_models_untouched(monkeypatch):
+    # A route reroute to nano must NOT be bumped UP to the mini cap.
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client, model_cap="gpt-5-mini")
+    context = ReplayContext(conversation_id="c1", scenario_id="refund", turn_index=0, turns_before=())
+    original_span = llm("l1", decision_kind=DecisionKind.route, model="gpt-5")
+    decision = backend(context, original_span, VariantSpec(model_routing={"route": "gpt-5-nano"}))
+    assert fake_client.completions.calls[0]["model"] == "gpt-5-nano"
+    assert decision.model == "gpt-5-nano"
+
+
+def test_model_cap_reads_env_var(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ALLOW_PAID", "1")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test-fake")
+    monkeypatch.setenv("TURNSTILE_PAID_MODEL_CAP", "gpt-5-nano")
+    fake_client = _FakeClient(_FakeResponse("ok", 1, 1))
+    backend = OpenAIBackend(client=fake_client)  # cap picked up from env
+    context = ReplayContext(conversation_id="c1", scenario_id="refund", turn_index=0, turns_before=())
+    decision = backend(context, llm("l1", decision_kind=DecisionKind.compose, model="gpt-5"), VariantSpec())
+    assert fake_client.completions.calls[0]["model"] == "gpt-5-nano"
+    assert decision.model == "gpt-5-nano"
+
+
 # --------------------------------------------------------------------------- #
 # Resilience: a real (non-injected) client must be built with a per-call      #
 # timeout and bounded retries so a single stalled API call can never hang the #
