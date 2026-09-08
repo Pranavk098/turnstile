@@ -75,6 +75,15 @@ TELEPHONY_PROVIDER = "twilio"
 TOOL_KIND_LOOKUP = ToolKind.lookup
 TOOL_KIND_RETRIEVAL = ToolKind.retrieval
 
+# Route-candidate enrichment (Wave-3): the route choice offers every registered
+# scenario id (distributions.SCENARIOS, declared order) plus "other", so a
+# fork can land on another REGISTERED scenario the fork oracle can decide
+# (2-way [scenario_id, "other"] left only "other": registry-undecidable).
+# STATIC list, built once at import -- deliberately no rng draw here: consuming
+# even one draw would shift the whole generation stream and move the pinned
+# deterministic headline (0.57%/0.55%). decision_chosen stays scenario_id.
+ALL_ROUTE_CANDIDATES: list[str] = [s.scenario_id for s in dist.SCENARIOS] + ["other"]
+
 # Text templates -- flavor content only, not a sampled quantity.
 TEXT_ROUTE = "Let me look into that for you."
 TEXT_SLOT_FILL = "Can you confirm the account details for me?"
@@ -415,7 +424,7 @@ def _generate_trace(rng: np.random.Generator, index: int, seed: int, barge_in_ra
         elif i == 0:
             decision_kind = DecisionKind.route
             decision_chosen = scenario.scenario_id
-            decision_candidates = [scenario.scenario_id, "other"]
+            decision_candidates = list(ALL_ROUTE_CANDIDATES)
             output_text = TEXT_ROUTE
         else:
             decision_kind = DecisionKind(dist.sample_decision_kind(rng, decision_weights))

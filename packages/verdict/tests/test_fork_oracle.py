@@ -55,6 +55,20 @@ def test_route_fork_from_lookup_intent_to_mutation_intent_is_not_preserved():
     assert verdict is False
 
 
+def test_route_fork_to_another_registered_scenario_is_decidable():
+    """Corpus route-candidate enrichment (all SCENARIOS ids + "other") means a
+    fork can land on a registered alternative: order_status (lookup,
+    requires_mutation None) -> refund (mutation, requires process_refund) has
+    incompatible requirements, so the oracle decides False -- never None.
+    This is the fork shape the enriched corpus unblocks."""
+    verdict = preserved_under_divergence(
+        "order_status",
+        _d(DecisionKind.route, "order_status"),
+        _d(DecisionKind.route, "refund"),
+    )
+    assert verdict is False
+
+
 def test_route_fork_to_same_requirement_scenario_serves_the_intent():
     """Stated rule: two registered scenarios with the SAME registry-required
     mutation provide the intent's requirement either way (no such pair exists
