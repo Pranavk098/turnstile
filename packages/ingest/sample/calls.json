@@ -1,241 +1,6234 @@
 {
-  "sample": true,
-  "note": "SAMPLE for turnstile_ingest: seven hand-authored realistic calls in the external ingest format (billing dispute, refund, order status, cancellation, rescheduling, tech support, escalation). Authored generate-first / detect-second: utterances, timings, tokens, and tool outcomes were written to read like real platform logs, never tuned to make detectors fire. No call carries G2 acoustic fields (chars_synthesized/chars_played) -- the typical real-log case -- so D6/D7/D8 are honestly ABSENT on this sample. Not production data; do not present aggregates as measured fleet numbers.",
-  "calls": [
+ "sample": true,
+ "note": "Authored realistic SAMPLE fleet -- NOT real customer traffic. Deterministic (seed 20260907); regenerate with build_fleet.py.",
+ "calls": [
+  {
+   "id": "ing-20260910-000",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-10T08:00:05Z",
+   "ended": "2026-09-10T08:00:30Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 28
+   },
+   "turns": [
     {
-      "id": "ing-20260904-001",
-      "scenario": "billing_dispute",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T09:02:11Z",
-      "ended": "2026-09-04T09:02:41Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 34},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 6800, "speaker_first": "caller",
-          "asr": {"transcript": "Hi, I was charged twice for my August bill. Can you fix that?", "start_ms": 200, "duration_ms": 2500},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 820, "output_tokens": 14, "decision_kind": "route", "decision": "billing_dispute", "output_text": "I'll pull up your August bill and sort out that double charge.", "start_ms": 2800, "duration_ms": 700},
-          "tts": {"text": "I'll pull up your August bill and sort out that double charge.", "start_ms": 3600, "duration_ms": 3000}
-        },
-        {
-          "start_ms": 6800, "end_ms": 14400, "speaker_first": "agent",
-          "tools": [{"name": "lookup_invoices", "kind": "lookup", "effect": "none", "args": {"customer_id": "C-10293", "month": "2026-08"}, "start_ms": 6900, "duration_ms": 420}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1050, "output_tokens": 20, "decision_kind": "tool_select", "decision": "lookup_invoices", "output_text": "I found two posted charges for August. Let me compare them line by line.", "start_ms": 7400, "duration_ms": 800},
-          "tts": {"text": "I found two posted charges for August. Let me compare them line by line.", "start_ms": 8300, "duration_ms": 4200}
-        },
-        {
-          "start_ms": 14400, "end_ms": 21600, "speaker_first": "agent",
-          "tools": [{"name": "adjust_billing", "kind": "mutation", "effect": "committed", "args": {"invoice_id": "INV-88231", "action": "void_duplicate", "amount_usd": 42.5}, "start_ms": 14500, "duration_ms": 900}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1300, "output_tokens": 30, "decision_kind": "compose", "decision": "confirm_adjustment", "output_text": "I've voided the duplicate forty-two fifty charge, so your corrected August total is forty-two fifty.", "start_ms": 15500, "duration_ms": 900},
-          "tts": {"text": "I've voided the duplicate forty-two fifty charge, so your corrected August total is forty-two fifty.", "start_ms": 16500, "duration_ms": 4900}
-        },
-        {
-          "start_ms": 21600, "end_ms": 27200, "speaker_first": "caller",
-          "asr": {"transcript": "Great, thanks. That's all I needed.", "start_ms": 21800, "duration_ms": 1700},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1520, "output_tokens": 15, "decision_kind": "compose", "decision": "farewell", "output_text": "You're welcome. Anything else I can help with? Goodbye.", "start_ms": 23600, "duration_ms": 600},
-          "tts": {"text": "You're welcome. Anything else I can help with? Goodbye.", "start_ms": 24300, "duration_ms": 2700}
-        }
+     "start_ms": 0,
+     "end_ms": 7842,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I need to move my appointment on July to next week.",
+      "start_ms": 200,
+      "duration_ms": 1829
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1186,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Let me pull up your booking.",
+      "start_ms": 2351,
+      "duration_ms": 661,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
       ]
+     },
+     "tts": {
+      "text": "Let me pull up your booking.",
+      "start_ms": 3041,
+      "duration_ms": 4239,
+      "chars_synthesized": 29,
+      "chars_played": 29
+     }
     },
     {
-      "id": "ing-20260904-002",
-      "scenario": "refund",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T09:14:52Z",
-      "ended": "2026-09-04T09:15:26Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 38},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 7200, "speaker_first": "caller",
-          "asr": {"transcript": "Hi, I'd like to return the headphones I bought last week, order O R D 88121.", "start_ms": 200, "duration_ms": 2800},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 790, "output_tokens": 11, "decision_kind": "route", "decision": "refund", "output_text": "I can help with that return. Let me find your order first.", "start_ms": 3100, "duration_ms": 650},
-          "tts": {"text": "I can help with that return. Let me find your order first.", "start_ms": 3850, "duration_ms": 3200}
-        },
-        {
-          "start_ms": 7200, "end_ms": 15600, "speaker_first": "agent",
-          "tools": [{"name": "lookup_order", "kind": "lookup", "effect": "none", "args": {"order_id": "ORD-88121"}, "start_ms": 7300, "duration_ms": 380}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1030, "output_tokens": 24, "decision_kind": "tool_select", "decision": "lookup_order", "output_text": "I found order O R D 88121, the headphones, delivered last Thursday and still in the return window.", "start_ms": 7800, "duration_ms": 850},
-          "tts": {"text": "I found order O R D 88121, the headphones, delivered last Thursday and still in the return window.", "start_ms": 8750, "duration_ms": 5600}
-        },
-        {
-          "start_ms": 15600, "end_ms": 24800, "speaker_first": "agent",
-          "tools": [{"name": "process_refund", "kind": "mutation", "effect": "committed", "args": {"order_id": "ORD-88121", "amount_usd": 79.99, "reason": "customer_return"}, "start_ms": 15700, "duration_ms": 1100}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1300, "output_tokens": 26, "decision_kind": "compose", "decision": "confirm_refund", "output_text": "Your refund of seventy-nine ninety-nine is processed and should land back on your card in three to five days.", "start_ms": 16900, "duration_ms": 900},
-          "tts": {"text": "Your refund of seventy-nine ninety-nine is processed and should land back on your card in three to five days.", "start_ms": 17900, "duration_ms": 5900}
-        },
-        {
-          "start_ms": 24800, "end_ms": 30200, "speaker_first": "caller",
-          "asr": {"transcript": "Perfect, thank you so much.", "start_ms": 25000, "duration_ms": 1500},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1540, "output_tokens": 12, "decision_kind": "compose", "decision": "farewell", "output_text": "Happy to help. Goodbye, and have a great day.", "start_ms": 26600, "duration_ms": 550},
-          "tts": {"text": "Happy to help. Goodbye, and have a great day.", "start_ms": 27250, "duration_ms": 2800}
-        }
-      ]
+     "start_ms": 7842,
+     "end_ms": 13892,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-43730",
+        "ref": "67592"
+       },
+       "start_ms": 161,
+       "duration_ms": 306
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1421,
+      "output_tokens": 24,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 490,
+      "duration_ms": 1005
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1044,
+      "duration_ms": 4422,
+      "chars_synthesized": 49,
+      "chars_played": 49
+     }
     },
     {
-      "id": "ing-20260904-003",
-      "scenario": "order_status",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T10:31:05Z",
-      "ended": "2026-09-04T10:31:27Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 26},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 6200, "speaker_first": "caller",
-          "asr": {"transcript": "Hey, where's my package? My order is O R D 90210.", "start_ms": 200, "duration_ms": 2200},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 740, "output_tokens": 10, "decision_kind": "route", "decision": "order_status", "output_text": "Let me track that package for you right now.", "start_ms": 2600, "duration_ms": 600},
-          "tts": {"text": "Let me track that package for you right now.", "start_ms": 3300, "duration_ms": 2700}
-        },
-        {
-          "start_ms": 6200, "end_ms": 15800, "speaker_first": "agent",
-          "tools": [{"name": "lookup_order", "kind": "lookup", "effect": "none", "args": {"order_id": "ORD-90210"}, "start_ms": 6300, "duration_ms": 350}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 980, "output_tokens": 22, "decision_kind": "compose", "decision": "report_status", "output_text": "Good news, order O R D 90210 ships tomorrow morning and should arrive Thursday.", "start_ms": 6750, "duration_ms": 800},
-          "tts": {"text": "Good news, order O R D 90210 ships tomorrow morning and should arrive Thursday.", "start_ms": 7650, "duration_ms": 4900}
-        },
-        {
-          "start_ms": 15800, "end_ms": 20400, "speaker_first": "caller",
-          "asr": {"transcript": "Thursday works. Thanks, bye.", "start_ms": 16000, "duration_ms": 1400},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1200, "output_tokens": 9, "decision_kind": "compose", "decision": "farewell", "output_text": "You're welcome. Goodbye.", "start_ms": 17500, "duration_ms": 500},
-          "tts": {"text": "You're welcome. Goodbye.", "start_ms": 18100, "duration_ms": 1700}
-        }
-      ]
+     "start_ms": 13892,
+     "end_ms": 18955,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-43730",
+        "ref": "67592"
+       },
+       "start_ms": 670,
+       "duration_ms": 403
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1392,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 509,
+      "duration_ms": 842
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1181,
+      "duration_ms": 3457,
+      "chars_synthesized": 29,
+      "chars_played": 29
+     }
     },
     {
-      "id": "ing-20260904-004",
-      "scenario": "cancel_subscription",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T11:05:44Z",
-      "ended": "2026-09-04T11:06:22Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 42},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 6600, "speaker_first": "caller",
-          "asr": {"transcript": "I want to cancel my subscription. My account is A C 554.", "start_ms": 200, "duration_ms": 2400},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 810, "output_tokens": 12, "decision_kind": "route", "decision": "cancel_subscription", "output_text": "I can take care of that. Let me pull up your account.", "start_ms": 2700, "duration_ms": 650},
-          "tts": {"text": "I can take care of that. Let me pull up your account.", "start_ms": 3450, "duration_ms": 3000}
-        },
-        {
-          "start_ms": 6600, "end_ms": 15800, "speaker_first": "agent",
-          "tools": [{"name": "lookup_subscription", "kind": "lookup", "effect": "none", "args": {"account_id": "AC-554"}, "start_ms": 6700, "duration_ms": 400}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1060, "output_tokens": 26, "decision_kind": "compose", "decision": "summarize_plan", "output_text": "I found your Premium monthly plan. Before I proceed, can I ask what made you decide to leave?", "start_ms": 7200, "duration_ms": 850},
-          "tts": {"text": "I found your Premium monthly plan. Before I proceed, can I ask what made you decide to leave?", "start_ms": 8150, "duration_ms": 5600}
-        },
-        {
-          "start_ms": 15800, "end_ms": 23800, "speaker_first": "caller",
-          "asr": {"transcript": "I'm just not using it enough to justify the cost.", "start_ms": 16000, "duration_ms": 2100},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1330, "output_tokens": 24, "decision_kind": "slot_fill", "decision": "confirm_cancel", "output_text": "Understood. Just to confirm, should I cancel your Premium plan at the end of this billing cycle?", "start_ms": 18200, "duration_ms": 800},
-          "tts": {"text": "Understood. Just to confirm, should I cancel your Premium plan at the end of this billing cycle?", "start_ms": 19100, "duration_ms": 4500}
-        },
-        {
-          "start_ms": 23800, "end_ms": 34000, "speaker_first": "caller",
-          "asr": {"transcript": "Yes, please go ahead and cancel.", "start_ms": 24000, "duration_ms": 1600},
-          "tools": [{"name": "cancel_subscription", "kind": "mutation", "effect": "pending", "args": {"account_id": "AC-554", "effective": "end_of_cycle"}, "start_ms": 25700, "duration_ms": 1400}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1590, "output_tokens": 22, "decision_kind": "compose", "decision": "acknowledge_pending", "output_text": "I've queued that cancellation request, and you'll get a confirmation email shortly.", "start_ms": 27200, "duration_ms": 850},
-          "tts": {"text": "I've queued that cancellation request, and you'll get a confirmation email shortly.", "start_ms": 28150, "duration_ms": 4900}
-        }
-      ]
-    },
-    {
-      "id": "ing-20260904-005",
-      "scenario": "appointment_reschedule",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T13:47:19Z",
-      "ended": "2026-09-04T13:47:55Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 40},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 7000, "speaker_first": "caller",
-          "asr": {"transcript": "I need to move my dentist appointment this Friday to sometime next week.", "start_ms": 200, "duration_ms": 2600},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 760, "output_tokens": 11, "decision_kind": "route", "decision": "appointment_reschedule", "output_text": "No problem, let me look at next week's availability.", "start_ms": 2900, "duration_ms": 650},
-          "tts": {"text": "No problem, let me look at next week's availability.", "start_ms": 3650, "duration_ms": 3200}
-        },
-        {
-          "start_ms": 7000, "end_ms": 16600, "speaker_first": "agent",
-          "tools": [{"name": "lookup_appointments", "kind": "lookup", "effect": "none", "args": {"patient_id": "P-7712", "window": "next_week"}, "start_ms": 7100, "duration_ms": 450}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1000, "output_tokens": 28, "decision_kind": "compose", "decision": "offer_slots", "output_text": "I have Tuesday at ten in the morning, or Thursday at three in the afternoon. Which suits you?", "start_ms": 7650, "duration_ms": 900},
-          "tts": {"text": "I have Tuesday at ten in the morning, or Thursday at three in the afternoon. Which suits you?", "start_ms": 8650, "duration_ms": 5600}
-        },
-        {
-          "start_ms": 16600, "end_ms": 25200, "speaker_first": "caller",
-          "asr": {"transcript": "Tuesday morning works for me.", "start_ms": 16800, "duration_ms": 1500},
-          "tools": [{"name": "reschedule_appointment", "kind": "mutation", "effect": "committed", "args": {"appointment_id": "APT-3391", "new_slot": "2026-09-08T10:00"}, "start_ms": 18400, "duration_ms": 800}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1260, "output_tokens": 20, "decision_kind": "slot_fill", "decision": "tuesday_morning", "output_text": "Done, you're booked for Tuesday at ten. You'll get a text reminder the day before.", "start_ms": 19300, "duration_ms": 750},
-          "tts": {"text": "Done, you're booked for Tuesday at ten. You'll get a text reminder the day before.", "start_ms": 20150, "duration_ms": 4800}
-        },
-        {
-          "start_ms": 25200, "end_ms": 30600, "speaker_first": "caller",
-          "asr": {"transcript": "Wonderful, thanks. Bye.", "start_ms": 25400, "duration_ms": 1300},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1500, "output_tokens": 10, "decision_kind": "compose", "decision": "farewell", "output_text": "You're very welcome. Goodbye.", "start_ms": 26800, "duration_ms": 550},
-          "tts": {"text": "You're very welcome. Goodbye.", "start_ms": 27450, "duration_ms": 2100}
-        }
-      ]
-    },
-    {
-      "id": "ing-20260904-006",
-      "scenario": "tech_support",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T15:22:38Z",
-      "ended": "2026-09-04T15:23:00Z",
-      "end_reason": "caller_hangup",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 26},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 6400, "speaker_first": "caller",
-          "asr": {"transcript": "My router keeps dropping the connection every evening around eight.", "start_ms": 200, "duration_ms": 2500},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 780, "output_tokens": 12, "decision_kind": "route", "decision": "tech_support", "output_text": "That sounds frustrating. Let me find the fix for that model.", "start_ms": 2800, "duration_ms": 650},
-          "tts": {"text": "That sounds frustrating. Let me find the fix for that model.", "start_ms": 3550, "duration_ms": 2700}
-        },
-        {
-          "start_ms": 6400, "end_ms": 16200, "speaker_first": "agent",
-          "tools": [{"name": "lookup_article", "kind": "lookup", "effect": "none", "args": {"topic": "router_evening_disconnects", "model": "RX-500"}, "start_ms": 6500, "duration_ms": 380}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1040, "output_tokens": 38, "decision_kind": "compose", "decision": "give_steps", "output_text": "This is usually the auto channel scan. Open the router app, turn off auto channel, and set channel six. Then restart the router.", "start_ms": 7000, "duration_ms": 950},
-          "tts": {"text": "This is usually the auto channel scan. Open the router app, turn off auto channel, and set channel six. Then restart the router.", "start_ms": 8050, "duration_ms": 6800}
-        },
-        {
-          "start_ms": 16200, "end_ms": 20600, "speaker_first": "caller",
-          "asr": {"transcript": "Let me try that. Okay, it's back online. Thanks!", "start_ms": 16400, "duration_ms": 2000},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1280, "output_tokens": 11, "decision_kind": "compose", "decision": "farewell", "output_text": "Glad that worked. Anything else? Goodbye.", "start_ms": 18500, "duration_ms": 550},
-          "tts": {"text": "Glad that worked. Anything else? Goodbye.", "start_ms": 19150, "duration_ms": 2300}
-        }
-      ]
-    },
-    {
-      "id": "ing-20260904-007",
-      "scenario": "billing_dispute",
-      "agent_version": "voice-agent@3.2.1",
-      "started": "2026-09-04T16:40:02Z",
-      "ended": "2026-09-04T16:40:44Z",
-      "end_reason": "escalated",
-      "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 46},
-      "turns": [
-        {
-          "start_ms": 0, "end_ms": 7400, "speaker_first": "caller",
-          "asr": {"transcript": "This is the third time I'm calling about this two hundred dollar fee and nobody fixes it!", "start_ms": 200, "duration_ms": 2900},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 880, "output_tokens": 13, "decision_kind": "route", "decision": "billing_dispute", "output_text": "I hear you, and I'm sorry. Let me dig into that fee right now.", "start_ms": 3200, "duration_ms": 700},
-          "tts": {"text": "I hear you, and I'm sorry. Let me dig into that fee right now.", "start_ms": 4000, "duration_ms": 3200}
-        },
-        {
-          "start_ms": 7400, "end_ms": 17200, "speaker_first": "agent",
-          "tools": [{"name": "lookup_invoices", "kind": "lookup", "effect": "none", "args": {"customer_id": "C-55901", "dispute": "fee_200"}, "start_ms": 7500, "duration_ms": 600}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1140, "output_tokens": 26, "decision_kind": "compose", "decision": "explain_fee", "output_text": "I see the two hundred dollar installation fee from July. It looks valid from here, but let me check the waiver rules.", "start_ms": 8200, "duration_ms": 900},
-          "tts": {"text": "I see the two hundred dollar installation fee from July. It looks valid from here, but let me check the waiver rules.", "start_ms": 9200, "duration_ms": 6200}
-        },
-        {
-          "start_ms": 17200, "end_ms": 26800, "speaker_first": "caller",
-          "asr": {"transcript": "I was promised that fee would be waived. I want a supervisor.", "start_ms": 17400, "duration_ms": 2300},
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1420, "output_tokens": 16, "decision_kind": "escalate_check", "decision": "escalate_now", "output_text": "You shouldn't have to call three times. I'll bring in a specialist who can waive it.", "start_ms": 19800, "duration_ms": 750},
-          "tts": {"text": "You shouldn't have to call three times. I'll bring in a specialist who can waive it.", "start_ms": 20650, "duration_ms": 4800}
-        },
-        {
-          "start_ms": 26800, "end_ms": 36000, "speaker_first": "agent",
-          "tools": [{"name": "transfer_to_specialist", "kind": "handoff", "effect": "committed", "args": {"queue": "billing_supervisors", "reason": "repeat_caller_fee_waiver"}, "start_ms": 26900, "duration_ms": 1500}],
-          "llm": {"model": "gpt-5-mini", "input_tokens": 1680, "output_tokens": 18, "decision_kind": "compose", "decision": "warm_transfer", "output_text": "Connecting you to a billing specialist now. They have your full history. Please hold.", "start_ms": 28500, "duration_ms": 800},
-          "tts": {"text": "Connecting you to a billing specialist now. They have your full history. Please hold.", "start_ms": 29400, "duration_ms": 5200}
-        }
-      ]
+     "start_ms": 18955,
+     "end_ms": 25309,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1230,
+      "output_tokens": 26,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 624,
+      "duration_ms": 702
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1517,
+      "duration_ms": 4456,
+      "chars_synthesized": 62,
+      "chars_played": 62
+     }
     }
-  ]
+   ]
+  },
+  {
+   "id": "ing-20260910-001",
+   "scenario": "cancel_subscription",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-10T09:07:05Z",
+   "ended": "2026-09-10T09:07:28Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 25
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6653,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Please cancel my plan, I'm not using it anymore.",
+      "start_ms": 200,
+      "duration_ms": 2174
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1209,
+      "output_tokens": 22,
+      "decision_kind": "route",
+      "decision": "cancel_subscription",
+      "output_text": "Sure, let me find your subscription.",
+      "start_ms": 2951,
+      "duration_ms": 881,
+      "decision_candidates": [
+       "cancel_subscription",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Sure, let me find your subscription.",
+      "start_ms": 3531,
+      "duration_ms": 2842,
+      "chars_synthesized": 37,
+      "chars_played": 37
+     }
+    },
+    {
+     "start_ms": 6653,
+     "end_ms": 12807,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_account",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-21697",
+        "ref": "97203"
+       },
+       "start_ms": 124,
+       "duration_ms": 406
+      },
+      {
+       "name": "lookup_account",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-21697",
+        "ref": "97203",
+        "retry": true
+       },
+       "start_ms": 564,
+       "duration_ms": 440
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1276,
+      "output_tokens": 18,
+      "decision_kind": "tool_select",
+      "decision": "lookup_account",
+      "output_text": "I found your plan. Cancelling it now.",
+      "start_ms": 723,
+      "duration_ms": 933
+     },
+     "tts": {
+      "text": "I found your plan. Cancelling it now.",
+      "start_ms": 1328,
+      "duration_ms": 4093,
+      "chars_synthesized": 42,
+      "chars_played": 42
+     }
+    },
+    {
+     "start_ms": 12807,
+     "end_ms": 18451,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "cancel_subscription",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-21697",
+        "ref": "97203"
+       },
+       "start_ms": 456,
+       "duration_ms": 578
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1447,
+      "output_tokens": 27,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 424,
+      "duration_ms": 995
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1105,
+      "duration_ms": 3903,
+      "chars_synthesized": 29,
+      "chars_played": 29
+     }
+    },
+    {
+     "start_ms": 18451,
+     "end_ms": 23890,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1412,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 578,
+      "duration_ms": 1059
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1261,
+      "duration_ms": 3883,
+      "chars_synthesized": 49,
+      "chars_played": 49
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-002",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-10T10:14:05Z",
+   "ended": "2026-09-10T10:14:33Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 32
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9115,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I need to move my appointment on August to next week.",
+      "start_ms": 200,
+      "duration_ms": 3145
+     },
+     "llm": {
+      "model": "gpt-5",
+      "input_tokens": 1149,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Happy to help, let me find your appointment.",
+      "start_ms": 3829,
+      "duration_ms": 609,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Happy to help, let me find your appointment.",
+      "start_ms": 4606,
+      "duration_ms": 4274
+     }
+    },
+    {
+     "start_ms": 9115,
+     "end_ms": 15037,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-60303",
+        "ref": "10206"
+       },
+       "start_ms": 429,
+       "duration_ms": 336
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1239,
+      "output_tokens": 34,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 596,
+      "duration_ms": 820
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1469,
+      "duration_ms": 3753
+     }
+    },
+    {
+     "start_ms": 15037,
+     "end_ms": 21924,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-60303",
+        "ref": "10206"
+       },
+       "start_ms": 661,
+       "duration_ms": 795
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1281,
+      "output_tokens": 20,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 605,
+      "duration_ms": 1064
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1418,
+      "duration_ms": 4832
+     }
+    },
+    {
+     "start_ms": 21924,
+     "end_ms": 28663,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1444,
+      "output_tokens": 21,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 680,
+      "duration_ms": 1100
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1402,
+      "duration_ms": 4836
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-003",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-10T11:21:05Z",
+   "ended": "2026-09-10T11:21:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 23
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8622,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My internet has been down since this morning.",
+      "start_ms": 200,
+      "duration_ms": 2330
+     },
+     "llm": {
+      "model": "gpt-5",
+      "input_tokens": 1187,
+      "output_tokens": 30,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "I can help troubleshoot, one moment.",
+      "start_ms": 2905,
+      "duration_ms": 753,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help troubleshoot, one moment.",
+      "start_ms": 3763,
+      "duration_ms": 4309
+     }
+    },
+    {
+     "start_ms": 8622,
+     "end_ms": 14800,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-94809",
+        "ref": "72128"
+       },
+       "start_ms": 156,
+       "duration_ms": 808
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1360,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 784,
+      "duration_ms": 1034
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1528,
+      "duration_ms": 3996
+     }
+    },
+    {
+     "start_ms": 14800,
+     "end_ms": 20262,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1386,
+      "output_tokens": 30,
+      "decision_kind": "slot_fill",
+      "decision": "request_slot",
+      "output_text": "Can you confirm the last four digits on the account?",
+      "start_ms": 684,
+      "duration_ms": 1000
+     },
+     "tts": {
+      "text": "Can you confirm the last four digits on the account?",
+      "start_ms": 1527,
+      "duration_ms": 3562
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-004",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-10T12:28:05Z",
+   "ended": "2026-09-10T12:28:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 20
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7608,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Hi, I was charged twice for my July bill, can you fix that?",
+      "start_ms": 200,
+      "duration_ms": 2705
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1192,
+      "output_tokens": 21,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3310,
+      "duration_ms": 616,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3912,
+      "duration_ms": 3053,
+      "chars_synthesized": 51,
+      "chars_played": 51
+     }
+    },
+    {
+     "start_ms": 7608,
+     "end_ms": 14848,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-93883",
+        "ref": "67015"
+       },
+       "start_ms": 278,
+       "duration_ms": 411
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1449,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 825,
+      "duration_ms": 737
+     },
+     "tts": {
+      "text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 1551,
+      "duration_ms": 4889,
+      "chars_synthesized": 64,
+      "chars_played": 64
+     }
+    },
+    {
+     "start_ms": 14848,
+     "end_ms": 19992,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "cancel_subscription",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-93883",
+        "ref": "67015"
+       },
+       "start_ms": 423,
+       "duration_ms": 619
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1395,
+      "output_tokens": 25,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Okay, I've applied that.",
+      "start_ms": 745,
+      "duration_ms": 1072
+     },
+     "tts": {
+      "text": "Okay, I've applied that.",
+      "start_ms": 1324,
+      "duration_ms": 3126,
+      "chars_synthesized": 32,
+      "chars_played": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-005",
+   "scenario": "cancel_subscription",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-10T13:35:05Z",
+   "ended": "2026-09-10T13:35:32Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 29
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7964,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "How do I stop being billed every month?",
+      "start_ms": 200,
+      "duration_ms": 2461
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1086,
+      "output_tokens": 20,
+      "decision_kind": "route",
+      "decision": "cancel_subscription",
+      "output_text": "Sure, let me find your subscription.",
+      "start_ms": 2949,
+      "duration_ms": 981,
+      "decision_candidates": [
+       "cancel_subscription",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Sure, let me find your subscription.",
+      "start_ms": 3479,
+      "duration_ms": 4237,
+      "chars_synthesized": 40,
+      "chars_played": 21
+     }
+    },
+    {
+     "start_ms": 7964,
+     "end_ms": 14875,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_account",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-96282",
+        "ref": "81652"
+       },
+       "start_ms": 667,
+       "duration_ms": 846
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1349,
+      "output_tokens": 17,
+      "decision_kind": "tool_select",
+      "decision": "lookup_account",
+      "output_text": "I found your plan. Cancelling it now.",
+      "start_ms": 830,
+      "duration_ms": 781
+     },
+     "tts": {
+      "text": "I found your plan. Cancelling it now.",
+      "start_ms": 1511,
+      "duration_ms": 4960,
+      "chars_synthesized": 40,
+      "chars_played": 40
+     }
+    },
+    {
+     "start_ms": 14875,
+     "end_ms": 20817,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "cancel_subscription",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-96282",
+        "ref": "81652"
+       },
+       "start_ms": 120,
+       "duration_ms": 841
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1389,
+      "output_tokens": 24,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 658,
+      "duration_ms": 1085
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1483,
+      "duration_ms": 4143,
+      "chars_synthesized": 32,
+      "chars_played": 32
+     }
+    },
+    {
+     "start_ms": 20817,
+     "end_ms": 27226,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1316,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 801,
+      "duration_ms": 1066
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1538,
+      "duration_ms": 4669,
+      "chars_synthesized": 55,
+      "chars_played": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-006",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-10T14:42:05Z",
+   "ended": "2026-09-10T14:42:36Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 35
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8043,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I can't log in, it says my password is wrong.",
+      "start_ms": 200,
+      "duration_ms": 2244
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1197,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 2893,
+      "duration_ms": 985,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 3463,
+      "duration_ms": 4084
+     }
+    },
+    {
+     "start_ms": 8043,
+     "end_ms": 14016,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-73661",
+        "ref": "83898"
+       },
+       "start_ms": 401,
+       "duration_ms": 740
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1209,
+      "output_tokens": 28,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 764,
+      "duration_ms": 855
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1632,
+      "duration_ms": 3872
+     }
+    },
+    {
+     "start_ms": 14016,
+     "end_ms": 19910,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1563,
+      "output_tokens": 24,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 650,
+      "duration_ms": 801
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1286,
+      "duration_ms": 4305
+     }
+    },
+    {
+     "start_ms": 19910,
+     "end_ms": 24919,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1421,
+      "output_tokens": 17,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 695,
+      "duration_ms": 1048
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1413,
+      "duration_ms": 3149
+     }
+    },
+    {
+     "start_ms": 24919,
+     "end_ms": 31066,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-73661",
+        "queue": "tech_support"
+       },
+       "start_ms": 514,
+       "duration_ms": 830
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1399,
+      "output_tokens": 28,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 697,
+      "duration_ms": 789
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1485,
+      "duration_ms": 3888
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-007",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-10T15:49:05Z",
+   "ended": "2026-09-10T15:49:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 25
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8557,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Has order 44762 left the warehouse yet?",
+      "start_ms": 200,
+      "duration_ms": 2555
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2499,
+      "output_tokens": 19,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3369,
+      "duration_ms": 750,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4251,
+      "duration_ms": 3780
+     }
+    },
+    {
+     "start_ms": 8557,
+     "end_ms": 15533,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-19520",
+        "ref": "44762"
+       },
+       "start_ms": 596,
+       "duration_ms": 314
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2532,
+      "output_tokens": 21,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 44762 shipped and is out for delivery today.",
+      "start_ms": 708,
+      "duration_ms": 840
+     },
+     "tts": {
+      "text": "Your order 44762 shipped and is out for delivery today.",
+      "start_ms": 1502,
+      "duration_ms": 4916
+     }
+    },
+    {
+     "start_ms": 15533,
+     "end_ms": 21647,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2680,
+      "output_tokens": 26,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 813,
+      "duration_ms": 714
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1688,
+      "duration_ms": 4200
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-008",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-10T16:56:05Z",
+   "ended": "2026-09-10T16:56:33Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 30
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6958,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Hi, I was charged twice for my July bill, can you fix that?",
+      "start_ms": 200,
+      "duration_ms": 2135
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1045,
+      "output_tokens": 20,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 2687,
+      "duration_ms": 866,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3227,
+      "duration_ms": 3161
+     }
+    },
+    {
+     "start_ms": 6958,
+     "end_ms": 11846,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-47406",
+        "ref": "71620"
+       },
+       "start_ms": 323,
+       "duration_ms": 501
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1270,
+      "output_tokens": 23,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 514,
+      "duration_ms": 1083
+     },
+     "tts": {
+      "text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 1371,
+      "duration_ms": 3301
+     }
+    },
+    {
+     "start_ms": 11846,
+     "end_ms": 17614,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1386,
+      "output_tokens": 17,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 754,
+      "duration_ms": 987
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1626,
+      "duration_ms": 3537
+     }
+    },
+    {
+     "start_ms": 17614,
+     "end_ms": 22344,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1064,
+      "output_tokens": 17,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 627,
+      "duration_ms": 1086
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1298,
+      "duration_ms": 2812
+     }
+    },
+    {
+     "start_ms": 22344,
+     "end_ms": 28924,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-47406",
+        "queue": "billing_dispute"
+       },
+       "start_ms": 109,
+       "duration_ms": 599
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1205,
+      "output_tokens": 21,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 855,
+      "duration_ms": 984
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1594,
+      "duration_ms": 4594
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260910-009",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-10T17:03:05Z",
+   "ended": "2026-09-10T17:03:31Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 29
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7738,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "Can we reschedule the visit I have booked?",
+      "start_ms": 200,
+      "duration_ms": 2973
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2315,
+      "output_tokens": 18,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Let me pull up your booking.",
+      "start_ms": 3813,
+      "duration_ms": 622,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your booking.",
+      "start_ms": 4330,
+      "duration_ms": 3175,
+      "chars_synthesized": 37,
+      "chars_played": 26
+     }
+    },
+    {
+     "start_ms": 7738,
+     "end_ms": 14102,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-95937",
+        "ref": "42050"
+       },
+       "start_ms": 149,
+       "duration_ms": 497
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2481,
+      "output_tokens": 22,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 650,
+      "duration_ms": 836
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1284,
+      "duration_ms": 4838,
+      "chars_synthesized": 53,
+      "chars_played": 53
+     }
+    },
+    {
+     "start_ms": 14102,
+     "end_ms": 20496,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-95937",
+        "ref": "42050"
+       },
+       "start_ms": 282,
+       "duration_ms": 616
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2778,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 465,
+      "duration_ms": 907
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1054,
+      "duration_ms": 4873,
+      "chars_synthesized": 32,
+      "chars_played": 32
+     }
+    },
+    {
+     "start_ms": 20496,
+     "end_ms": 26854,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2450,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 597,
+      "duration_ms": 981
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1152,
+      "duration_ms": 4999,
+      "chars_synthesized": 51,
+      "chars_played": 51
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-010",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-11T08:10:05Z",
+   "ended": "2026-09-11T08:10:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 25
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7709,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 1834
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1159,
+      "output_tokens": 28,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 2322,
+      "duration_ms": 755,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3209,
+      "duration_ms": 4016,
+      "chars_synthesized": 45,
+      "chars_played": 20
+     }
+    },
+    {
+     "start_ms": 7709,
+     "end_ms": 14322,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-66243",
+        "ref": "28535"
+       },
+       "start_ms": 658,
+       "duration_ms": 842
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1469,
+      "output_tokens": 26,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 28535 shipped and is out for delivery today.",
+      "start_ms": 492,
+      "duration_ms": 915
+     },
+     "tts": {
+      "text": "Your order 28535 shipped and is out for delivery today.",
+      "start_ms": 1204,
+      "duration_ms": 4744,
+      "chars_synthesized": 62,
+      "chars_played": 62
+     }
+    },
+    {
+     "start_ms": 14322,
+     "end_ms": 21463,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1153,
+      "output_tokens": 20,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 878,
+      "duration_ms": 742
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1565,
+      "duration_ms": 4836,
+      "chars_synthesized": 49,
+      "chars_played": 49
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-011",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-11T09:17:05Z",
+   "ended": "2026-09-11T09:17:23Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 22
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6420,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "Has order 67191 left the warehouse yet?",
+      "start_ms": 200,
+      "duration_ms": 1849
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 872,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 2361,
+      "duration_ms": 941,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3247,
+      "duration_ms": 2652,
+      "chars_synthesized": 47,
+      "chars_played": 24
+     }
+    },
+    {
+     "start_ms": 6420,
+     "end_ms": 12840,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-45204",
+        "ref": "67191"
+       },
+       "start_ms": 513,
+       "duration_ms": 645
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1344,
+      "output_tokens": 24,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 67191 shipped and is out for delivery today.",
+      "start_ms": 687,
+      "duration_ms": 825
+     },
+     "tts": {
+      "text": "Your order 67191 shipped and is out for delivery today.",
+      "start_ms": 1482,
+      "duration_ms": 4721,
+      "chars_synthesized": 58,
+      "chars_played": 58
+     }
+    },
+    {
+     "start_ms": 12840,
+     "end_ms": 18836,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1168,
+      "output_tokens": 24,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 739,
+      "duration_ms": 748
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1543,
+      "duration_ms": 3799,
+      "chars_synthesized": 57,
+      "chars_played": 57
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-012",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-11T10:24:05Z",
+   "ended": "2026-09-11T10:24:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 22
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8792,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Where is my order 99956? It was supposed to arrive yesterday.",
+      "start_ms": 200,
+      "duration_ms": 2403
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1216,
+      "output_tokens": 25,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 2867,
+      "duration_ms": 690,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 3676,
+      "duration_ms": 4536,
+      "chars_synthesized": 50,
+      "chars_played": 50
+     }
+    },
+    {
+     "start_ms": 8792,
+     "end_ms": 14306,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-28308",
+        "ref": "99956"
+       },
+       "start_ms": 246,
+       "duration_ms": 314
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1202,
+      "output_tokens": 27,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 99956 shipped and is out for delivery today.",
+      "start_ms": 746,
+      "duration_ms": 1048
+     },
+     "tts": {
+      "text": "Your order 99956 shipped and is out for delivery today.",
+      "start_ms": 1414,
+      "duration_ms": 3547,
+      "chars_synthesized": 61,
+      "chars_played": 61
+     }
+    },
+    {
+     "start_ms": 14306,
+     "end_ms": 20175,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1437,
+      "output_tokens": 32,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 404,
+      "duration_ms": 856
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1092,
+      "duration_ms": 4000,
+      "chars_synthesized": 42,
+      "chars_played": 42
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-013",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-11T11:31:05Z",
+   "ended": "2026-09-11T11:31:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 20
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8331,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "Can you tell me when order 51305 will ship?",
+      "start_ms": 200,
+      "duration_ms": 2839
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 963,
+      "output_tokens": 21,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 3509,
+      "duration_ms": 804,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 4388,
+      "duration_ms": 3589,
+      "chars_synthesized": 51,
+      "chars_played": 32
+     }
+    },
+    {
+     "start_ms": 8331,
+     "end_ms": 13498,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-14329",
+        "ref": "51305"
+       },
+       "start_ms": 187,
+       "duration_ms": 451
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1170,
+      "output_tokens": 16,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 51305 shipped and is out for delivery today.",
+      "start_ms": 663,
+      "duration_ms": 980
+     },
+     "tts": {
+      "text": "Your order 51305 shipped and is out for delivery today.",
+      "start_ms": 1370,
+      "duration_ms": 3339,
+      "chars_synthesized": 60,
+      "chars_played": 60
+     }
+    },
+    {
+     "start_ms": 13498,
+     "end_ms": 19757,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1320,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 408,
+      "duration_ms": 720
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1016,
+      "duration_ms": 4818,
+      "chars_synthesized": 52,
+      "chars_played": 52
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-014",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-11T12:38:05Z",
+   "ended": "2026-09-11T12:38:23Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7798,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 2954
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2012,
+      "output_tokens": 15,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3525,
+      "duration_ms": 672,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4212,
+      "duration_ms": 3036
+     }
+    },
+    {
+     "start_ms": 7798,
+     "end_ms": 12938,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-30577",
+        "ref": "62896"
+       },
+       "start_ms": 396,
+       "duration_ms": 412
+      },
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-30577",
+        "ref": "62896",
+        "retry": true
+       },
+       "start_ms": 259,
+       "duration_ms": 383
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2061,
+      "output_tokens": 16,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 62896 shipped and is out for delivery today.",
+      "start_ms": 702,
+      "duration_ms": 1022
+     },
+     "tts": {
+      "text": "Your order 62896 shipped and is out for delivery today.",
+      "start_ms": 1314,
+      "duration_ms": 3590
+     }
+    },
+    {
+     "start_ms": 12938,
+     "end_ms": 18949,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2108,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 580,
+      "duration_ms": 847
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1217,
+      "duration_ms": 4269
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-015",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-11T13:45:05Z",
+   "ended": "2026-09-11T13:45:37Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 36
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8254,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My internet has been down since this morning.",
+      "start_ms": 200,
+      "duration_ms": 2322
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 964,
+      "output_tokens": 24,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 2776,
+      "duration_ms": 780,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 3519,
+      "duration_ms": 4345,
+      "chars_synthesized": 36,
+      "chars_played": 36
+     }
+    },
+    {
+     "start_ms": 8254,
+     "end_ms": 14320,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-26704",
+        "ref": "88837"
+       },
+       "start_ms": 352,
+       "duration_ms": 835
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1209,
+      "output_tokens": 28,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 695,
+      "duration_ms": 1070
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1311,
+      "duration_ms": 4335,
+      "chars_synthesized": 53,
+      "chars_played": 53
+     }
+    },
+    {
+     "start_ms": 14320,
+     "end_ms": 21187,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1266,
+      "output_tokens": 28,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 446,
+      "duration_ms": 1063
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1316,
+      "duration_ms": 4999,
+      "chars_synthesized": 58,
+      "chars_played": 58
+     }
+    },
+    {
+     "start_ms": 21187,
+     "end_ms": 26523,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1110,
+      "output_tokens": 33,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 886,
+      "duration_ms": 1042
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1586,
+      "duration_ms": 3532,
+      "chars_synthesized": 60,
+      "chars_played": 60
+     }
+    },
+    {
+     "start_ms": 26523,
+     "end_ms": 32709,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-26704",
+        "queue": "tech_support"
+       },
+       "start_ms": 293,
+       "duration_ms": 426
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1145,
+      "output_tokens": 29,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 545,
+      "duration_ms": 1058
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1433,
+      "duration_ms": 4120,
+      "chars_synthesized": 41,
+      "chars_played": 41
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-016",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-11T14:52:05Z",
+   "ended": "2026-09-11T14:52:29Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 27
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8806,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Hi, I was charged twice for my September bill, can you fix that?",
+      "start_ms": 200,
+      "duration_ms": 3121
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 934,
+      "output_tokens": 27,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3588,
+      "duration_ms": 719,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 4214,
+      "duration_ms": 4345
+     }
+    },
+    {
+     "start_ms": 8806,
+     "end_ms": 14418,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-28925",
+        "ref": "68434"
+       },
+       "start_ms": 243,
+       "duration_ms": 616
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1167,
+      "output_tokens": 30,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 603,
+      "duration_ms": 902
+     },
+     "tts": {
+      "text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 1357,
+      "duration_ms": 3559
+     }
+    },
+    {
+     "start_ms": 14418,
+     "end_ms": 19698,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-28925",
+        "ref": "68434"
+       },
+       "start_ms": 656,
+       "duration_ms": 567
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1240,
+      "output_tokens": 19,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 624,
+      "duration_ms": 998
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1192,
+      "duration_ms": 3423
+     }
+    },
+    {
+     "start_ms": 19698,
+     "end_ms": 24659,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1100,
+      "output_tokens": 28,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 890,
+      "duration_ms": 847
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1436,
+      "duration_ms": 3058
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-017",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-11T15:59:05Z",
+   "ended": "2026-09-11T15:59:29Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 28
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6881,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "There's a 49 dollar fee on my account I never agreed to.",
+      "start_ms": 200,
+      "duration_ms": 2117
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1111,
+      "output_tokens": 17,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 2855,
+      "duration_ms": 691,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3592,
+      "duration_ms": 2942
+     }
+    },
+    {
+     "start_ms": 6881,
+     "end_ms": 13660,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-98831",
+        "ref": "14138"
+       },
+       "start_ms": 175,
+       "duration_ms": 686
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1128,
+      "output_tokens": 28,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 521,
+      "duration_ms": 756
+     },
+     "tts": {
+      "text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 1164,
+      "duration_ms": 4950
+     }
+    },
+    {
+     "start_ms": 13660,
+     "end_ms": 19017,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-98831",
+        "ref": "14138"
+       },
+       "start_ms": 505,
+       "duration_ms": 584
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1236,
+      "output_tokens": 32,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 761,
+      "duration_ms": 759
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1648,
+      "duration_ms": 3335
+     }
+    },
+    {
+     "start_ms": 19017,
+     "end_ms": 24047,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1311,
+      "output_tokens": 24,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 433,
+      "duration_ms": 852
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1238,
+      "duration_ms": 3548
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-018",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-11T16:06:05Z",
+   "ended": "2026-09-11T16:06:29Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 28
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7522,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My bill jumped this month and I don't understand why.",
+      "start_ms": 200,
+      "duration_ms": 2830
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1053,
+      "output_tokens": 27,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3573,
+      "duration_ms": 678,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 4472,
+      "duration_ms": 2683
+     }
+    },
+    {
+     "start_ms": 7522,
+     "end_ms": 14136,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-28306",
+        "ref": "14148"
+       },
+       "start_ms": 389,
+       "duration_ms": 545
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1141,
+      "output_tokens": 33,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 524,
+      "duration_ms": 1082
+     },
+     "tts": {
+      "text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 1187,
+      "duration_ms": 4987
+     }
+    },
+    {
+     "start_ms": 14136,
+     "end_ms": 19373,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1270,
+      "output_tokens": 18,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 836,
+      "duration_ms": 715
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1387,
+      "duration_ms": 3545
+     }
+    },
+    {
+     "start_ms": 19373,
+     "end_ms": 24797,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-28306",
+        "queue": "billing_dispute"
+       },
+       "start_ms": 184,
+       "duration_ms": 749
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1362,
+      "output_tokens": 19,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 894,
+      "duration_ms": 883
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1437,
+      "duration_ms": 3555
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260911-019",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-11T17:13:05Z",
+   "ended": "2026-09-11T17:13:21Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 20
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6635,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My internet has been down since this morning.",
+      "start_ms": 200,
+      "duration_ms": 2211
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 945,
+      "output_tokens": 23,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "I can help troubleshoot, one moment.",
+      "start_ms": 2622,
+      "duration_ms": 786,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help troubleshoot, one moment.",
+      "start_ms": 3439,
+      "duration_ms": 2655
+     }
+    },
+    {
+     "start_ms": 6635,
+     "end_ms": 11767,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-28747",
+        "ref": "43444"
+       },
+       "start_ms": 179,
+       "duration_ms": 334
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1200,
+      "output_tokens": 34,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 723,
+      "duration_ms": 980
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1374,
+      "duration_ms": 3123
+     }
+    },
+    {
+     "start_ms": 11767,
+     "end_ms": 16763,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1304,
+      "output_tokens": 30,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 842,
+      "duration_ms": 1089
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1427,
+      "duration_ms": 3251
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-020",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-12T08:20:05Z",
+   "ended": "2026-09-12T08:20:29Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 27
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7364,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I need to move my appointment on June to next week.",
+      "start_ms": 200,
+      "duration_ms": 2324
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1781,
+      "output_tokens": 16,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Let me pull up your booking.",
+      "start_ms": 2881,
+      "duration_ms": 910,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your booking.",
+      "start_ms": 3682,
+      "duration_ms": 3161,
+      "chars_synthesized": 35,
+      "chars_played": 35
+     }
+    },
+    {
+     "start_ms": 7364,
+     "end_ms": 12908,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-12457",
+        "ref": "11190"
+       },
+       "start_ms": 295,
+       "duration_ms": 423
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2157,
+      "output_tokens": 30,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 618,
+      "duration_ms": 996
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1131,
+      "duration_ms": 4017,
+      "chars_synthesized": 54,
+      "chars_played": 54
+     }
+    },
+    {
+     "start_ms": 12908,
+     "end_ms": 19301,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-12457",
+        "ref": "11190"
+       },
+       "start_ms": 516,
+       "duration_ms": 697
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2071,
+      "output_tokens": 23,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 881,
+      "duration_ms": 711
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1668,
+      "duration_ms": 4462,
+      "chars_synthesized": 28,
+      "chars_played": 28
+     }
+    },
+    {
+     "start_ms": 19301,
+     "end_ms": 24343,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1967,
+      "output_tokens": 19,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 725,
+      "duration_ms": 950
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1586,
+      "duration_ms": 2896,
+      "chars_synthesized": 59,
+      "chars_played": 59
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-021",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-12T09:27:05Z",
+   "ended": "2026-09-12T09:27:32Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 30
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9092,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "Can we reschedule the visit I have booked?",
+      "start_ms": 200,
+      "duration_ms": 2950
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1166,
+      "output_tokens": 19,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Happy to help, let me find your appointment.",
+      "start_ms": 3357,
+      "duration_ms": 985,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Happy to help, let me find your appointment.",
+      "start_ms": 4042,
+      "duration_ms": 4457,
+      "chars_synthesized": 50,
+      "chars_played": 22
+     }
+    },
+    {
+     "start_ms": 9092,
+     "end_ms": 15450,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-94597",
+        "ref": "19390"
+       },
+       "start_ms": 323,
+       "duration_ms": 624
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1384,
+      "output_tokens": 28,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 645,
+      "duration_ms": 720
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1395,
+      "duration_ms": 4358,
+      "chars_synthesized": 50,
+      "chars_played": 50
+     }
+    },
+    {
+     "start_ms": 15450,
+     "end_ms": 20923,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-94597",
+        "ref": "19390"
+       },
+       "start_ms": 468,
+       "duration_ms": 773
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1293,
+      "output_tokens": 16,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 594,
+      "duration_ms": 809
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1215,
+      "duration_ms": 3949,
+      "chars_synthesized": 29,
+      "chars_played": 29
+     }
+    },
+    {
+     "start_ms": 20923,
+     "end_ms": 27979,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1343,
+      "output_tokens": 22,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 677,
+      "duration_ms": 708
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1572,
+      "duration_ms": 4859,
+      "chars_synthesized": 54,
+      "chars_played": 54
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-022",
+   "scenario": "cancel_subscription",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-12T10:34:05Z",
+   "ended": "2026-09-12T10:34:35Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 32
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8443,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Please cancel my plan, I'm not using it anymore.",
+      "start_ms": 200,
+      "duration_ms": 2729
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1057,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "cancel_subscription",
+      "output_text": "I can help with that. Let me pull up your account.",
+      "start_ms": 3499,
+      "duration_ms": 602,
+      "decision_candidates": [
+       "cancel_subscription",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help with that. Let me pull up your account.",
+      "start_ms": 4109,
+      "duration_ms": 4093
+     }
+    },
+    {
+     "start_ms": 8443,
+     "end_ms": 14953,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_account",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-22823",
+        "ref": "37325"
+       },
+       "start_ms": 135,
+       "duration_ms": 562
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1197,
+      "output_tokens": 25,
+      "decision_kind": "tool_select",
+      "decision": "lookup_account",
+      "output_text": "I found your plan. Cancelling it now.",
+      "start_ms": 777,
+      "duration_ms": 1059
+     },
+     "tts": {
+      "text": "I found your plan. Cancelling it now.",
+      "start_ms": 1361,
+      "duration_ms": 4910
+     }
+    },
+    {
+     "start_ms": 14953,
+     "end_ms": 19877,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1250,
+      "output_tokens": 33,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 611,
+      "duration_ms": 847
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1286,
+      "duration_ms": 2900
+     }
+    },
+    {
+     "start_ms": 19877,
+     "end_ms": 24876,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1225,
+      "output_tokens": 29,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 748,
+      "duration_ms": 778
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1425,
+      "duration_ms": 3055
+     }
+    },
+    {
+     "start_ms": 24876,
+     "end_ms": 30171,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-22823",
+        "queue": "cancel_subscription"
+       },
+       "start_ms": 243,
+       "duration_ms": 520
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1298,
+      "output_tokens": 17,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 670,
+      "duration_ms": 758
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1460,
+      "duration_ms": 3353
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-023",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-12T11:41:05Z",
+   "ended": "2026-09-12T11:41:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9738,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Has order 45295 left the warehouse yet?",
+      "start_ms": 200,
+      "duration_ms": 3149
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2323,
+      "output_tokens": 12,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3839,
+      "duration_ms": 960,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4578,
+      "duration_ms": 4594
+     }
+    },
+    {
+     "start_ms": 9738,
+     "end_ms": 15216,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-97369",
+        "ref": "45295"
+       },
+       "start_ms": 544,
+       "duration_ms": 481
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2521,
+      "output_tokens": 21,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 45295 shipped and is out for delivery today.",
+      "start_ms": 414,
+      "duration_ms": 1052
+     },
+     "tts": {
+      "text": "Your order 45295 shipped and is out for delivery today.",
+      "start_ms": 1202,
+      "duration_ms": 4037
+     }
+    },
+    {
+     "start_ms": 15216,
+     "end_ms": 20738,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2490,
+      "output_tokens": 17,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 496,
+      "duration_ms": 891
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1390,
+      "duration_ms": 3480
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-024",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-12T12:48:05Z",
+   "ended": "2026-09-12T12:48:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8232,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Hi, I was charged twice for my September bill, can you fix that?",
+      "start_ms": 200,
+      "duration_ms": 2957
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 936,
+      "output_tokens": 25,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3379,
+      "duration_ms": 687,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3965,
+      "duration_ms": 4054
+     }
+    },
+    {
+     "start_ms": 8232,
+     "end_ms": 15224,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-27349",
+        "ref": "47463"
+       },
+       "start_ms": 444,
+       "duration_ms": 568
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1279,
+      "output_tokens": 34,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 773,
+      "duration_ms": 732
+     },
+     "tts": {
+      "text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 1601,
+      "duration_ms": 4808
+     }
+    },
+    {
+     "start_ms": 15224,
+     "end_ms": 20720,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "cancel_subscription",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-27349",
+        "ref": "47463"
+       },
+       "start_ms": 278,
+       "duration_ms": 407
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 969,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Okay, I've applied that.",
+      "start_ms": 808,
+      "duration_ms": 774
+     },
+     "tts": {
+      "text": "Okay, I've applied that.",
+      "start_ms": 1480,
+      "duration_ms": 3573
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-025",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-12T13:55:05Z",
+   "ended": "2026-09-12T13:55:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7132,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "There's a 88 dollar fee on my account I never agreed to.",
+      "start_ms": 200,
+      "duration_ms": 2419
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1041,
+      "output_tokens": 26,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 2855,
+      "duration_ms": 955,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3568,
+      "duration_ms": 2886,
+      "chars_synthesized": 64,
+      "chars_played": 64
+     }
+    },
+    {
+     "start_ms": 7132,
+     "end_ms": 12900,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-54357",
+        "ref": "75149"
+       },
+       "start_ms": 155,
+       "duration_ms": 540
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1229,
+      "output_tokens": 27,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 446,
+      "duration_ms": 837
+     },
+     "tts": {
+      "text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 1021,
+      "duration_ms": 4485,
+      "chars_synthesized": 63,
+      "chars_played": 63
+     }
+    },
+    {
+     "start_ms": 12900,
+     "end_ms": 19302,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "pending",
+       "args": {
+        "customer_id": "C-54357",
+        "ref": "75149"
+       },
+       "start_ms": 424,
+       "duration_ms": 316
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1273,
+      "output_tokens": 16,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "I've submitted the change; it may take a moment.",
+      "start_ms": 713,
+      "duration_ms": 771
+     },
+     "tts": {
+      "text": "I've submitted the change; it may take a moment.",
+      "start_ms": 1578,
+      "duration_ms": 4608,
+      "chars_synthesized": 56,
+      "chars_played": 56
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-026",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-12T14:02:05Z",
+   "ended": "2026-09-12T14:02:33Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 32
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7671,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I can't log in, it says my password is wrong.",
+      "start_ms": 200,
+      "duration_ms": 2064
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1152,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 2870,
+      "duration_ms": 983,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 3578,
+      "duration_ms": 3604
+     }
+    },
+    {
+     "start_ms": 7671,
+     "end_ms": 14206,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-17145",
+        "ref": "14754"
+       },
+       "start_ms": 538,
+       "duration_ms": 514
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1347,
+      "output_tokens": 18,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 481,
+      "duration_ms": 905
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1342,
+      "duration_ms": 4499
+     }
+    },
+    {
+     "start_ms": 14206,
+     "end_ms": 19023,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1136,
+      "output_tokens": 33,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 555,
+      "duration_ms": 809
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1196,
+      "duration_ms": 3066
+     }
+    },
+    {
+     "start_ms": 19023,
+     "end_ms": 24002,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1200,
+      "output_tokens": 25,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 607,
+      "duration_ms": 775
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1215,
+      "duration_ms": 3271
+     }
+    },
+    {
+     "start_ms": 24002,
+     "end_ms": 28851,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-17145",
+        "queue": "tech_support"
+       },
+       "start_ms": 233,
+       "duration_ms": 756
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1334,
+      "output_tokens": 19,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 428,
+      "duration_ms": 823
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1120,
+      "duration_ms": 3005
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-027",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-12T15:09:05Z",
+   "ended": "2026-09-12T15:09:38Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 34
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8606,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "This is the second time I'm calling about a double charge.",
+      "start_ms": 200,
+      "duration_ms": 3065
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2437,
+      "output_tokens": 25,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3749,
+      "duration_ms": 810,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 4430,
+      "duration_ms": 3797
+     }
+    },
+    {
+     "start_ms": 8606,
+     "end_ms": 13686,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-82427",
+        "ref": "37359"
+       },
+       "start_ms": 208,
+       "duration_ms": 513
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2627,
+      "output_tokens": 18,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 624,
+      "duration_ms": 862
+     },
+     "tts": {
+      "text": "I found the charge from September. Let me apply the correction.",
+      "start_ms": 1195,
+      "duration_ms": 3317
+     }
+    },
+    {
+     "start_ms": 13686,
+     "end_ms": 20162,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2390,
+      "output_tokens": 27,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 764,
+      "duration_ms": 1088
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1470,
+      "duration_ms": 4678
+     }
+    },
+    {
+     "start_ms": 20162,
+     "end_ms": 26516,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2399,
+      "output_tokens": 24,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 439,
+      "duration_ms": 1052
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1205,
+      "duration_ms": 4415
+     }
+    },
+    {
+     "start_ms": 26516,
+     "end_ms": 33133,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-82427",
+        "queue": "billing_dispute"
+       },
+       "start_ms": 349,
+       "duration_ms": 818
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2449,
+      "output_tokens": 32,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 698,
+      "duration_ms": 756
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1362,
+      "duration_ms": 4600
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-028",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-12T16:16:05Z",
+   "ended": "2026-09-12T16:16:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 23
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8402,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My device won't connect to wifi, can you help?",
+      "start_ms": 200,
+      "duration_ms": 2805
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 993,
+      "output_tokens": 14,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 3642,
+      "duration_ms": 617,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 4158,
+      "duration_ms": 3817,
+      "chars_synthesized": 35,
+      "chars_played": 35
+     }
+    },
+    {
+     "start_ms": 8402,
+     "end_ms": 14349,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-18379",
+        "ref": "35036"
+       },
+       "start_ms": 271,
+       "duration_ms": 467
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1265,
+      "output_tokens": 24,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 495,
+      "duration_ms": 807
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1007,
+      "duration_ms": 4392,
+      "chars_synthesized": 48,
+      "chars_played": 48
+     }
+    },
+    {
+     "start_ms": 14349,
+     "end_ms": 20257,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1402,
+      "output_tokens": 34,
+      "decision_kind": "slot_fill",
+      "decision": "request_slot",
+      "output_text": "Can you confirm the last four digits on the account?",
+      "start_ms": 811,
+      "duration_ms": 1093
+     },
+     "tts": {
+      "text": "Can you confirm the last four digits on the account?",
+      "start_ms": 1378,
+      "duration_ms": 3976,
+      "chars_synthesized": 62,
+      "chars_played": 62
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260912-029",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-12T17:23:05Z",
+   "ended": "2026-09-12T17:23:30Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 27
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6838,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "There's a 120 dollar fee on my account I never agreed to.",
+      "start_ms": 200,
+      "duration_ms": 2192
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2053,
+      "output_tokens": 17,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3051,
+      "duration_ms": 859,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3767,
+      "duration_ms": 2613,
+      "chars_synthesized": 62,
+      "chars_played": 32
+     }
+    },
+    {
+     "start_ms": 6838,
+     "end_ms": 13097,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-22935",
+        "ref": "24613"
+       },
+       "start_ms": 487,
+       "duration_ms": 416
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2229,
+      "output_tokens": 32,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 409,
+      "duration_ms": 716
+     },
+     "tts": {
+      "text": "I found the charge from July. Let me apply the correction.",
+      "start_ms": 1100,
+      "duration_ms": 4862,
+      "chars_synthesized": 60,
+      "chars_played": 60
+     }
+    },
+    {
+     "start_ms": 13097,
+     "end_ms": 18641,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2465,
+      "output_tokens": 32,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 448,
+      "duration_ms": 836
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1237,
+      "duration_ms": 4074,
+      "chars_synthesized": 54,
+      "chars_played": 54
+     }
+    },
+    {
+     "start_ms": 18641,
+     "end_ms": 25318,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-22935",
+        "queue": "billing_dispute"
+       },
+       "start_ms": 651,
+       "duration_ms": 462
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2325,
+      "output_tokens": 17,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 899,
+      "duration_ms": 724
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1736,
+      "duration_ms": 4238,
+      "chars_synthesized": 43,
+      "chars_played": 43
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-030",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-13T08:30:05Z",
+   "ended": "2026-09-13T08:30:27Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 24
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9414,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 3198
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2089,
+      "output_tokens": 25,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3874,
+      "duration_ms": 704,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4662,
+      "duration_ms": 4061
+     }
+    },
+    {
+     "start_ms": 9414,
+     "end_ms": 15594,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-35264",
+        "ref": "82078"
+       },
+       "start_ms": 248,
+       "duration_ms": 664
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2224,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 82078 shipped and is out for delivery today.",
+      "start_ms": 482,
+      "duration_ms": 812
+     },
+     "tts": {
+      "text": "Your order 82078 shipped and is out for delivery today.",
+      "start_ms": 1307,
+      "duration_ms": 4653
+     }
+    },
+    {
+     "start_ms": 15594,
+     "end_ms": 22346,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2545,
+      "output_tokens": 18,
+      "decision_kind": "slot_fill",
+      "decision": "request_slot",
+      "output_text": "Can you confirm the last four digits on the account?",
+      "start_ms": 686,
+      "duration_ms": 975
+     },
+     "tts": {
+      "text": "Can you confirm the last four digits on the account?",
+      "start_ms": 1489,
+      "duration_ms": 4554
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-031",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-13T09:37:05Z",
+   "ended": "2026-09-13T09:37:30Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 27
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9187,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "This is the second time I'm calling about a double charge.",
+      "start_ms": 200,
+      "duration_ms": 3122
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1976,
+      "output_tokens": 27,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "Let me pull up your bill and sort that out.",
+      "start_ms": 3633,
+      "duration_ms": 895,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your bill and sort that out.",
+      "start_ms": 4471,
+      "duration_ms": 4367,
+      "chars_synthesized": 53,
+      "chars_played": 35
+     }
+    },
+    {
+     "start_ms": 9187,
+     "end_ms": 14005,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-60384",
+        "ref": "12565"
+       },
+       "start_ms": 359,
+       "duration_ms": 893
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2027,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 479,
+      "duration_ms": 893
+     },
+     "tts": {
+      "text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 1067,
+      "duration_ms": 2960,
+      "chars_synthesized": 61,
+      "chars_played": 61
+     }
+    },
+    {
+     "start_ms": 14005,
+     "end_ms": 20295,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-60384",
+        "ref": "12565"
+       },
+       "start_ms": 633,
+       "duration_ms": 353
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1942,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 739,
+      "duration_ms": 811
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1551,
+      "duration_ms": 4011,
+      "chars_synthesized": 32,
+      "chars_played": 32
+     }
+    },
+    {
+     "start_ms": 20295,
+     "end_ms": 25109,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1938,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 719,
+      "duration_ms": 774
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1396,
+      "duration_ms": 2854,
+      "chars_synthesized": 37,
+      "chars_played": 37
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-032",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-13T10:44:05Z",
+   "ended": "2026-09-13T10:44:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 20
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7387,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "My device won't connect to wifi, can you help?",
+      "start_ms": 200,
+      "duration_ms": 1841
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 860,
+      "output_tokens": 21,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 2506,
+      "duration_ms": 669,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 3050,
+      "duration_ms": 4133,
+      "chars_synthesized": 34,
+      "chars_played": 22
+     }
+    },
+    {
+     "start_ms": 7387,
+     "end_ms": 13852,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-21032",
+        "ref": "94680"
+       },
+       "start_ms": 612,
+       "duration_ms": 615
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1090,
+      "output_tokens": 24,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 424,
+      "duration_ms": 1097
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1195,
+      "duration_ms": 4546,
+      "chars_synthesized": 53,
+      "chars_played": 53
+     }
+    },
+    {
+     "start_ms": 13852,
+     "end_ms": 19344,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 951,
+      "output_tokens": 27,
+      "decision_kind": "slot_fill",
+      "decision": "request_slot",
+      "output_text": "Can you confirm the last four digits on the account?",
+      "start_ms": 457,
+      "duration_ms": 1024
+     },
+     "tts": {
+      "text": "Can you confirm the last four digits on the account?",
+      "start_ms": 1115,
+      "duration_ms": 3746,
+      "chars_synthesized": 55,
+      "chars_played": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-033",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-13T11:51:05Z",
+   "ended": "2026-09-13T11:51:23Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7310,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "The app keeps crashing when I open it.",
+      "start_ms": 200,
+      "duration_ms": 1995
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 966,
+      "output_tokens": 24,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "I can help troubleshoot, one moment.",
+      "start_ms": 2823,
+      "duration_ms": 755,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help troubleshoot, one moment.",
+      "start_ms": 3445,
+      "duration_ms": 3644
+     }
+    },
+    {
+     "start_ms": 7310,
+     "end_ms": 13813,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-37262",
+        "ref": "52931"
+       },
+       "start_ms": 547,
+       "duration_ms": 489
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1418,
+      "output_tokens": 17,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 861,
+      "duration_ms": 869
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1428,
+      "duration_ms": 4667
+     }
+    },
+    {
+     "start_ms": 13813,
+     "end_ms": 18770,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1367,
+      "output_tokens": 20,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 708,
+      "duration_ms": 1018
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1365,
+      "duration_ms": 3262
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-034",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-13T12:58:05Z",
+   "ended": "2026-09-13T12:58:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 25
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9343,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 2914
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1971,
+      "output_tokens": 16,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3709,
+      "duration_ms": 633,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4297,
+      "duration_ms": 4515
+     }
+    },
+    {
+     "start_ms": 9343,
+     "end_ms": 15179,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-63308",
+        "ref": "26625"
+       },
+       "start_ms": 473,
+       "duration_ms": 702
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2136,
+      "output_tokens": 20,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 26625 shipped and is out for delivery today.",
+      "start_ms": 660,
+      "duration_ms": 944
+     },
+     "tts": {
+      "text": "Your order 26625 shipped and is out for delivery today.",
+      "start_ms": 1418,
+      "duration_ms": 3913
+     }
+    },
+    {
+     "start_ms": 15179,
+     "end_ms": 21139,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2051,
+      "output_tokens": 22,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 838,
+      "duration_ms": 795
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1537,
+      "duration_ms": 3990
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-035",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-13T13:05:05Z",
+   "ended": "2026-09-13T13:05:22Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 18
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7956,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Has order 32252 left the warehouse yet?",
+      "start_ms": 200,
+      "duration_ms": 2690
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1020,
+      "output_tokens": 20,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3424,
+      "duration_ms": 952,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4048,
+      "duration_ms": 3518,
+      "chars_synthesized": 40,
+      "chars_played": 40
+     }
+    },
+    {
+     "start_ms": 7956,
+     "end_ms": 12795,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-45128",
+        "ref": "32252"
+       },
+       "start_ms": 105,
+       "duration_ms": 733
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1149,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 32252 shipped and is out for delivery today.",
+      "start_ms": 686,
+      "duration_ms": 970
+     },
+     "tts": {
+      "text": "Your order 32252 shipped and is out for delivery today.",
+      "start_ms": 1302,
+      "duration_ms": 3167,
+      "chars_synthesized": 60,
+      "chars_played": 60
+     }
+    },
+    {
+     "start_ms": 12795,
+     "end_ms": 17751,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1065,
+      "output_tokens": 17,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 813,
+      "duration_ms": 813
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1495,
+      "duration_ms": 3148,
+      "chars_synthesized": 54,
+      "chars_played": 54
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-036",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-13T14:12:05Z",
+   "ended": "2026-09-13T14:12:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 24
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 9195,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Where is my order 13220? It was supposed to arrive yesterday.",
+      "start_ms": 200,
+      "duration_ms": 3173
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1157,
+      "output_tokens": 30,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3958,
+      "duration_ms": 794,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4467,
+      "duration_ms": 4267
+     }
+    },
+    {
+     "start_ms": 9195,
+     "end_ms": 13799,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-70070",
+        "ref": "13220"
+       },
+       "start_ms": 584,
+       "duration_ms": 499
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1206,
+      "output_tokens": 24,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 13220 shipped and is out for delivery today.",
+      "start_ms": 667,
+      "duration_ms": 753
+     },
+     "tts": {
+      "text": "Your order 13220 shipped and is out for delivery today.",
+      "start_ms": 1190,
+      "duration_ms": 2927
+     }
+    },
+    {
+     "start_ms": 13799,
+     "end_ms": 20492,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1383,
+      "output_tokens": 21,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 537,
+      "duration_ms": 1006
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1296,
+      "duration_ms": 4730
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-037",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-13T15:19:05Z",
+   "ended": "2026-09-13T15:19:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 25
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8294,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Can you tell me when order 94893 will ship?",
+      "start_ms": 200,
+      "duration_ms": 2764
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1058,
+      "output_tokens": 28,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 3497,
+      "duration_ms": 685,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 4298,
+      "duration_ms": 3724
+     }
+    },
+    {
+     "start_ms": 8294,
+     "end_ms": 14876,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-65555",
+        "ref": "94893"
+       },
+       "start_ms": 501,
+       "duration_ms": 809
+      },
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-65555",
+        "ref": "94893",
+        "retry": true
+       },
+       "start_ms": 444,
+       "duration_ms": 481
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1345,
+      "output_tokens": 30,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 94893 shipped and is out for delivery today.",
+      "start_ms": 879,
+      "duration_ms": 1089
+     },
+     "tts": {
+      "text": "Your order 94893 shipped and is out for delivery today.",
+      "start_ms": 1413,
+      "duration_ms": 4662
+     }
+    },
+    {
+     "start_ms": 14876,
+     "end_ms": 21850,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1422,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 858,
+      "duration_ms": 805
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1636,
+      "duration_ms": 4985
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-038",
+   "scenario": "appointment_reschedule",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-13T16:26:05Z",
+   "ended": "2026-09-13T16:26:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 24
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6800,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I need to move my appointment on June to next week.",
+      "start_ms": 200,
+      "duration_ms": 2508
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1109,
+      "output_tokens": 27,
+      "decision_kind": "route",
+      "decision": "appointment_reschedule",
+      "output_text": "Let me pull up your booking.",
+      "start_ms": 2972,
+      "duration_ms": 758,
+      "decision_candidates": [
+       "appointment_reschedule",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me pull up your booking.",
+      "start_ms": 3639,
+      "duration_ms": 2802,
+      "chars_synthesized": 33,
+      "chars_played": 33
+     }
+    },
+    {
+     "start_ms": 6800,
+     "end_ms": 11027,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_appointment",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-95048",
+        "ref": "32851"
+       },
+       "start_ms": 537,
+       "duration_ms": 416
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1306,
+      "output_tokens": 26,
+      "decision_kind": "tool_select",
+      "decision": "lookup_appointment",
+      "output_text": "I see your booking. Moving it to the new date.",
+      "start_ms": 490,
+      "duration_ms": 942
+     },
+     "tts": {
+      "text": "I see your booking. Moving it to the new date.",
+      "start_ms": 1032,
+      "duration_ms": 2838,
+      "chars_synthesized": 53,
+      "chars_played": 53
+     }
+    },
+    {
+     "start_ms": 11027,
+     "end_ms": 15937,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "reschedule_appointment",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-95048",
+        "ref": "32851"
+       },
+       "start_ms": 379,
+       "duration_ms": 391
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1083,
+      "output_tokens": 16,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 453,
+      "duration_ms": 1031
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1040,
+      "duration_ms": 3098,
+      "chars_synthesized": 31,
+      "chars_played": 31
+     }
+    },
+    {
+     "start_ms": 15937,
+     "end_ms": 21673,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1154,
+      "output_tokens": 28,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 543,
+      "duration_ms": 1089
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1420,
+      "duration_ms": 3697,
+      "chars_synthesized": 54,
+      "chars_played": 54
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260913-039",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-13T17:33:05Z",
+   "ended": "2026-09-13T17:33:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8210,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "My internet has been down since this morning.",
+      "start_ms": 200,
+      "duration_ms": 3034
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1067,
+      "output_tokens": 30,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "I can help troubleshoot, one moment.",
+      "start_ms": 3722,
+      "duration_ms": 984,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help troubleshoot, one moment.",
+      "start_ms": 4580,
+      "duration_ms": 3269,
+      "chars_synthesized": 38,
+      "chars_played": 22
+     }
+    },
+    {
+     "start_ms": 8210,
+     "end_ms": 14088,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-46921",
+        "ref": "59507"
+       },
+       "start_ms": 644,
+       "duration_ms": 854
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1317,
+      "output_tokens": 18,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 777,
+      "duration_ms": 841
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1366,
+      "duration_ms": 3971,
+      "chars_synthesized": 48,
+      "chars_played": 48
+     }
+    },
+    {
+     "start_ms": 14088,
+     "end_ms": 19717,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1283,
+      "output_tokens": 31,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 604,
+      "duration_ms": 830
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1204,
+      "duration_ms": 3857,
+      "chars_synthesized": 59,
+      "chars_played": 59
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-040",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-14T08:40:05Z",
+   "ended": "2026-09-14T08:40:29Z",
+   "end_reason": "escalated",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 28
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7336,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My device won't connect to wifi, can you help?",
+      "start_ms": 200,
+      "duration_ms": 2408
+     },
+     "llm": {
+      "model": "gpt-5",
+      "input_tokens": 1025,
+      "output_tokens": 29,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "I can help troubleshoot, one moment.",
+      "start_ms": 2910,
+      "duration_ms": 814,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I can help troubleshoot, one moment.",
+      "start_ms": 3580,
+      "duration_ms": 3219
+     }
+    },
+    {
+     "start_ms": 7336,
+     "end_ms": 12956,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-20768",
+        "ref": "46019"
+       },
+       "start_ms": 143,
+       "duration_ms": 357
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1155,
+      "output_tokens": 31,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 495,
+      "duration_ms": 970
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1228,
+      "duration_ms": 3944
+     }
+    },
+    {
+     "start_ms": 12956,
+     "end_ms": 18978,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1426,
+      "output_tokens": 24,
+      "decision_kind": "escalate_check",
+      "decision": "continue",
+      "output_text": "Let me check one more thing before I hand you over.",
+      "start_ms": 773,
+      "duration_ms": 825
+     },
+     "tts": {
+      "text": "Let me check one more thing before I hand you over.",
+      "start_ms": 1322,
+      "duration_ms": 4301
+     }
+    },
+    {
+     "start_ms": 18978,
+     "end_ms": 24723,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "transfer_to_human",
+       "kind": "handoff",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-20768",
+        "queue": "tech_support"
+       },
+       "start_ms": 626,
+       "duration_ms": 763
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1304,
+      "output_tokens": 19,
+      "decision_kind": "escalate_check",
+      "decision": "escalate",
+      "output_text": "I'm connecting you to a specialist now.",
+      "start_ms": 719,
+      "duration_ms": 1083
+     },
+     "tts": {
+      "text": "I'm connecting you to a specialist now.",
+      "start_ms": 1558,
+      "duration_ms": 3947
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-041",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-14T09:47:05Z",
+   "ended": "2026-09-14T09:47:26Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 24
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8886,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Can you tell me when order 95310 will ship?",
+      "start_ms": 200,
+      "duration_ms": 2738
+     },
+     "llm": {
+      "model": "gpt-5",
+      "input_tokens": 1064,
+      "output_tokens": 24,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 3632,
+      "duration_ms": 655,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 4145,
+      "duration_ms": 4435,
+      "chars_synthesized": 48,
+      "chars_played": 48
+     }
+    },
+    {
+     "start_ms": 8886,
+     "end_ms": 15581,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-32277",
+        "ref": "95310"
+       },
+       "start_ms": 138,
+       "duration_ms": 853
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1162,
+      "output_tokens": 26,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 95310 shipped and is out for delivery today.",
+      "start_ms": 420,
+      "duration_ms": 1003
+     },
+     "tts": {
+      "text": "Your order 95310 shipped and is out for delivery today.",
+      "start_ms": 1307,
+      "duration_ms": 4906,
+      "chars_synthesized": 60,
+      "chars_played": 60
+     }
+    },
+    {
+     "start_ms": 15581,
+     "end_ms": 21609,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1129,
+      "output_tokens": 22,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 512,
+      "duration_ms": 804
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1207,
+      "duration_ms": 4179,
+      "chars_synthesized": 51,
+      "chars_played": 51
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-042",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.1.7",
+   "started": "2026-09-14T10:54:05Z",
+   "ended": "2026-09-14T10:54:24Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 20
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7079,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 1940
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2100,
+      "output_tokens": 28,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 2560,
+      "duration_ms": 839,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 3186,
+      "duration_ms": 3395,
+      "chars_synthesized": 48,
+      "chars_played": 48
+     }
+    },
+    {
+     "start_ms": 7079,
+     "end_ms": 13670,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-45531",
+        "ref": "58450"
+       },
+       "start_ms": 179,
+       "duration_ms": 797
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2286,
+      "output_tokens": 21,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 58450 shipped and is out for delivery today.",
+      "start_ms": 837,
+      "duration_ms": 848
+     },
+     "tts": {
+      "text": "Your order 58450 shipped and is out for delivery today.",
+      "start_ms": 1555,
+      "duration_ms": 4654,
+      "chars_synthesized": 57,
+      "chars_played": 57
+     }
+    },
+    {
+     "start_ms": 13670,
+     "end_ms": 19953,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2194,
+      "output_tokens": 24,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 443,
+      "duration_ms": 774
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1023,
+      "duration_ms": 4803,
+      "chars_synthesized": 51,
+      "chars_played": 51
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-043",
+   "scenario": "refund",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-14T11:01:05Z",
+   "ended": "2026-09-14T11:01:32Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 31
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8961,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Can I get my money back? The item was never delivered.",
+      "start_ms": 200,
+      "duration_ms": 2798
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 978,
+      "output_tokens": 16,
+      "decision_kind": "route",
+      "decision": "refund",
+      "output_text": "Let me look up that order and start a refund.",
+      "start_ms": 3477,
+      "duration_ms": 698,
+      "decision_candidates": [
+       "refund",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look up that order and start a refund.",
+      "start_ms": 4272,
+      "duration_ms": 4129
+     }
+    },
+    {
+     "start_ms": 8961,
+     "end_ms": 15441,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-49966",
+        "ref": "44870"
+       },
+       "start_ms": 664,
+       "duration_ms": 663
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1167,
+      "output_tokens": 32,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "I see order 44870. Processing the refund now.",
+      "start_ms": 680,
+      "duration_ms": 786
+     },
+     "tts": {
+      "text": "I see order 44870. Processing the refund now.",
+      "start_ms": 1480,
+      "duration_ms": 4635
+     }
+    },
+    {
+     "start_ms": 15441,
+     "end_ms": 21374,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "process_refund",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-49966",
+        "ref": "44870"
+       },
+       "start_ms": 173,
+       "duration_ms": 743
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1316,
+      "output_tokens": 28,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 764,
+      "duration_ms": 899
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1490,
+      "duration_ms": 3998
+     }
+    },
+    {
+     "start_ms": 21374,
+     "end_ms": 27597,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1232,
+      "output_tokens": 27,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 828,
+      "duration_ms": 869
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1624,
+      "duration_ms": 3865
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-044",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-14T12:08:05Z",
+   "ended": "2026-09-14T12:08:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 24
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8451,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "Where is my order 72430? It was supposed to arrive yesterday.",
+      "start_ms": 200,
+      "duration_ms": 2963
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 969,
+      "output_tokens": 13,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3708,
+      "duration_ms": 873,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4229,
+      "duration_ms": 3542
+     }
+    },
+    {
+     "start_ms": 8451,
+     "end_ms": 14991,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-77536",
+        "ref": "72430"
+       },
+       "start_ms": 655,
+       "duration_ms": 738
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1054,
+      "output_tokens": 23,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 72430 shipped and is out for delivery today.",
+      "start_ms": 490,
+      "duration_ms": 850
+     },
+     "tts": {
+      "text": "Your order 72430 shipped and is out for delivery today.",
+      "start_ms": 1378,
+      "duration_ms": 4710
+     }
+    },
+    {
+     "start_ms": 14991,
+     "end_ms": 20734,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1156,
+      "output_tokens": 16,
+      "decision_kind": "slot_fill",
+      "decision": "request_slot",
+      "output_text": "Can you confirm the last four digits on the account?",
+      "start_ms": 451,
+      "duration_ms": 788
+     },
+     "tts": {
+      "text": "Can you confirm the last four digits on the account?",
+      "start_ms": 1109,
+      "duration_ms": 3968
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-045",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-14T13:15:05Z",
+   "ended": "2026-09-14T13:15:23Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 19
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6721,
+     "speaker_first": "caller",
+     "barge_in": true,
+     "asr": {
+      "transcript": "Can you tell me when order 17111 will ship?",
+      "start_ms": 200,
+      "duration_ms": 2410
+     },
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2173,
+      "output_tokens": 16,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "Let me check the status of that order for you.",
+      "start_ms": 2914,
+      "duration_ms": 610,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me check the status of that order for you.",
+      "start_ms": 3691,
+      "duration_ms": 2752,
+      "chars_synthesized": 50,
+      "chars_played": 33
+     }
+    },
+    {
+     "start_ms": 6721,
+     "end_ms": 12538,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-29920",
+        "ref": "17111"
+       },
+       "start_ms": 252,
+       "duration_ms": 874
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 2259,
+      "output_tokens": 26,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 17111 shipped and is out for delivery today.",
+      "start_ms": 806,
+      "duration_ms": 933
+     },
+     "tts": {
+      "text": "Your order 17111 shipped and is out for delivery today.",
+      "start_ms": 1380,
+      "duration_ms": 3957,
+      "chars_synthesized": 61,
+      "chars_played": 61
+     }
+    },
+    {
+     "start_ms": 12538,
+     "end_ms": 18486,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 2371,
+      "output_tokens": 26,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 567,
+      "duration_ms": 715
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1344,
+      "duration_ms": 4356,
+      "chars_synthesized": 43,
+      "chars_played": 43
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-046",
+   "scenario": "order_status",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-14T14:22:05Z",
+   "ended": "2026-09-14T14:22:25Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 23
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 8964,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "I just want a tracking update on my recent order.",
+      "start_ms": 200,
+      "duration_ms": 2762
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1048,
+      "output_tokens": 25,
+      "decision_kind": "route",
+      "decision": "order_status",
+      "output_text": "One moment, I'll pull up the tracking.",
+      "start_ms": 3655,
+      "duration_ms": 981,
+      "decision_candidates": [
+       "order_status",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "One moment, I'll pull up the tracking.",
+      "start_ms": 4371,
+      "duration_ms": 4302
+     }
+    },
+    {
+     "start_ms": 8964,
+     "end_ms": 14860,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_order",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-54942",
+        "ref": "95712"
+       },
+       "start_ms": 635,
+       "duration_ms": 421
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1493,
+      "output_tokens": 30,
+      "decision_kind": "tool_select",
+      "decision": "lookup_order",
+      "output_text": "Your order 95712 shipped and is out for delivery today.",
+      "start_ms": 566,
+      "duration_ms": 787
+     },
+     "tts": {
+      "text": "Your order 95712 shipped and is out for delivery today.",
+      "start_ms": 1339,
+      "duration_ms": 4222
+     }
+    },
+    {
+     "start_ms": 14860,
+     "end_ms": 20142,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1239,
+      "output_tokens": 33,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 837,
+      "duration_ms": 789
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1660,
+      "duration_ms": 2913
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-047",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-14T15:29:05Z",
+   "ended": "2026-09-14T15:29:30Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 28
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 6898,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "This is the second time I'm calling about a double charge.",
+      "start_ms": 200,
+      "duration_ms": 2362
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1046,
+      "output_tokens": 15,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 2848,
+      "duration_ms": 729,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3496,
+      "duration_ms": 2714,
+      "chars_synthesized": 63,
+      "chars_played": 63
+     }
+    },
+    {
+     "start_ms": 6898,
+     "end_ms": 13470,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-60770",
+        "ref": "48416"
+       },
+       "start_ms": 451,
+       "duration_ms": 846
+      },
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-60770",
+        "ref": "48416",
+        "retry": true
+       },
+       "start_ms": 604,
+       "duration_ms": 488
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1285,
+      "output_tokens": 26,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from August. Let me apply the correction.",
+      "start_ms": 763,
+      "duration_ms": 1002
+     },
+     "tts": {
+      "text": "I found the charge from August. Let me apply the correction.",
+      "start_ms": 1555,
+      "duration_ms": 4591,
+      "chars_synthesized": 63,
+      "chars_played": 63
+     }
+    },
+    {
+     "start_ms": 13470,
+     "end_ms": 19808,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-60770",
+        "ref": "48416"
+       },
+       "start_ms": 566,
+       "duration_ms": 896
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1397,
+      "output_tokens": 34,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 774,
+      "duration_ms": 780
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1327,
+      "duration_ms": 4804,
+      "chars_synthesized": 35,
+      "chars_played": 35
+     }
+    },
+    {
+     "start_ms": 19808,
+     "end_ms": 25596,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1379,
+      "output_tokens": 29,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "All sorted. Have a great day, bye!",
+      "start_ms": 830,
+      "duration_ms": 858
+     },
+     "tts": {
+      "text": "All sorted. Have a great day, bye!",
+      "start_ms": 1543,
+      "duration_ms": 3560,
+      "chars_synthesized": 39,
+      "chars_played": 39
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-048",
+   "scenario": "tech_support",
+   "agent_version": "voice-agent@3.3.0",
+   "started": "2026-09-14T16:36:05Z",
+   "ended": "2026-09-14T16:36:23Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 21
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7498,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "My device won't connect to wifi, can you help?",
+      "start_ms": 200,
+      "duration_ms": 2474
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 908,
+      "output_tokens": 24,
+      "decision_kind": "route",
+      "decision": "tech_support",
+      "output_text": "Let me look into that with you.",
+      "start_ms": 2876,
+      "duration_ms": 601,
+      "decision_candidates": [
+       "tech_support",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "Let me look into that with you.",
+      "start_ms": 3590,
+      "duration_ms": 3620
+     }
+    },
+    {
+     "start_ms": 7498,
+     "end_ms": 13380,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-68594",
+        "ref": "95852"
+       },
+       "start_ms": 215,
+       "duration_ms": 622
+      },
+      {
+       "name": "search_kb",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-68594",
+        "ref": "95852",
+        "retry": true
+       },
+       "start_ms": 152,
+       "duration_ms": 728
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1208,
+      "output_tokens": 17,
+      "decision_kind": "tool_select",
+      "decision": "search_kb",
+      "output_text": "Try restarting the router; here are the steps.",
+      "start_ms": 673,
+      "duration_ms": 979
+     },
+     "tts": {
+      "text": "Try restarting the router; here are the steps.",
+      "start_ms": 1343,
+      "duration_ms": 3786
+     }
+    },
+    {
+     "start_ms": 13380,
+     "end_ms": 18357,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-mini",
+      "input_tokens": 1109,
+      "output_tokens": 30,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 770,
+      "duration_ms": 1080
+     },
+     "tts": {
+      "text": "That's done. Is there anything else? Great, goodbye!",
+      "start_ms": 1339,
+      "duration_ms": 3015
+     }
+    }
+   ]
+  },
+  {
+   "id": "ing-20260914-049",
+   "scenario": "billing_dispute",
+   "agent_version": "voice-agent@3.2.1",
+   "started": "2026-09-14T17:43:05Z",
+   "ended": "2026-09-14T17:43:31Z",
+   "end_reason": "caller_hangup",
+   "telephony": {
+    "provider": "twilio",
+    "direction": "inbound",
+    "billable_seconds": 27
+   },
+   "turns": [
+    {
+     "start_ms": 0,
+     "end_ms": 7722,
+     "speaker_first": "caller",
+     "barge_in": false,
+     "asr": {
+      "transcript": "There's a 88 dollar fee on my account I never agreed to.",
+      "start_ms": 200,
+      "duration_ms": 2994
+     },
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 976,
+      "output_tokens": 18,
+      "decision_kind": "route",
+      "decision": "billing_dispute",
+      "output_text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 3447,
+      "duration_ms": 826,
+      "decision_candidates": [
+       "billing_dispute",
+       "other"
+      ]
+     },
+     "tts": {
+      "text": "I'm sorry about that, let me dig into the charge right now.",
+      "start_ms": 4099,
+      "duration_ms": 3009
+     }
+    },
+    {
+     "start_ms": 7722,
+     "end_ms": 14384,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "lookup_invoices",
+       "kind": "lookup",
+       "effect": "none",
+       "args": {
+        "customer_id": "C-50907",
+        "ref": "53556"
+       },
+       "start_ms": 148,
+       "duration_ms": 412
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1125,
+      "output_tokens": 16,
+      "decision_kind": "tool_select",
+      "decision": "lookup_invoices",
+      "output_text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 593,
+      "duration_ms": 904
+     },
+     "tts": {
+      "text": "I found the charge from June. Let me apply the correction.",
+      "start_ms": 1303,
+      "duration_ms": 4707
+     }
+    },
+    {
+     "start_ms": 14384,
+     "end_ms": 20024,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [
+      {
+       "name": "adjust_billing",
+       "kind": "mutation",
+       "effect": "committed",
+       "args": {
+        "customer_id": "C-50907",
+        "ref": "53556"
+       },
+       "start_ms": 453,
+       "duration_ms": 635
+      }
+     ],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1196,
+      "output_tokens": 22,
+      "decision_kind": "compose",
+      "decision": "complete_mutation",
+      "output_text": "Done, that's corrected now.",
+      "start_ms": 608,
+      "duration_ms": 963
+     },
+     "tts": {
+      "text": "Done, that's corrected now.",
+      "start_ms": 1428,
+      "duration_ms": 4007
+     }
+    },
+    {
+     "start_ms": 20024,
+     "end_ms": 26541,
+     "speaker_first": "agent",
+     "barge_in": false,
+     "tools": [],
+     "llm": {
+      "model": "gpt-5-nano",
+      "input_tokens": 1107,
+      "output_tokens": 22,
+      "decision_kind": "compose",
+      "decision": "close_call",
+      "output_text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 756,
+      "duration_ms": 1085
+     },
+     "tts": {
+      "text": "You're all set, anything else? Okay, take care!",
+      "start_ms": 1603,
+      "duration_ms": 4540
+     }
+    }
+   ]
+  }
+ ]
 }

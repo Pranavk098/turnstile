@@ -1,0 +1,396 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260914-045",
+      "agent_version": "voice-agent@3.3.0",
+      "scenario_id": "order_status",
+      "started_at": "2026-09-14T13:15:05Z",
+      "ended_at": "2026-09-14T13:15:23Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 6721,
+        "barge_in": true,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260914-045:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2410,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.41,
+            "is_streaming": true,
+            "transcript": "Can you tell me when order 17111 will ship?",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260914-045:t0:llm",
+            "start_offset_ms": 2914,
+            "duration_ms": 610,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 2173,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status",
+              "other"
+            ],
+            "output_text": "Let me check the status of that order for you.",
+            "latency_ms": 610,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "ing-20260914-045:t0:tts",
+            "start_offset_ms": 3691,
+            "duration_ms": 2752,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 50,
+            "audio_seconds_generated": 2.752,
+            "text": "Let me check the status of that order for you."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260914-045:t0:play",
+            "start_offset_ms": 3691,
+            "duration_ms": 2752,
+            "chars_played": 33,
+            "audio_seconds_played": 2.752,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 6721,
+        "wall_end_ms": 12538,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260914-045:t1:llm",
+            "start_offset_ms": 806,
+            "duration_ms": 933,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 2259,
+            "output_tokens": 26,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_order",
+            "decision_candidates": [
+              "lookup_order"
+            ],
+            "output_text": "Your order 17111 shipped and is out for delivery today.",
+            "latency_ms": 933,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260914-045:t1:tool0",
+            "start_offset_ms": 252,
+            "duration_ms": 874,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:85fded7dc6b6159ecb211c93e907f3b5d89b4c0244226331bbadda46e20649a1",
+            "args_json": "{\"customer_id\":\"C-29920\",\"ref\":\"17111\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 874,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "ing-20260914-045:t1:tts",
+            "start_offset_ms": 1380,
+            "duration_ms": 3957,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 61,
+            "audio_seconds_generated": 3.957,
+            "text": "Your order 17111 shipped and is out for delivery today."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260914-045:t1:play",
+            "start_offset_ms": 1380,
+            "duration_ms": 3957,
+            "chars_played": 61,
+            "audio_seconds_played": 3.957,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 12538,
+        "wall_end_ms": 18486,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260914-045:t2:llm",
+            "start_offset_ms": 567,
+            "duration_ms": 715,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 2371,
+            "output_tokens": 26,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "close_call",
+            "decision_candidates": [
+              "close_call"
+            ],
+            "output_text": "All sorted. Have a great day, bye!",
+            "latency_ms": 715,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "ing-20260914-045:t2:tts",
+            "start_offset_ms": 1344,
+            "duration_ms": 4356,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 43,
+            "audio_seconds_generated": 4.356,
+            "text": "All sorted. Have a great day, bye!"
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260914-045:t2:play",
+            "start_offset_ms": 1344,
+            "duration_ms": 4356,
+            "chars_played": 43,
+            "audio_seconds_played": 4.356,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260914-045:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 18000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 19
+    }
+  },
+  "span_costs": {
+    "ing-20260914-045:t0:asr": 0.00017271666666666667,
+    "ing-20260914-045:t0:llm": 0.00057525,
+    "ing-20260914-045:t0:tts": 0.0012500000000000002,
+    "ing-20260914-045:t1:llm": 0.00012335000000000002,
+    "ing-20260914-045:t1:tts": 0.001525,
+    "ing-20260914-045:t2:llm": 0.0006447499999999999,
+    "ing-20260914-045:t2:tts": 0.001075
+  },
+  "turn_costs": [
+    0.0029765824660103147,
+    0.0024953382613869955,
+    0.0025858126059360234
+  ],
+  "conv_cost": 0.008057733333333334,
+  "stage_costs": {
+    "asr": 0.00017271666666666667,
+    "llm": 0.00134335,
+    "tts": 0.0038500000000000006,
+    "telephony": 0.002691666666666667
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": true,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:tts",
+      "waste_usd": 0.00043588000000000014,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 50,
+        "chars_played": 33,
+        "wasted_chars": 17,
+        "tts_waste_usd": 0.00042500000000000014,
+        "llm_waste_usd": 1.0880000000000001e-05
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:asr",
+      "waste_usd": 4.3066666666666665e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2610,
+        "gap_end_ms": 2914,
+        "silence_ms": 304,
+        "billed_wall_ms": 6721,
+        "attributed_to": "model",
+        "trailing_gap": false
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:tts",
+      "waste_usd": 3.938333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6443,
+        "gap_end_ms": 6721,
+        "silence_ms": 278,
+        "billed_wall_ms": 6721,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008240750000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6721,
+        "gap_end_ms": 12538,
+        "silence_ms": 5817,
+        "billed_wall_ms": 5817,
+        "attributed_to": "model",
+        "trailing_gap": true
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008426333333333335,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12538,
+        "gap_end_ms": 18486,
+        "silence_ms": 5948,
+        "billed_wall_ms": 5948,
+        "attributed_to": "model",
+        "trailing_gap": true
+      }
+    }
+  ],
+  "top_waste_usd": 0.0008426333333333335,
+  "_provenance": {
+    "ingest_call": "ing-20260914-045",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "present",
+        "reason": "tts/playback spans with G2 char counts"
+      },
+      "7": {
+        "status": "present",
+        "reason": "tts/playback spans with G2 char counts"
+      },
+      "8": {
+        "status": "present",
+        "reason": "telephony leg + complete span union"
+      }
+    },
+    "excluded_absent_classes": []
+  }
+}

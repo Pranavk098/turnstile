@@ -1,0 +1,350 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260912-026",
+      "agent_version": "voice-agent@3.2.1",
+      "scenario_id": "tech_support",
+      "started_at": "2026-09-12T14:02:05Z",
+      "ended_at": "2026-09-12T14:02:33Z",
+      "end_reason": "escalated",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 7671,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260912-026:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2064,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.064,
+            "is_streaming": true,
+            "transcript": "I can't log in, it says my password is wrong.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260912-026:t0:llm",
+            "start_offset_ms": 2870,
+            "duration_ms": 983,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1152,
+            "output_tokens": 13,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "tech_support",
+            "decision_candidates": [
+              "tech_support",
+              "other"
+            ],
+            "output_text": "Let me look into that with you.",
+            "latency_ms": 983,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 7671,
+        "wall_end_ms": 14206,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260912-026:t1:llm",
+            "start_offset_ms": 481,
+            "duration_ms": 905,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1347,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "search_kb",
+            "decision_candidates": [
+              "search_kb"
+            ],
+            "output_text": "Try restarting the router; here are the steps.",
+            "latency_ms": 905,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260912-026:t1:tool0",
+            "start_offset_ms": 538,
+            "duration_ms": 514,
+            "tool_name": "search_kb",
+            "args_hash": "sha256:6ce29536a056ada8c0a85b1d8232f7c4ab9daad8f206997e780ca2bf19eed4cc",
+            "args_json": "{\"customer_id\":\"C-17145\",\"ref\":\"14754\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 514,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 14206,
+        "wall_end_ms": 19023,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260912-026:t2:llm",
+            "start_offset_ms": 555,
+            "duration_ms": 809,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1136,
+            "output_tokens": 33,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "escalate_check",
+            "decision_chosen": "continue",
+            "decision_candidates": [
+              "continue"
+            ],
+            "output_text": "Let me check one more thing before I hand you over.",
+            "latency_ms": 809,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 3,
+        "speaker_first": "agent",
+        "wall_start_ms": 19023,
+        "wall_end_ms": 24002,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260912-026:t3:llm",
+            "start_offset_ms": 607,
+            "duration_ms": 775,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 1200,
+            "output_tokens": 25,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "escalate_check",
+            "decision_chosen": "continue",
+            "decision_candidates": [
+              "continue"
+            ],
+            "output_text": "Let me check one more thing before I hand you over.",
+            "latency_ms": 775,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 4,
+        "speaker_first": "agent",
+        "wall_start_ms": 24002,
+        "wall_end_ms": 28851,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260912-026:t4:llm",
+            "start_offset_ms": 428,
+            "duration_ms": 823,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1334,
+            "output_tokens": 19,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "escalate_check",
+            "decision_chosen": "escalate",
+            "decision_candidates": [
+              "escalate"
+            ],
+            "output_text": "I'm connecting you to a specialist now.",
+            "latency_ms": 823,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260912-026:t4:tool0",
+            "start_offset_ms": 233,
+            "duration_ms": 756,
+            "tool_name": "transfer_to_human",
+            "args_hash": "sha256:e776afe3233b737cc4275ada79ffa6e5d1150900e96e8583881043708ff20eec",
+            "args_json": "{\"customer_id\":\"C-17145\",\"queue\":\"tech_support\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 756,
+            "cost_usd": 0.0,
+            "tool_kind": "handoff",
+            "tool_status": "ok",
+            "effect": "committed"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260912-026:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 28000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 32
+    }
+  },
+  "span_costs": {
+    "ing-20260912-026:t0:asr": 0.00014792,
+    "ing-20260912-026:t0:llm": 6.280000000000001e-05,
+    "ing-20260912-026:t1:llm": 7.455000000000001e-05,
+    "ing-20260912-026:t2:llm": 7.000000000000001e-05,
+    "ing-20260912-026:t3:llm": 0.00035,
+    "ing-20260912-026:t4:llm": 7.429999999999999e-05
+  },
+  "turn_costs": [
+    0.00141605776992132,
+    0.0011013890465957276,
+    0.0008268911533973404,
+    0.0011323460769701802,
+    0.0008362192864487656
+  ],
+  "conv_cost": 0.005312903333333334,
+  "stage_costs": {
+    "asr": 0.00014792,
+    "llm": 0.0006316500000000001,
+    "tts": 0.0,
+    "telephony": 0.004533333333333334
+  },
+  "verdict": {
+    "label": "ESCALATED",
+    "confidence": 0.9,
+    "evidence": [
+      {
+        "source": "terminal_tool_state",
+        "tool_name": "transfer_to_human",
+        "tool_kind": "handoff",
+        "effect": "committed",
+        "tool_status": "ok",
+        "turn_index": 4,
+        "rule": "escalated_requires_handoff_committed",
+        "turn_of_no_return_source": "earliest_escalate_check",
+        "escalate_check_turn": 2
+      }
+    ],
+    "turn_of_no_return": 2
+  },
+  "findings": [
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260912-026:t2:llm",
+      "waste_usd": 0.002795456516816286,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      }
+    }
+  ],
+  "top_waste_usd": 0.002795456516816286,
+  "_provenance": {
+    "ingest_call": "ing-20260912-026",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      8
+    ]
+  }
+}

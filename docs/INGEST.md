@@ -6,7 +6,7 @@ the entire existing pipeline on it (price → adjudicate → detect → report).
 No schema change, no re-instrumentation of the pipeline.
 
 ```bash
-uv run python -m turnstile_ingest --sample                 # bundled 7-call sample
+uv run python -m turnstile_ingest --sample                 # bundled 50-call sample
 uv run python -m turnstile_ingest --in my-calls.json       # your file
 uv run python -m turnstile_ingest --in my-calls.json --out ./out
 ```

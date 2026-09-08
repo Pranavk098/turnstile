@@ -1,126 +1,1868 @@
 {
   "label": "ingested sample (7 calls)",
-  "n": 7,
+  "n": 50,
   "note": "SAMPLE aggregate over ingested calls -- not a production fleet. Ingested call logs via turnstile_ingest. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
   "provenance": "turnstile_ingest report over the bundled 7-call SAMPLE (not production data). LLM/tool layers from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry; D6/D7/D8 reported ABSENT where it does not.",
   "sample": true,
   "fleet": {
     "label": "ingested sample (7 calls)",
     "note": "SAMPLE aggregate over ingested calls -- not a production fleet. CPRC_naive/CPRC_loaded per PRD Sec.4.3. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
-    "n_conversations": 7,
-    "n_resolved": 5,
-    "total_cost_usd": 0.0464965,
-    "resolved_cost_usd": 0.030428499999999997,
-    "cprc_loaded": 0.0092993,
-    "cprc_naive": 0.0060856999999999994,
-    "recoverable_margin_pct": 2.685793554353553,
+    "n_conversations": 50,
+    "n_resolved": 33,
+    "total_cost_usd": 0.3222017483333333,
+    "resolved_cost_usd": 0.21501466333333333,
+    "cprc_loaded": 0.009763689343434342,
+    "cprc_naive": 0.0065155958585858586,
+    "recoverable_margin_pct": 2.5604454484415715,
     "stage_costs_usd": {
-      "asr": 0.0023864999999999997,
-      "llm": 0.00841,
-      "tts": 0.0,
-      "telephony": 0.0357
+      "asr": 0.009228731666666667,
+      "llm": 0.03185635,
+      "tts": 0.10162500000000005,
+      "telephony": 0.17949166666666674
     },
     "_provenance": {
-      "n": 7,
+      "n": 50,
       "sample": true,
       "note": "Ingested (non-synthetic) call logs via turnstile_ingest. LLM/tool layers measured from the log's own tokens and tool outcomes; acoustic layer (ASR/TTS/telephony) priced only where the log carries rate-resolvable telemetry. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings."
     }
   },
   "coverage_summary": {
-    "n_calls": 7,
+    "n_calls": 50,
     "calls_with_data_per_class": {
-      "1": 7,
-      "2": 7,
-      "3": 7,
-      "4": 7,
-      "5": 7,
-      "9": 7,
-      "10": 7
+      "1": 50,
+      "2": 50,
+      "3": 50,
+      "4": 50,
+      "5": 50,
+      "9": 50,
+      "10": 50,
+      "6": 24,
+      "7": 24,
+      "8": 24
     }
   },
   "calls": [
     {
-      "id": "ing-20260904-001",
-      "scenario_id": "billing_dispute",
-      "cost_usd": 0.006448166666666667,
-      "verdict": "RESOLVED",
-      "end_reason": "caller_hangup",
-      "n_turns": 4,
-      "top_waste": null,
-      "detail": "call-ing-20260904-001.json"
-    },
-    {
-      "id": "ing-20260904-002",
-      "scenario_id": "refund",
-      "cost_usd": 0.0070025,
-      "verdict": "RESOLVED",
-      "end_reason": "caller_hangup",
-      "n_turns": 4,
-      "top_waste": null,
-      "detail": "call-ing-20260904-002.json"
-    },
-    {
-      "id": "ing-20260904-003",
-      "scenario_id": "order_status",
-      "cost_usd": 0.004753333333333333,
-      "verdict": "RESOLVED",
-      "end_reason": "caller_hangup",
-      "n_turns": 3,
-      "top_waste": null,
-      "detail": "call-ing-20260904-003.json"
-    },
-    {
-      "id": "ing-20260904-004",
-      "scenario_id": "cancel_subscription",
-      "cost_usd": 0.007752666666666667,
-      "verdict": "PARTIALLY_RESOLVED",
-      "end_reason": "caller_hangup",
-      "n_turns": 4,
-      "top_waste": null,
-      "detail": "call-ing-20260904-004.json"
-    },
-    {
-      "id": "ing-20260904-005",
+      "id": "ing-20260910-000",
       "scenario_id": "appointment_reschedule",
-      "cost_usd": 0.007321666666666667,
+      "cost_usd": 0.008879795000000001,
       "verdict": "RESOLVED",
       "end_reason": "caller_hangup",
       "n_turns": 4,
-      "top_waste": null,
-      "detail": "call-ing-20260904-005.json"
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009001500000000001,
+        "span_id": "turn3:silence",
+        "turn_index": 3
+      },
+      "detail": "call-ing-20260910-000.json"
     },
     {
-      "id": "ing-20260904-006",
+      "id": "ing-20260910-001",
+      "scenario_id": "cancel_subscription",
+      "cost_usd": 0.00821287,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008718166666666667,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260910-001.json"
+    },
+    {
+      "id": "ing-20260910-002",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.0065531750000000005,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 1,
+        "waste_usd": 0.0015036,
+        "span_id": "ing-20260910-002:t0:llm",
+        "turn_index": 0
+      },
+      "detail": "call-ing-20260910-002.json"
+    },
+    {
+      "id": "ing-20260910-003",
       "scenario_id": "tech_support",
-      "cost_usd": 0.004902833333333334,
+      "cost_usd": 0.005370766666666667,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 1,
+        "waste_usd": 0.0017123999999999998,
+        "span_id": "ing-20260910-003:t0:llm",
+        "turn_index": 0
+      },
+      "detail": "call-ing-20260910-003.json"
+    },
+    {
+      "id": "ing-20260910-004",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.007206791666666667,
+      "verdict": "MISROUTED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0010256666666666667,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260910-004.json"
+    },
+    {
+      "id": "ing-20260910-005",
+      "scenario_id": "cancel_subscription",
+      "cost_usd": 0.008754705000000002,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009790583333333333,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260910-005.json"
+    },
+    {
+      "id": "ing-20260910-006",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.005853603333333334,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.0033190396199489266,
+        "span_id": "ing-20260910-006:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260910-006.json"
+    },
+    {
+      "id": "ing-20260910-007",
+      "scenario_id": "order_status",
+      "cost_usd": 0.004666925,
       "verdict": "RESOLVED",
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
-      "detail": "call-ing-20260904-006.json"
+      "detail": "call-ing-20260910-007.json"
     },
     {
-      "id": "ing-20260904-007",
+      "id": "ing-20260910-008",
       "scenario_id": "billing_dispute",
-      "cost_usd": 0.008315333333333334,
+      "cost_usd": 0.0050451083333333336,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.00301853666851058,
+        "span_id": "ing-20260910-008:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260910-008.json"
+    },
+    {
+      "id": "ing-20260910-009",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.009189598333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009058166666666668,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260910-009.json"
+    },
+    {
+      "id": "ing-20260911-010",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007791753333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0010116416666666667,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260911-010.json"
+    },
+    {
+      "id": "ing-20260911-011",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007799978333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009095,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260911-011.json"
+    },
+    {
+      "id": "ing-20260911-012",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007623431666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008314416666666667,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260911-012.json"
+    },
+    {
+      "id": "ing-20260911-013",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007312845,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008866916666666667,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260911-013.json"
+    },
+    {
+      "id": "ing-20260911-014",
+      "scenario_id": "order_status",
+      "cost_usd": 0.004429553333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260911-014.json"
+    },
+    {
+      "id": "ing-20260911-015",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.01208331,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.007329670031184078,
+        "span_id": "ing-20260911-015:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260911-015.json"
+    },
+    {
+      "id": "ing-20260911-016",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.004312321666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260911-016.json"
+    },
+    {
+      "id": "ing-20260911-017",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.004696485,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260911-017.json"
+    },
+    {
+      "id": "ing-20260911-018",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.004449583333333334,
       "verdict": "ESCALATED",
       "end_reason": "escalated",
       "n_turns": 4,
       "top_waste": {
         "class_id": 9,
-        "waste_usd": 0.004410981481481483,
-        "span_id": "ing-20260904-007:t2:llm",
+        "waste_usd": 0.001851793125512495,
+        "span_id": "ing-20260911-018:t2:llm",
         "turn_index": 2
       },
-      "detail": "call-ing-20260904-007.json"
+      "detail": "call-ing-20260911-018.json"
+    },
+    {
+      "id": "ing-20260911-019",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.0034934383333333338,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260911-019.json"
+    },
+    {
+      "id": "ing-20260912-020",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.009276553333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.000905675,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-020.json"
+    },
+    {
+      "id": "ing-20260912-021",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.009329716666666668,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009996,
+        "span_id": "turn3:silence",
+        "turn_index": 3
+      },
+      "detail": "call-ing-20260912-021.json"
+    },
+    {
+      "id": "ing-20260912-022",
+      "scenario_id": "cancel_subscription",
+      "cost_usd": 0.005363861666666667,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.0027936254090572626,
+        "span_id": "ing-20260912-022:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-022.json"
+    },
+    {
+      "id": "ing-20260912-023",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0035873783333333336,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260912-023.json"
+    },
+    {
+      "id": "ing-20260912-024",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.0033833183333333338,
+      "verdict": "MISROUTED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260912-024.json"
+    },
+    {
+      "id": "ing-20260912-025",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.007928111666666668,
+      "verdict": "PARTIALLY_RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009069500000000001,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-025.json"
+    },
+    {
+      "id": "ing-20260912-026",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.005312903333333334,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.002795456516816286,
+        "span_id": "ing-20260912-026:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-026.json"
+    },
+    {
+      "id": "ing-20260912-027",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.0062428250000000005,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 5,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.003763182264409099,
+        "span_id": "ing-20260912-027:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-027.json"
+    },
+    {
+      "id": "ing-20260912-028",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.007587558333333334,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008424916666666668,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260912-028.json"
+    },
+    {
+      "id": "ing-20260912-029",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.010446893333333334,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.004530427711509598,
+        "span_id": "ing-20260912-029:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260912-029.json"
+    },
+    {
+      "id": "ing-20260913-030",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0040016900000000005,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260913-030.json"
+    },
+    {
+      "id": "ing-20260913-031",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.009522093333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008910833333333334,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260913-031.json"
+    },
+    {
+      "id": "ing-20260913-032",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.006689121666666667,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.000915875,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260913-032.json"
+    },
+    {
+      "id": "ing-20260913-033",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.0036353250000000004,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260913-033.json"
+    },
+    {
+      "id": "ing-20260913-034",
+      "scenario_id": "order_status",
+      "cost_usd": 0.004081603333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260913-034.json"
+    },
+    {
+      "id": "ing-20260913-035",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007301283333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0007021000000000001,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260913-035.json"
+    },
+    {
+      "id": "ing-20260913-036",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0038446983333333337,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260913-036.json"
+    },
+    {
+      "id": "ing-20260913-037",
+      "scenario_id": "order_status",
+      "cost_usd": 0.003967803333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260913-037.json"
+    },
+    {
+      "id": "ing-20260913-038",
+      "scenario_id": "appointment_reschedule",
+      "cost_usd": 0.00836834,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008126,
+        "span_id": "turn3:silence",
+        "turn_index": 3
+      },
+      "detail": "call-ing-20260913-038.json"
+    },
+    {
+      "id": "ing-20260913-039",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.007032386666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008327166666666667,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260913-039.json"
+    },
+    {
+      "id": "ing-20260914-040",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.00621494,
+      "verdict": "ESCALATED",
+      "end_reason": "escalated",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 9,
+        "waste_usd": 0.002041649143173024,
+        "span_id": "ing-20260914-040:t2:llm",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260914-040.json"
+    },
+    {
+      "id": "ing-20260914-041",
+      "scenario_id": "order_status",
+      "cost_usd": 0.009274973333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 1,
+        "waste_usd": 0.0015072,
+        "span_id": "ing-20260914-041:t0:llm",
+        "turn_index": 0
+      },
+      "detail": "call-ing-20260914-041.json"
+    },
+    {
+      "id": "ing-20260914-042",
+      "scenario_id": "order_status",
+      "cost_usd": 0.007230566666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.000933725,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260914-042.json"
+    },
+    {
+      "id": "ing-20260914-043",
+      "scenario_id": "refund",
+      "cost_usd": 0.0048680400000000006,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260914-043.json"
+    },
+    {
+      "id": "ing-20260914-044",
+      "scenario_id": "order_status",
+      "cost_usd": 0.0040066983333333335,
+      "verdict": "ABANDONED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260914-044.json"
+    },
+    {
+      "id": "ing-20260914-045",
+      "scenario_id": "order_status",
+      "cost_usd": 0.008057733333333334,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0008426333333333335,
+        "span_id": "turn2:silence",
+        "turn_index": 2
+      },
+      "detail": "call-ing-20260914-045.json"
+    },
+    {
+      "id": "ing-20260914-046",
+      "scenario_id": "order_status",
+      "cost_usd": 0.003981076666666667,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260914-046.json"
+    },
+    {
+      "id": "ing-20260914-047",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.009766693333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": {
+        "class_id": 8,
+        "waste_usd": 0.0009310333333333334,
+        "span_id": "turn1:silence",
+        "turn_index": 1
+      },
+      "detail": "call-ing-20260914-047.json"
+    },
+    {
+      "id": "ing-20260914-048",
+      "scenario_id": "tech_support",
+      "cost_usd": 0.0038805533333333333,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 3,
+      "top_waste": null,
+      "detail": "call-ing-20260914-048.json"
+    },
+    {
+      "id": "ing-20260914-049",
+      "scenario_id": "billing_dispute",
+      "cost_usd": 0.00429097,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "detail": "call-ing-20260914-049.json"
     }
   ],
   "findings": [
     {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-000:t0:asr",
+      "waste_usd": 4.561666666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2029,
+        "gap_end_ms": 2351,
+        "silence_ms": 322,
+        "billed_wall_ms": 7842,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260910-000"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-000:t0:tts",
+      "waste_usd": 7.961666666666669e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7280,
+        "gap_end_ms": 7842,
+        "silence_ms": 562,
+        "billed_wall_ms": 7842,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-000"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008570833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7842,
+        "gap_end_ms": 13892,
+        "silence_ms": 6050,
+        "billed_wall_ms": 6050,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-000"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007172583333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13892,
+        "gap_end_ms": 18955,
+        "silence_ms": 5063,
+        "billed_wall_ms": 5063,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-000"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0009001500000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 18955,
+        "gap_end_ms": 25309,
+        "silence_ms": 6354,
+        "billed_wall_ms": 6354,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-000"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-001:t0:asr",
+      "waste_usd": 8.174166666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2374,
+        "gap_end_ms": 2951,
+        "silence_ms": 577,
+        "billed_wall_ms": 6653,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260910-001"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-001:t0:tts",
+      "waste_usd": 3.966666666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6373,
+        "gap_end_ms": 6653,
+        "silence_ms": 280,
+        "billed_wall_ms": 6653,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-001"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008718166666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6653,
+        "gap_end_ms": 12807,
+        "silence_ms": 6154,
+        "billed_wall_ms": 6154,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-001"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007995666666666668,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12807,
+        "gap_end_ms": 18451,
+        "silence_ms": 5644,
+        "billed_wall_ms": 5644,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-001"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0007705250000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 18451,
+        "gap_end_ms": 23890,
+        "silence_ms": 5439,
+        "billed_wall_ms": 5439,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-001"
+    },
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "ing-20260910-002:t0:llm",
+      "waste_usd": 0.0015036,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 13,
+        "actual_cost_usd": 0.00156625,
+        "cheapest_tier_cost_usd": 6.265e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      },
+      "call_id": "ing-20260910-002"
+    },
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "ing-20260910-003:t0:llm",
+      "waste_usd": 0.0017123999999999998,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 30,
+        "actual_cost_usd": 0.0017837499999999997,
+        "cheapest_tier_cost_usd": 7.135e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      },
+      "call_id": "ing-20260910-003"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-004:t0:asr",
+      "waste_usd": 5.7375000000000005e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2905,
+        "gap_end_ms": 3310,
+        "silence_ms": 405,
+        "billed_wall_ms": 7608,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260910-004"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-004:t0:tts",
+      "waste_usd": 9.109166666666668e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6965,
+        "gap_end_ms": 7608,
+        "silence_ms": 643,
+        "billed_wall_ms": 7608,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-004"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0010256666666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7608,
+        "gap_end_ms": 14848,
+        "silence_ms": 7240,
+        "billed_wall_ms": 7240,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-004"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007287333333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14848,
+        "gap_end_ms": 19992,
+        "silence_ms": 5144,
+        "billed_wall_ms": 5144,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-004"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260910-005:t0:tts",
+      "waste_usd": 0.0004788,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 40,
+        "chars_played": 21,
+        "wasted_chars": 19,
+        "tts_waste_usd": 0.000475,
+        "llm_waste_usd": 3.8000000000000005e-06
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-005:t0:asr",
+      "waste_usd": 4.08e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2661,
+        "gap_end_ms": 2949,
+        "silence_ms": 288,
+        "billed_wall_ms": 7964,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-005:t0:tts",
+      "waste_usd": 3.513333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7716,
+        "gap_end_ms": 7964,
+        "silence_ms": 248,
+        "billed_wall_ms": 7964,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009790583333333333,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7964,
+        "gap_end_ms": 14875,
+        "silence_ms": 6911,
+        "billed_wall_ms": 6911,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008417833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14875,
+        "gap_end_ms": 20817,
+        "silence_ms": 5942,
+        "billed_wall_ms": 5942,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0009079416666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 20817,
+        "gap_end_ms": 27226,
+        "silence_ms": 6409,
+        "billed_wall_ms": 6409,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-005"
+    },
+    {
       "class_id": 9,
       "turn_index": 2,
-      "span_id": "ing-20260904-007:t2:llm",
-      "waste_usd": 0.004410981481481483,
+      "span_id": "ing-20260910-006:t2:llm",
+      "waste_usd": 0.0033190396199489266,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260910-006"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260910-008:t2:llm",
+      "waste_usd": 0.00301853666851058,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260910-008"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260910-009:t0:tts",
+      "waste_usd": 0.00027714054054054054,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 37,
+        "chars_played": 26,
+        "wasted_chars": 11,
+        "tts_waste_usd": 0.000275,
+        "llm_waste_usd": 2.140540540540541e-06
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-009:t0:asr",
+      "waste_usd": 9.066666666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3173,
+        "gap_end_ms": 3813,
+        "silence_ms": 640,
+        "billed_wall_ms": 7738,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260910-009:t0:tts",
+      "waste_usd": 3.300833333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7505,
+        "gap_end_ms": 7738,
+        "silence_ms": 233,
+        "billed_wall_ms": 7738,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009015666666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7738,
+        "gap_end_ms": 14102,
+        "silence_ms": 6364,
+        "billed_wall_ms": 6364,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0009058166666666668,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14102,
+        "gap_end_ms": 20496,
+        "silence_ms": 6394,
+        "billed_wall_ms": 6394,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0009007166666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 20496,
+        "gap_end_ms": 26854,
+        "silence_ms": 6358,
+        "billed_wall_ms": 6358,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260910-009"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260911-010:t0:tts",
+      "waste_usd": 0.0006312222222222223,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 45,
+        "chars_played": 20,
+        "wasted_chars": 25,
+        "tts_waste_usd": 0.000625,
+        "llm_waste_usd": 6.222222222222224e-06
+      },
+      "call_id": "ing-20260911-010"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-010:t0:asr",
+      "waste_usd": 4.08e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2034,
+        "gap_end_ms": 2322,
+        "silence_ms": 288,
+        "billed_wall_ms": 7709,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260911-010"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-010:t0:tts",
+      "waste_usd": 6.856666666666668e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7225,
+        "gap_end_ms": 7709,
+        "silence_ms": 484,
+        "billed_wall_ms": 7709,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-010"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009368416666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7709,
+        "gap_end_ms": 14322,
+        "silence_ms": 6613,
+        "billed_wall_ms": 6613,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-010"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0010116416666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14322,
+        "gap_end_ms": 21463,
+        "silence_ms": 7141,
+        "billed_wall_ms": 7141,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-010"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260911-011:t0:tts",
+      "waste_usd": 0.0005775446808510638,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 47,
+        "chars_played": 24,
+        "wasted_chars": 23,
+        "tts_waste_usd": 0.000575,
+        "llm_waste_usd": 2.54468085106383e-06
+      },
+      "call_id": "ing-20260911-011"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-011:t0:asr",
+      "waste_usd": 4.4200000000000004e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2049,
+        "gap_end_ms": 2361,
+        "silence_ms": 312,
+        "billed_wall_ms": 6420,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260911-011"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-011:t0:tts",
+      "waste_usd": 7.380833333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 5899,
+        "gap_end_ms": 6420,
+        "silence_ms": 521,
+        "billed_wall_ms": 6420,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-011"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009095,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6420,
+        "gap_end_ms": 12840,
+        "silence_ms": 6420,
+        "billed_wall_ms": 6420,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-011"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008494333333333335,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12840,
+        "gap_end_ms": 18836,
+        "silence_ms": 5996,
+        "billed_wall_ms": 5996,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-011"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-012:t0:asr",
+      "waste_usd": 3.74e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2603,
+        "gap_end_ms": 2867,
+        "silence_ms": 264,
+        "billed_wall_ms": 8792,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260911-012"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-012:t0:tts",
+      "waste_usd": 8.216666666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8212,
+        "gap_end_ms": 8792,
+        "silence_ms": 580,
+        "billed_wall_ms": 8792,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-012"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0007811500000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8792,
+        "gap_end_ms": 14306,
+        "silence_ms": 5514,
+        "billed_wall_ms": 5514,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-012"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008314416666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14306,
+        "gap_end_ms": 20175,
+        "silence_ms": 5869,
+        "billed_wall_ms": 5869,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-012"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260911-013:t0:tts",
+      "waste_usd": 0.0004781294117647059,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 51,
+        "chars_played": 32,
+        "wasted_chars": 19,
+        "tts_waste_usd": 0.00047500000000000005,
+        "llm_waste_usd": 3.1294117647058825e-06
+      },
+      "call_id": "ing-20260911-013"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-013:t0:asr",
+      "waste_usd": 6.658333333333333e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3039,
+        "gap_end_ms": 3509,
+        "silence_ms": 470,
+        "billed_wall_ms": 8331,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260911-013"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-013:t0:tts",
+      "waste_usd": 5.015e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7977,
+        "gap_end_ms": 8331,
+        "silence_ms": 354,
+        "billed_wall_ms": 8331,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-013"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0007319916666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8331,
+        "gap_end_ms": 13498,
+        "silence_ms": 5167,
+        "billed_wall_ms": 5167,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-013"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008866916666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13498,
+        "gap_end_ms": 19757,
+        "silence_ms": 6259,
+        "billed_wall_ms": 6259,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-013"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-015:t0:asr",
+      "waste_usd": 3.598333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2522,
+        "gap_end_ms": 2776,
+        "silence_ms": 254,
+        "billed_wall_ms": 8254,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260911-015:t0:tts",
+      "waste_usd": 5.525000000000001e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7864,
+        "gap_end_ms": 8254,
+        "silence_ms": 390,
+        "billed_wall_ms": 8254,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.00085935,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8254,
+        "gap_end_ms": 14320,
+        "silence_ms": 6066,
+        "billed_wall_ms": 6066,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0009728250000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14320,
+        "gap_end_ms": 21187,
+        "silence_ms": 6867,
+        "billed_wall_ms": 6867,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0007559333333333335,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 21187,
+        "gap_end_ms": 26523,
+        "silence_ms": 5336,
+        "billed_wall_ms": 5336,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 4,
+      "span_id": "turn4:silence",
+      "waste_usd": 0.00087635,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 26523,
+        "gap_end_ms": 32709,
+        "silence_ms": 6186,
+        "billed_wall_ms": 6186,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260911-015:t2:llm",
+      "waste_usd": 0.007329670031184078,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260911-015"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260911-018:t2:llm",
+      "waste_usd": 0.001851793125512495,
       "confidence": 0.5,
       "proposed_variant": {
         "escalation_policy": "threshold:0.85"
@@ -131,7 +1873,1544 @@
         "conversation_end_turn": 3,
         "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
       },
-      "call_id": "ing-20260904-007"
+      "call_id": "ing-20260911-018"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-020:t0:asr",
+      "waste_usd": 5.0575e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2524,
+        "gap_end_ms": 2881,
+        "silence_ms": 357,
+        "billed_wall_ms": 7364,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260912-020"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-020:t0:tts",
+      "waste_usd": 7.380833333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6843,
+        "gap_end_ms": 7364,
+        "silence_ms": 521,
+        "billed_wall_ms": 7364,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-020"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0007854,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7364,
+        "gap_end_ms": 12908,
+        "silence_ms": 5544,
+        "billed_wall_ms": 5544,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-020"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.000905675,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12908,
+        "gap_end_ms": 19301,
+        "silence_ms": 6393,
+        "billed_wall_ms": 6393,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-020"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0007142833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 19301,
+        "gap_end_ms": 24343,
+        "silence_ms": 5042,
+        "billed_wall_ms": 5042,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-020"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260912-021:t0:tts",
+      "waste_usd": 0.0007042560000000002,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 50,
+        "chars_played": 22,
+        "wasted_chars": 28,
+        "tts_waste_usd": 0.0007000000000000002,
+        "llm_waste_usd": 4.256e-06
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-021:t0:asr",
+      "waste_usd": 2.9325e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3150,
+        "gap_end_ms": 3357,
+        "silence_ms": 207,
+        "billed_wall_ms": 9092,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-021:t0:tts",
+      "waste_usd": 8.400833333333333e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8499,
+        "gap_end_ms": 9092,
+        "silence_ms": 593,
+        "billed_wall_ms": 9092,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009007166666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 9092,
+        "gap_end_ms": 15450,
+        "silence_ms": 6358,
+        "billed_wall_ms": 6358,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007753416666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 15450,
+        "gap_end_ms": 20923,
+        "silence_ms": 5473,
+        "billed_wall_ms": 5473,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0009996,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 20923,
+        "gap_end_ms": 27979,
+        "silence_ms": 7056,
+        "billed_wall_ms": 7056,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-021"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260912-022:t2:llm",
+      "waste_usd": 0.0027936254090572626,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260912-022"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-025:t0:asr",
+      "waste_usd": 3.343333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2619,
+        "gap_end_ms": 2855,
+        "silence_ms": 236,
+        "billed_wall_ms": 7132,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260912-025"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-025:t0:tts",
+      "waste_usd": 9.605000000000002e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6454,
+        "gap_end_ms": 7132,
+        "silence_ms": 678,
+        "billed_wall_ms": 7132,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-025"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008171333333333333,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7132,
+        "gap_end_ms": 12900,
+        "silence_ms": 5768,
+        "billed_wall_ms": 5768,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-025"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0009069500000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12900,
+        "gap_end_ms": 19302,
+        "silence_ms": 6402,
+        "billed_wall_ms": 6402,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-025"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260912-026:t2:llm",
+      "waste_usd": 0.002795456516816286,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260912-026"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260912-027:t2:llm",
+      "waste_usd": 0.003763182264409099,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 4,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260912-027"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-028:t0:asr",
+      "waste_usd": 9.024166666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3005,
+        "gap_end_ms": 3642,
+        "silence_ms": 637,
+        "billed_wall_ms": 8402,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260912-028"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-028:t0:tts",
+      "waste_usd": 6.049166666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7975,
+        "gap_end_ms": 8402,
+        "silence_ms": 427,
+        "billed_wall_ms": 8402,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-028"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008424916666666668,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8402,
+        "gap_end_ms": 14349,
+        "silence_ms": 5947,
+        "billed_wall_ms": 5947,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-028"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008369666666666668,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14349,
+        "gap_end_ms": 20257,
+        "silence_ms": 5908,
+        "billed_wall_ms": 5908,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-028"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260912-029:t0:tts",
+      "waste_usd": 0.0007532903225806452,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 62,
+        "chars_played": 32,
+        "wasted_chars": 30,
+        "tts_waste_usd": 0.0007500000000000001,
+        "llm_waste_usd": 3.2903225806451615e-06
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-029:t0:asr",
+      "waste_usd": 9.335833333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2392,
+        "gap_end_ms": 3051,
+        "silence_ms": 659,
+        "billed_wall_ms": 6838,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260912-029:t0:tts",
+      "waste_usd": 6.488333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6380,
+        "gap_end_ms": 6838,
+        "silence_ms": 458,
+        "billed_wall_ms": 6838,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008866916666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6838,
+        "gap_end_ms": 13097,
+        "silence_ms": 6259,
+        "billed_wall_ms": 6259,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007854,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13097,
+        "gap_end_ms": 18641,
+        "silence_ms": 5544,
+        "billed_wall_ms": 5544,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0009459083333333333,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 18641,
+        "gap_end_ms": 25318,
+        "silence_ms": 6677,
+        "billed_wall_ms": 6677,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260912-029:t2:llm",
+      "waste_usd": 0.004530427711509598,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 3,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260912-029"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260913-031:t0:tts",
+      "waste_usd": 0.0004536679245283019,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 53,
+        "chars_played": 35,
+        "wasted_chars": 18,
+        "tts_waste_usd": 0.00045,
+        "llm_waste_usd": 3.6679245283018865e-06
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-031:t0:asr",
+      "waste_usd": 4.405833333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3322,
+        "gap_end_ms": 3633,
+        "silence_ms": 311,
+        "billed_wall_ms": 9187,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-031:t0:tts",
+      "waste_usd": 4.9441666666666665e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8838,
+        "gap_end_ms": 9187,
+        "silence_ms": 349,
+        "billed_wall_ms": 9187,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.00068255,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 9187,
+        "gap_end_ms": 14005,
+        "silence_ms": 4818,
+        "billed_wall_ms": 4818,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008910833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14005,
+        "gap_end_ms": 20295,
+        "silence_ms": 6290,
+        "billed_wall_ms": 6290,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0006819833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 20295,
+        "gap_end_ms": 25109,
+        "silence_ms": 4814,
+        "billed_wall_ms": 4814,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-031"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260913-032:t0:tts",
+      "waste_usd": 0.00030296470588235297,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 34,
+        "chars_played": 22,
+        "wasted_chars": 12,
+        "tts_waste_usd": 0.00030000000000000003,
+        "llm_waste_usd": 2.9647058823529414e-06
+      },
+      "call_id": "ing-20260913-032"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-032:t0:asr",
+      "waste_usd": 6.5875e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2041,
+        "gap_end_ms": 2506,
+        "silence_ms": 465,
+        "billed_wall_ms": 7387,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260913-032"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-032:t0:tts",
+      "waste_usd": 2.89e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7183,
+        "gap_end_ms": 7387,
+        "silence_ms": 204,
+        "billed_wall_ms": 7387,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-032"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.000915875,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7387,
+        "gap_end_ms": 13852,
+        "silence_ms": 6465,
+        "billed_wall_ms": 6465,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-032"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007780333333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13852,
+        "gap_end_ms": 19344,
+        "silence_ms": 5492,
+        "billed_wall_ms": 5492,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-032"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-035:t0:asr",
+      "waste_usd": 7.565000000000001e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2890,
+        "gap_end_ms": 3424,
+        "silence_ms": 534,
+        "billed_wall_ms": 7956,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260913-035"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-035:t0:tts",
+      "waste_usd": 5.525000000000001e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7566,
+        "gap_end_ms": 7956,
+        "silence_ms": 390,
+        "billed_wall_ms": 7956,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-035"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0006855250000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7956,
+        "gap_end_ms": 12795,
+        "silence_ms": 4839,
+        "billed_wall_ms": 4839,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-035"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007021000000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12795,
+        "gap_end_ms": 17751,
+        "silence_ms": 4956,
+        "billed_wall_ms": 4956,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-035"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-038:t0:asr",
+      "waste_usd": 3.74e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2708,
+        "gap_end_ms": 2972,
+        "silence_ms": 264,
+        "billed_wall_ms": 6800,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260913-038"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-038:t0:tts",
+      "waste_usd": 5.0858333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6441,
+        "gap_end_ms": 6800,
+        "silence_ms": 359,
+        "billed_wall_ms": 6800,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-038"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0005988250000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6800,
+        "gap_end_ms": 11027,
+        "silence_ms": 4227,
+        "billed_wall_ms": 4227,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-038"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0006955833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 11027,
+        "gap_end_ms": 15937,
+        "silence_ms": 4910,
+        "billed_wall_ms": 4910,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-038"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0008126,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 15937,
+        "gap_end_ms": 21673,
+        "silence_ms": 5736,
+        "billed_wall_ms": 5736,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-038"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:tts",
+      "waste_usd": 0.00040505263157894733,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 38,
+        "chars_played": 22,
+        "wasted_chars": 16,
+        "tts_waste_usd": 0.00039999999999999996,
+        "llm_waste_usd": 5.052631578947369e-06
+      },
+      "call_id": "ing-20260913-039"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:asr",
+      "waste_usd": 6.913333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3234,
+        "gap_end_ms": 3722,
+        "silence_ms": 488,
+        "billed_wall_ms": 8210,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260913-039"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:tts",
+      "waste_usd": 5.114166666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7849,
+        "gap_end_ms": 8210,
+        "silence_ms": 361,
+        "billed_wall_ms": 8210,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-039"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008327166666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8210,
+        "gap_end_ms": 14088,
+        "silence_ms": 5878,
+        "billed_wall_ms": 5878,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-039"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007974416666666666,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14088,
+        "gap_end_ms": 19717,
+        "silence_ms": 5629,
+        "billed_wall_ms": 5629,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260913-039"
+    },
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "ing-20260914-040:t0:llm",
+      "waste_usd": 0.0015084000000000002,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 29,
+        "actual_cost_usd": 0.0015712500000000002,
+        "cheapest_tier_cost_usd": 6.285000000000001e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      },
+      "call_id": "ing-20260914-040"
+    },
+    {
+      "class_id": 9,
+      "turn_index": 2,
+      "span_id": "ing-20260914-040:t2:llm",
+      "waste_usd": 0.002041649143173024,
+      "confidence": 0.5,
+      "proposed_variant": {
+        "escalation_policy": "threshold:0.85"
+      },
+      "evidence": {
+        "tier": 1,
+        "turn_of_no_return": 2,
+        "conversation_end_turn": 3,
+        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+      },
+      "call_id": "ing-20260914-040"
+    },
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "ing-20260914-041:t0:llm",
+      "waste_usd": 0.0015072,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 24,
+        "actual_cost_usd": 0.00157,
+        "cheapest_tier_cost_usd": 6.280000000000001e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      },
+      "call_id": "ing-20260914-041"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-041:t0:asr",
+      "waste_usd": 9.831666666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2938,
+        "gap_end_ms": 3632,
+        "silence_ms": 694,
+        "billed_wall_ms": 8886,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260914-041"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-041:t0:tts",
+      "waste_usd": 4.335e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8580,
+        "gap_end_ms": 8886,
+        "silence_ms": 306,
+        "billed_wall_ms": 8886,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-041"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009484583333333335,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8886,
+        "gap_end_ms": 15581,
+        "silence_ms": 6695,
+        "billed_wall_ms": 6695,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-041"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008539666666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 15581,
+        "gap_end_ms": 21609,
+        "silence_ms": 6028,
+        "billed_wall_ms": 6028,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-041"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-042:t0:asr",
+      "waste_usd": 5.95e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2140,
+        "gap_end_ms": 2560,
+        "silence_ms": 420,
+        "billed_wall_ms": 7079,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260914-042"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-042:t0:tts",
+      "waste_usd": 7.055000000000001e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6581,
+        "gap_end_ms": 7079,
+        "silence_ms": 498,
+        "billed_wall_ms": 7079,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-042"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.000933725,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7079,
+        "gap_end_ms": 13670,
+        "silence_ms": 6591,
+        "billed_wall_ms": 6591,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-042"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008900916666666668,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13670,
+        "gap_end_ms": 19953,
+        "silence_ms": 6283,
+        "billed_wall_ms": 6283,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-042"
+    },
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:tts",
+      "waste_usd": 0.00043588000000000014,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 50,
+        "chars_played": 33,
+        "wasted_chars": 17,
+        "tts_waste_usd": 0.00042500000000000014,
+        "llm_waste_usd": 1.0880000000000001e-05
+      },
+      "call_id": "ing-20260914-045"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:asr",
+      "waste_usd": 4.3066666666666665e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2610,
+        "gap_end_ms": 2914,
+        "silence_ms": 304,
+        "billed_wall_ms": 6721,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260914-045"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-045:t0:tts",
+      "waste_usd": 3.938333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6443,
+        "gap_end_ms": 6721,
+        "silence_ms": 278,
+        "billed_wall_ms": 6721,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-045"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008240750000000001,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6721,
+        "gap_end_ms": 12538,
+        "silence_ms": 5817,
+        "billed_wall_ms": 5817,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-045"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008426333333333335,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 12538,
+        "gap_end_ms": 18486,
+        "silence_ms": 5948,
+        "billed_wall_ms": 5948,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-045"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-047:t0:asr",
+      "waste_usd": 4.0516666666666664e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 2562,
+        "gap_end_ms": 2848,
+        "silence_ms": 286,
+        "billed_wall_ms": 6898,
+        "attributed_to": "model",
+        "trailing_gap": false
+      },
+      "call_id": "ing-20260914-047"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260914-047:t0:tts",
+      "waste_usd": 9.746666666666666e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6210,
+        "gap_end_ms": 6898,
+        "silence_ms": 688,
+        "billed_wall_ms": 6898,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-047"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0009310333333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 6898,
+        "gap_end_ms": 13470,
+        "silence_ms": 6572,
+        "billed_wall_ms": 6572,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-047"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0008978833333333334,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 13470,
+        "gap_end_ms": 19808,
+        "silence_ms": 6338,
+        "billed_wall_ms": 6338,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-047"
+    },
+    {
+      "class_id": 8,
+      "turn_index": 3,
+      "span_id": "turn3:silence",
+      "waste_usd": 0.0008199666666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 19808,
+        "gap_end_ms": 25596,
+        "silence_ms": 5788,
+        "billed_wall_ms": 5788,
+        "attributed_to": "model",
+        "trailing_gap": true
+      },
+      "call_id": "ing-20260914-047"
     }
   ]
 }

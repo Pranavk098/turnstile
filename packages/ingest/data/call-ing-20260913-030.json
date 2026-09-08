@@ -1,0 +1,242 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260913-030",
+      "agent_version": "voice-agent@3.1.7",
+      "scenario_id": "order_status",
+      "started_at": "2026-09-13T08:30:05Z",
+      "ended_at": "2026-09-13T08:30:27Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 9414,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260913-030:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 3198,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 3.198,
+            "is_streaming": true,
+            "transcript": "I just want a tracking update on my recent order.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-030:t0:llm",
+            "start_offset_ms": 3874,
+            "duration_ms": 704,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 2089,
+            "output_tokens": 25,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status",
+              "other"
+            ],
+            "output_text": "One moment, I'll pull up the tracking.",
+            "latency_ms": 704,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 9414,
+        "wall_end_ms": 15594,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-030:t1:llm",
+            "start_offset_ms": 482,
+            "duration_ms": 812,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 2224,
+            "output_tokens": 31,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_order",
+            "decision_candidates": [
+              "lookup_order"
+            ],
+            "output_text": "Your order 82078 shipped and is out for delivery today.",
+            "latency_ms": 812,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260913-030:t1:tool0",
+            "start_offset_ms": 248,
+            "duration_ms": 664,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:b2f12fdb91e6f31733082b6259916fdb8ff3f0f2a9685fa956294dc7487904ef",
+            "args_json": "{\"customer_id\":\"C-35264\",\"ref\":\"82078\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 664,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 15594,
+        "wall_end_ms": 22346,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-030:t2:llm",
+            "start_offset_ms": 686,
+            "duration_ms": 975,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 2545,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "slot_fill",
+            "decision_chosen": "request_slot",
+            "decision_candidates": [
+              "request_slot"
+            ],
+            "output_text": "Can you confirm the last four digits on the account?",
+            "latency_ms": 975,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260913-030:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 22000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 24
+    }
+  },
+  "span_costs": {
+    "ing-20260913-030:t0:asr": 0.00022919,
+    "ing-20260913-030:t0:llm": 0.00011445000000000002,
+    "ing-20260913-030:t1:llm": 0.0001236,
+    "ing-20260913-030:t2:llm": 0.00013445000000000002
+  },
+  "turn_costs": [
+    0.0017760037340016112,
+    0.0010639025149914974,
+    0.0011617837510068914
+  ],
+  "conv_cost": 0.0040016900000000005,
+  "stage_costs": {
+    "asr": 0.00022919,
+    "llm": 0.0003725,
+    "tts": 0.0,
+    "telephony": 0.0034000000000000002
+  },
+  "verdict": {
+    "label": "ABANDONED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "slot_completion+caller_confirmation",
+        "rule": "caller_hangup_mid_slot_fill",
+        "end_reason": "caller_hangup",
+        "final_decision_kind": "slot_fill",
+        "final_output_text": "Can you confirm the last four digits on the account?",
+        "turn_index": 2,
+        "note": "caller hung up while agent was still gathering a required slot; no terminal completion."
+      }
+    ],
+    "turn_of_no_return": 2
+  },
+  "findings": [],
+  "top_waste_usd": null,
+  "_provenance": {
+    "ingest_call": "ing-20260913-030",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      8
+    ]
+  }
+}

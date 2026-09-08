@@ -70,7 +70,7 @@ zero-delta paid no-op). Sets: `VARIANTS` (backend-executable), `REPRICING_VARIAN
   (2026-09 reconciliation). It is "the recoverable margin ON THIS fleet," and it
   differs by population: **0.57%** over the 250-trace synthetic corpus (the
   reproducible reference, README/METHOD), **1.32%** over the 23 golden fixtures
-  (the dashboard fleet), **2.69%** over the 7-call ingest sample — each correct on
+  (the dashboard fleet), **2.56%** over the 50-call realistic ingest sample — each correct on
   its data. Rule: **every surface stamps its margin with (n, dataset), and no text
   cites a different dataset's number than the one it displays.** The demo headline
   is the number for the data being shown; ultimately "your margin on your calls."

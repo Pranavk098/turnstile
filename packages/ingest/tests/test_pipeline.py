@@ -173,9 +173,13 @@ def test_committed_data_artifact_is_dashboard_readable():
         assert detail["conv_cost"] == row["cost_usd"]
         coverage = detail["_provenance"]["coverage"]
         assert len(coverage) == 10
-        # The dashboard's acoustic rule: no G2 fields -> no D6/D7/D8 findings.
-        assert "no data for this input" in coverage["8"]["reason"]
-        assert not any(f["class_id"] in (6, 7, 8) for f in detail["findings"])
+        # Acoustic rule, per call: no G2 fields -> D6/D7/D8 absent + no findings;
+        # with G2 fields they are present and may carry findings.
+        if coverage["8"]["status"] == "absent":
+            assert "no data for this input" in coverage["8"]["reason"]
+            assert not any(f["class_id"] in (6, 7, 8) for f in detail["findings"])
+        else:
+            assert coverage["8"]["status"] == "present"
 
 
 def test_index_top_waste_matches_golden_shape():

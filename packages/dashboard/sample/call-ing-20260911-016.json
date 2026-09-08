@@ -1,11 +1,11 @@
 {
   "trace": {
     "conversation": {
-      "conversation_id": "ing-20260904-005",
-      "agent_version": "voice-agent@3.2.1",
-      "scenario_id": "appointment_reschedule",
-      "started_at": "2026-09-04T13:47:19Z",
-      "ended_at": "2026-09-04T13:47:55Z",
+      "conversation_id": "ing-20260911-016",
+      "agent_version": "voice-agent@3.3.0",
+      "scenario_id": "billing_dispute",
+      "started_at": "2026-09-11T14:52:05Z",
+      "ended_at": "2026-09-11T14:52:29Z",
       "end_reason": "caller_hangup",
       "schema_version": "1.1"
     },
@@ -14,42 +14,43 @@
         "turn_index": 0,
         "speaker_first": "caller",
         "wall_start_ms": 0,
-        "wall_end_ms": 7000,
+        "wall_end_ms": 8806,
         "barge_in": false,
         "vad": [],
         "asr": [
           {
-            "span_id": "ing-20260904-005:t0:asr",
+            "span_id": "ing-20260911-016:t0:asr",
             "start_offset_ms": 200,
-            "duration_ms": 2600,
+            "duration_ms": 3121,
             "gen_ai_system": "deepgram",
             "gen_ai_request_model": "nova-3",
-            "audio_seconds": 2.6,
+            "audio_seconds": 3.121,
             "is_streaming": true,
-            "transcript": "I need to move my dentist appointment this Friday to sometime next week.",
+            "transcript": "Hi, I was charged twice for my September bill, can you fix that?",
             "confidence": 0.9
           }
         ],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-005:t0:llm",
-            "start_offset_ms": 2900,
-            "duration_ms": 650,
+            "span_id": "ing-20260911-016:t0:llm",
+            "start_offset_ms": 3588,
+            "duration_ms": 719,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 760,
-            "output_tokens": 11,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 934,
+            "output_tokens": 27,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "route",
-            "decision_chosen": "appointment_reschedule",
+            "decision_chosen": "billing_dispute",
             "decision_candidates": [
-              "appointment_reschedule"
+              "billing_dispute",
+              "other"
             ],
-            "output_text": "No problem, let me look at next week's availability.",
-            "latency_ms": 650,
+            "output_text": "I'm sorry about that, let me dig into the charge right now.",
+            "latency_ms": 719,
             "retry_of": null
           }
         ],
@@ -60,44 +61,44 @@
       {
         "turn_index": 1,
         "speaker_first": "agent",
-        "wall_start_ms": 7000,
-        "wall_end_ms": 16600,
+        "wall_start_ms": 8806,
+        "wall_end_ms": 14418,
         "barge_in": false,
         "vad": [],
         "asr": [],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-005:t1:llm",
-            "start_offset_ms": 7650,
-            "duration_ms": 900,
+            "span_id": "ing-20260911-016:t1:llm",
+            "start_offset_ms": 603,
+            "duration_ms": 902,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 1000,
-            "output_tokens": 28,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1167,
+            "output_tokens": 30,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
-            "decision_kind": "compose",
-            "decision_chosen": "offer_slots",
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_invoices",
             "decision_candidates": [
-              "offer_slots"
+              "lookup_invoices"
             ],
-            "output_text": "I have Tuesday at ten in the morning, or Thursday at three in the afternoon. Which suits you?",
-            "latency_ms": 900,
+            "output_text": "I found the charge from September. Let me apply the correction.",
+            "latency_ms": 902,
             "retry_of": null
           }
         ],
         "tools": [
           {
-            "span_id": "ing-20260904-005:t1:tool0",
-            "start_offset_ms": 7100,
-            "duration_ms": 450,
-            "tool_name": "lookup_appointments",
-            "args_hash": "sha256:b3008808f3ab8577191fd81cf6637e5ed14f8f4fb6184cb49fe635a906a740de",
-            "args_json": "{\"patient_id\":\"P-7712\",\"window\":\"next_week\"}",
+            "span_id": "ing-20260911-016:t1:tool0",
+            "start_offset_ms": 243,
+            "duration_ms": 616,
+            "tool_name": "lookup_invoices",
+            "args_hash": "sha256:7d745f6ad6ac3a9b8fd5284cb1382478dd41aaac3b2a04460e1fb1f56e531920",
+            "args_json": "{\"customer_id\":\"C-28925\",\"ref\":\"68434\"}",
             "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-            "latency_ms": 450,
+            "latency_ms": 616,
             "cost_usd": 0.0,
             "tool_kind": "lookup",
             "tool_status": "ok",
@@ -109,57 +110,45 @@
       },
       {
         "turn_index": 2,
-        "speaker_first": "caller",
-        "wall_start_ms": 16600,
-        "wall_end_ms": 25200,
+        "speaker_first": "agent",
+        "wall_start_ms": 14418,
+        "wall_end_ms": 19698,
         "barge_in": false,
         "vad": [],
-        "asr": [
-          {
-            "span_id": "ing-20260904-005:t2:asr",
-            "start_offset_ms": 16800,
-            "duration_ms": 1500,
-            "gen_ai_system": "deepgram",
-            "gen_ai_request_model": "nova-3",
-            "audio_seconds": 1.5,
-            "is_streaming": true,
-            "transcript": "Tuesday morning works for me.",
-            "confidence": 0.9
-          }
-        ],
+        "asr": [],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-005:t2:llm",
-            "start_offset_ms": 19300,
-            "duration_ms": 750,
+            "span_id": "ing-20260911-016:t2:llm",
+            "start_offset_ms": 624,
+            "duration_ms": 998,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 1260,
-            "output_tokens": 20,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1240,
+            "output_tokens": 19,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
-            "decision_kind": "slot_fill",
-            "decision_chosen": "tuesday_morning",
+            "decision_kind": "compose",
+            "decision_chosen": "complete_mutation",
             "decision_candidates": [
-              "tuesday_morning"
+              "complete_mutation"
             ],
-            "output_text": "Done, you're booked for Tuesday at ten. You'll get a text reminder the day before.",
-            "latency_ms": 750,
+            "output_text": "Done, that's corrected now.",
+            "latency_ms": 998,
             "retry_of": null
           }
         ],
         "tools": [
           {
-            "span_id": "ing-20260904-005:t2:tool0",
-            "start_offset_ms": 18400,
-            "duration_ms": 800,
-            "tool_name": "reschedule_appointment",
-            "args_hash": "sha256:5c36df36ad66874af8c9e438dee4b145465e7629ec1fc72b8263fcc3c84868fe",
-            "args_json": "{\"appointment_id\":\"APT-3391\",\"new_slot\":\"2026-09-08T10:00\"}",
+            "span_id": "ing-20260911-016:t2:tool0",
+            "start_offset_ms": 656,
+            "duration_ms": 567,
+            "tool_name": "adjust_billing",
+            "args_hash": "sha256:7d745f6ad6ac3a9b8fd5284cb1382478dd41aaac3b2a04460e1fb1f56e531920",
+            "args_json": "{\"customer_id\":\"C-28925\",\"ref\":\"68434\"}",
             "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-            "latency_ms": 800,
+            "latency_ms": 567,
             "cost_usd": 0.0,
             "tool_kind": "mutation",
             "tool_status": "ok",
@@ -171,44 +160,32 @@
       },
       {
         "turn_index": 3,
-        "speaker_first": "caller",
-        "wall_start_ms": 25200,
-        "wall_end_ms": 30600,
+        "speaker_first": "agent",
+        "wall_start_ms": 19698,
+        "wall_end_ms": 24659,
         "barge_in": false,
         "vad": [],
-        "asr": [
-          {
-            "span_id": "ing-20260904-005:t3:asr",
-            "start_offset_ms": 25400,
-            "duration_ms": 1300,
-            "gen_ai_system": "deepgram",
-            "gen_ai_request_model": "nova-3",
-            "audio_seconds": 1.3,
-            "is_streaming": true,
-            "transcript": "Wonderful, thanks. Bye.",
-            "confidence": 0.9
-          }
-        ],
+        "asr": [],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-005:t3:llm",
-            "start_offset_ms": 26800,
-            "duration_ms": 550,
+            "span_id": "ing-20260911-016:t3:llm",
+            "start_offset_ms": 890,
+            "duration_ms": 847,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 1500,
-            "output_tokens": 10,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1100,
+            "output_tokens": 28,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "compose",
-            "decision_chosen": "farewell",
+            "decision_chosen": "close_call",
             "decision_candidates": [
-              "farewell"
+              "close_call"
             ],
-            "output_text": "You're very welcome. Goodbye.",
-            "latency_ms": 550,
+            "output_text": "You're all set, anything else? Okay, take care!",
+            "latency_ms": 847,
             "retry_of": null
           }
         ],
@@ -218,35 +195,33 @@
       }
     ],
     "telephony": {
-      "span_id": "ing-20260904-005:leg",
+      "span_id": "ing-20260911-016:leg",
       "start_offset_ms": 0,
-      "duration_ms": 36000,
+      "duration_ms": 24000,
       "provider": "twilio",
       "direction": "inbound",
-      "billable_seconds": 40
+      "billable_seconds": 27
     }
   },
   "span_costs": {
-    "ing-20260904-005:t0:asr": 0.00018633333333333333,
-    "ing-20260904-005:t0:llm": 0.000212,
-    "ing-20260904-005:t1:llm": 0.000306,
-    "ing-20260904-005:t2:asr": 0.00010750000000000001,
-    "ing-20260904-005:t2:llm": 0.000355,
-    "ing-20260904-005:t3:asr": 9.316666666666666e-05,
-    "ing-20260904-005:t3:llm": 0.000395
+    "ing-20260911-016:t0:asr": 0.0002236716666666667,
+    "ing-20260911-016:t0:llm": 5.75e-05,
+    "ing-20260911-016:t1:llm": 7.035e-05,
+    "ing-20260911-016:t2:llm": 6.96e-05,
+    "ing-20260911-016:t3:llm": 6.620000000000001e-05
   },
   "turn_costs": [
-    0.0016946296296296297,
-    0.0020837777777777777,
-    0.0020550925925925927,
-    0.001488166666666667
+    0.0016471212185544158,
+    0.0009408597530313476,
+    0.0008886113143274262,
+    0.0008357293807534775
   ],
-  "conv_cost": 0.007321666666666667,
+  "conv_cost": 0.004312321666666667,
   "stage_costs": {
-    "asr": 0.000387,
-    "llm": 0.001268,
+    "asr": 0.0002236716666666667,
+    "llm": 0.00026365000000000004,
     "tts": 0.0,
-    "telephony": 0.005666666666666667
+    "telephony": 0.0038250000000000003
   },
   "verdict": {
     "label": "RESOLVED",
@@ -254,7 +229,7 @@
     "evidence": [
       {
         "source": "terminal_tool_state",
-        "tool_name": "reschedule_appointment",
+        "tool_name": "adjust_billing",
         "tool_kind": "mutation",
         "effect": "committed",
         "tool_status": "ok",
@@ -267,7 +242,7 @@
   "findings": [],
   "top_waste_usd": null,
   "_provenance": {
-    "ingest_call": "ing-20260904-005",
+    "ingest_call": "ing-20260911-016",
     "sample": true,
     "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
     "coverage": {

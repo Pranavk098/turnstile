@@ -1,0 +1,263 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260910-003",
+      "agent_version": "voice-agent@3.3.0",
+      "scenario_id": "tech_support",
+      "started_at": "2026-09-10T11:21:05Z",
+      "ended_at": "2026-09-10T11:21:25Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 8622,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260910-003:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2330,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.33,
+            "is_streaming": true,
+            "transcript": "My internet has been down since this morning.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260910-003:t0:llm",
+            "start_offset_ms": 2905,
+            "duration_ms": 753,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5",
+            "input_tokens": 1187,
+            "output_tokens": 30,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "tech_support",
+            "decision_candidates": [
+              "tech_support",
+              "other"
+            ],
+            "output_text": "I can help troubleshoot, one moment.",
+            "latency_ms": 753,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 8622,
+        "wall_end_ms": 14800,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260910-003:t1:llm",
+            "start_offset_ms": 784,
+            "duration_ms": 1034,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1360,
+            "output_tokens": 31,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "search_kb",
+            "decision_candidates": [
+              "search_kb"
+            ],
+            "output_text": "Try restarting the router; here are the steps.",
+            "latency_ms": 1034,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260910-003:t1:tool0",
+            "start_offset_ms": 156,
+            "duration_ms": 808,
+            "tool_name": "search_kb",
+            "args_hash": "sha256:d57679f5f521b60d144eae4ed4d4d119126e383c6135d40b2478935e3f341558",
+            "args_json": "{\"customer_id\":\"C-94809\",\"ref\":\"72128\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 808,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 14800,
+        "wall_end_ms": 20262,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260910-003:t2:llm",
+            "start_offset_ms": 684,
+            "duration_ms": 1000,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1386,
+            "output_tokens": 30,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "slot_fill",
+            "decision_chosen": "request_slot",
+            "decision_candidates": [
+              "request_slot"
+            ],
+            "output_text": "Can you confirm the last four digits on the account?",
+            "latency_ms": 1000,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260910-003:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 20000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 23
+    }
+  },
+  "span_costs": {
+    "ing-20260910-003:t0:asr": 0.00016698333333333334,
+    "ing-20260910-003:t0:llm": 0.0017837499999999997,
+    "ing-20260910-003:t1:llm": 8.040000000000002e-05,
+    "ing-20260910-003:t2:llm": 8.13e-05
+  },
+  "turn_costs": [
+    0.003337237627085184,
+    0.0010738845194617184,
+    0.0009596445201197646
+  ],
+  "conv_cost": 0.005370766666666667,
+  "stage_costs": {
+    "asr": 0.00016698333333333334,
+    "llm": 0.0019454499999999998,
+    "tts": 0.0,
+    "telephony": 0.003258333333333334
+  },
+  "verdict": {
+    "label": "ABANDONED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "slot_completion+caller_confirmation",
+        "rule": "caller_hangup_mid_slot_fill",
+        "end_reason": "caller_hangup",
+        "final_decision_kind": "slot_fill",
+        "final_output_text": "Can you confirm the last four digits on the account?",
+        "turn_index": 2,
+        "note": "caller hung up while agent was still gathering a required slot; no terminal completion."
+      }
+    ],
+    "turn_of_no_return": 2
+  },
+  "findings": [
+    {
+      "class_id": 1,
+      "turn_index": 0,
+      "span_id": "ing-20260910-003:t0:llm",
+      "waste_usd": 0.0017123999999999998,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "route": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "decision_kind": "route",
+        "model": "gpt-5",
+        "output_tokens": 30,
+        "actual_cost_usd": 0.0017837499999999997,
+        "cheapest_tier_cost_usd": 7.135e-05,
+        "cheapest_tier_model": "gpt-5-nano"
+      }
+    }
+  ],
+  "top_waste_usd": 0.0017123999999999998,
+  "_provenance": {
+    "ingest_call": "ing-20260910-003",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      8
+    ]
+  }
+}

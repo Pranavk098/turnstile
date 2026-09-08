@@ -1,0 +1,396 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260913-039",
+      "agent_version": "voice-agent@3.3.0",
+      "scenario_id": "tech_support",
+      "started_at": "2026-09-13T17:33:05Z",
+      "ended_at": "2026-09-13T17:33:24Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 8210,
+        "barge_in": true,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260913-039:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 3034,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 3.034,
+            "is_streaming": true,
+            "transcript": "My internet has been down since this morning.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-039:t0:llm",
+            "start_offset_ms": 3722,
+            "duration_ms": 984,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1067,
+            "output_tokens": 30,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "tech_support",
+            "decision_candidates": [
+              "tech_support",
+              "other"
+            ],
+            "output_text": "I can help troubleshoot, one moment.",
+            "latency_ms": 984,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "ing-20260913-039:t0:tts",
+            "start_offset_ms": 4580,
+            "duration_ms": 3269,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 38,
+            "audio_seconds_generated": 3.269,
+            "text": "I can help troubleshoot, one moment."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260913-039:t0:play",
+            "start_offset_ms": 4580,
+            "duration_ms": 3269,
+            "chars_played": 22,
+            "audio_seconds_played": 3.269,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 8210,
+        "wall_end_ms": 14088,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-039:t1:llm",
+            "start_offset_ms": 777,
+            "duration_ms": 841,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1317,
+            "output_tokens": 18,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "search_kb",
+            "decision_candidates": [
+              "search_kb"
+            ],
+            "output_text": "Try restarting the router; here are the steps.",
+            "latency_ms": 841,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260913-039:t1:tool0",
+            "start_offset_ms": 644,
+            "duration_ms": 854,
+            "tool_name": "search_kb",
+            "args_hash": "sha256:db9f5ce5db6cd30283ada5d5223ae7696f277c334cc56be4b914fab2787663ce",
+            "args_json": "{\"customer_id\":\"C-46921\",\"ref\":\"59507\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 854,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [
+          {
+            "span_id": "ing-20260913-039:t1:tts",
+            "start_offset_ms": 1366,
+            "duration_ms": 3971,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 48,
+            "audio_seconds_generated": 3.971,
+            "text": "Try restarting the router; here are the steps."
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260913-039:t1:play",
+            "start_offset_ms": 1366,
+            "duration_ms": 3971,
+            "chars_played": 48,
+            "audio_seconds_played": 3.971,
+            "truncated_by": null
+          }
+        ]
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 14088,
+        "wall_end_ms": 19717,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260913-039:t2:llm",
+            "start_offset_ms": 604,
+            "duration_ms": 830,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1283,
+            "output_tokens": 31,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "close_call",
+            "decision_candidates": [
+              "close_call"
+            ],
+            "output_text": "That's done. Is there anything else? Great, goodbye!",
+            "latency_ms": 830,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [
+          {
+            "span_id": "ing-20260913-039:t2:tts",
+            "start_offset_ms": 1204,
+            "duration_ms": 3857,
+            "gen_ai_system": "piper",
+            "chars_synthesized": 59,
+            "audio_seconds_generated": 3.857,
+            "text": "That's done. Is there anything else? Great, goodbye!"
+          }
+        ],
+        "playback": [
+          {
+            "span_id": "ing-20260913-039:t2:play",
+            "start_offset_ms": 1204,
+            "duration_ms": 3857,
+            "chars_played": 59,
+            "audio_seconds_played": 3.857,
+            "truncated_by": null
+          }
+        ]
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260913-039:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 19000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 21
+    }
+  },
+  "span_costs": {
+    "ing-20260913-039:t0:asr": 0.00021743666666666664,
+    "ing-20260913-039:t0:llm": 6.535e-05,
+    "ing-20260913-039:t0:tts": 0.00095,
+    "ing-20260913-039:t1:llm": 7.305e-05,
+    "ing-20260913-039:t1:tts": 0.0012000000000000001,
+    "ing-20260913-039:t2:llm": 7.655e-05,
+    "ing-20260913-039:t2:tts": 0.001475
+  },
+  "turn_costs": [
+    0.0024715527061250023,
+    0.0021599521656438607,
+    0.002400881794897804
+  ],
+  "conv_cost": 0.007032386666666667,
+  "stage_costs": {
+    "asr": 0.00021743666666666664,
+    "llm": 0.00021495,
+    "tts": 0.0036249999999999998,
+    "telephony": 0.002975
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": true,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [
+    {
+      "class_id": 7,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:tts",
+      "waste_usd": 0.00040505263157894733,
+      "confidence": 0.95,
+      "proposed_variant": {
+        "tts_chunking": "sentence"
+      },
+      "evidence": {
+        "chars_synthesized": 38,
+        "chars_played": 22,
+        "wasted_chars": 16,
+        "tts_waste_usd": 0.00039999999999999996,
+        "llm_waste_usd": 5.052631578947369e-06
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:asr",
+      "waste_usd": 6.913333333333334e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 3234,
+        "gap_end_ms": 3722,
+        "silence_ms": 488,
+        "billed_wall_ms": 8210,
+        "attributed_to": "model",
+        "trailing_gap": false
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 0,
+      "span_id": "ing-20260913-039:t0:tts",
+      "waste_usd": 5.114166666666667e-05,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 7849,
+        "gap_end_ms": 8210,
+        "silence_ms": 361,
+        "billed_wall_ms": 8210,
+        "attributed_to": "asr_endpoint",
+        "trailing_gap": true
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 1,
+      "span_id": "turn1:silence",
+      "waste_usd": 0.0008327166666666667,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 8210,
+        "gap_end_ms": 14088,
+        "silence_ms": 5878,
+        "billed_wall_ms": 5878,
+        "attributed_to": "model",
+        "trailing_gap": true
+      }
+    },
+    {
+      "class_id": 8,
+      "turn_index": 2,
+      "span_id": "turn2:silence",
+      "waste_usd": 0.0007974416666666666,
+      "confidence": 0.9,
+      "proposed_variant": {
+        "model_routing": {
+          "compose": "gpt-5-nano"
+        }
+      },
+      "evidence": {
+        "gap_start_ms": 14088,
+        "gap_end_ms": 19717,
+        "silence_ms": 5629,
+        "billed_wall_ms": 5629,
+        "attributed_to": "model",
+        "trailing_gap": true
+      }
+    }
+  ],
+  "top_waste_usd": 0.0008327166666666667,
+  "_provenance": {
+    "ingest_call": "ing-20260913-039",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "present",
+        "reason": "tts/playback spans with G2 char counts"
+      },
+      "7": {
+        "status": "present",
+        "reason": "tts/playback spans with G2 char counts"
+      },
+      "8": {
+        "status": "present",
+        "reason": "telephony leg + complete span union"
+      }
+    },
+    "excluded_absent_classes": []
+  }
+}

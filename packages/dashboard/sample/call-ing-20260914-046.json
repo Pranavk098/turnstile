@@ -1,11 +1,11 @@
 {
   "trace": {
     "conversation": {
-      "conversation_id": "ing-20260904-006",
-      "agent_version": "voice-agent@3.2.1",
-      "scenario_id": "tech_support",
-      "started_at": "2026-09-04T15:22:38Z",
-      "ended_at": "2026-09-04T15:23:00Z",
+      "conversation_id": "ing-20260914-046",
+      "agent_version": "voice-agent@3.3.0",
+      "scenario_id": "order_status",
+      "started_at": "2026-09-14T14:22:05Z",
+      "ended_at": "2026-09-14T14:22:25Z",
       "end_reason": "caller_hangup",
       "schema_version": "1.1"
     },
@@ -14,42 +14,43 @@
         "turn_index": 0,
         "speaker_first": "caller",
         "wall_start_ms": 0,
-        "wall_end_ms": 6400,
+        "wall_end_ms": 8964,
         "barge_in": false,
         "vad": [],
         "asr": [
           {
-            "span_id": "ing-20260904-006:t0:asr",
+            "span_id": "ing-20260914-046:t0:asr",
             "start_offset_ms": 200,
-            "duration_ms": 2500,
+            "duration_ms": 2762,
             "gen_ai_system": "deepgram",
             "gen_ai_request_model": "nova-3",
-            "audio_seconds": 2.5,
+            "audio_seconds": 2.762,
             "is_streaming": true,
-            "transcript": "My router keeps dropping the connection every evening around eight.",
+            "transcript": "I just want a tracking update on my recent order.",
             "confidence": 0.9
           }
         ],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-006:t0:llm",
-            "start_offset_ms": 2800,
-            "duration_ms": 650,
+            "span_id": "ing-20260914-046:t0:llm",
+            "start_offset_ms": 3655,
+            "duration_ms": 981,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 780,
-            "output_tokens": 12,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1048,
+            "output_tokens": 25,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "route",
-            "decision_chosen": "tech_support",
+            "decision_chosen": "order_status",
             "decision_candidates": [
-              "tech_support"
+              "order_status",
+              "other"
             ],
-            "output_text": "That sounds frustrating. Let me find the fix for that model.",
-            "latency_ms": 650,
+            "output_text": "One moment, I'll pull up the tracking.",
+            "latency_ms": 981,
             "retry_of": null
           }
         ],
@@ -60,44 +61,44 @@
       {
         "turn_index": 1,
         "speaker_first": "agent",
-        "wall_start_ms": 6400,
-        "wall_end_ms": 16200,
+        "wall_start_ms": 8964,
+        "wall_end_ms": 14860,
         "barge_in": false,
         "vad": [],
         "asr": [],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-006:t1:llm",
-            "start_offset_ms": 7000,
-            "duration_ms": 950,
+            "span_id": "ing-20260914-046:t1:llm",
+            "start_offset_ms": 566,
+            "duration_ms": 787,
             "gen_ai_system": "openai",
-            "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 1040,
-            "output_tokens": 38,
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 1493,
+            "output_tokens": 30,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
-            "decision_kind": "compose",
-            "decision_chosen": "give_steps",
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_order",
             "decision_candidates": [
-              "give_steps"
+              "lookup_order"
             ],
-            "output_text": "This is usually the auto channel scan. Open the router app, turn off auto channel, and set channel six. Then restart the router.",
-            "latency_ms": 950,
+            "output_text": "Your order 95712 shipped and is out for delivery today.",
+            "latency_ms": 787,
             "retry_of": null
           }
         ],
         "tools": [
           {
-            "span_id": "ing-20260904-006:t1:tool0",
-            "start_offset_ms": 6500,
-            "duration_ms": 380,
-            "tool_name": "lookup_article",
-            "args_hash": "sha256:4385893c0f28a822836d02ae88a8f5d99376181e9cef9a0b2c4a77b6ad6bfa31",
-            "args_json": "{\"model\":\"RX-500\",\"topic\":\"router_evening_disconnects\"}",
+            "span_id": "ing-20260914-046:t1:tool0",
+            "start_offset_ms": 635,
+            "duration_ms": 421,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:528ae928acb218bdb0ba8d5d14b4ee013002e88315b1c0602d97548e39176deb",
+            "args_json": "{\"customer_id\":\"C-54942\",\"ref\":\"95712\"}",
             "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-            "latency_ms": 380,
+            "latency_ms": 421,
             "cost_usd": 0.0,
             "tool_kind": "lookup",
             "tool_status": "ok",
@@ -109,44 +110,32 @@
       },
       {
         "turn_index": 2,
-        "speaker_first": "caller",
-        "wall_start_ms": 16200,
-        "wall_end_ms": 20600,
+        "speaker_first": "agent",
+        "wall_start_ms": 14860,
+        "wall_end_ms": 20142,
         "barge_in": false,
         "vad": [],
-        "asr": [
-          {
-            "span_id": "ing-20260904-006:t2:asr",
-            "start_offset_ms": 16400,
-            "duration_ms": 2000,
-            "gen_ai_system": "deepgram",
-            "gen_ai_request_model": "nova-3",
-            "audio_seconds": 2.0,
-            "is_streaming": true,
-            "transcript": "Let me try that. Okay, it's back online. Thanks!",
-            "confidence": 0.9
-          }
-        ],
+        "asr": [],
         "context": null,
         "llm": [
           {
-            "span_id": "ing-20260904-006:t2:llm",
-            "start_offset_ms": 18500,
-            "duration_ms": 550,
+            "span_id": "ing-20260914-046:t2:llm",
+            "start_offset_ms": 837,
+            "duration_ms": 789,
             "gen_ai_system": "openai",
             "gen_ai_request_model": "gpt-5-mini",
-            "input_tokens": 1280,
-            "output_tokens": 11,
+            "input_tokens": 1239,
+            "output_tokens": 33,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "reasoning_tokens": 0,
             "decision_kind": "compose",
-            "decision_chosen": "farewell",
+            "decision_chosen": "close_call",
             "decision_candidates": [
-              "farewell"
+              "close_call"
             ],
-            "output_text": "Glad that worked. Anything else? Goodbye.",
-            "latency_ms": 550,
+            "output_text": "That's done. Is there anything else? Great, goodbye!",
+            "latency_ms": 789,
             "retry_of": null
           }
         ],
@@ -156,32 +145,31 @@
       }
     ],
     "telephony": {
-      "span_id": "ing-20260904-006:leg",
+      "span_id": "ing-20260914-046:leg",
       "start_offset_ms": 0,
-      "duration_ms": 22000,
+      "duration_ms": 20000,
       "provider": "twilio",
       "direction": "inbound",
-      "billable_seconds": 26
+      "billable_seconds": 23
     }
   },
   "span_costs": {
-    "ing-20260904-006:t0:asr": 0.00017916666666666667,
-    "ing-20260904-006:t0:llm": 0.000219,
-    "ing-20260904-006:t1:llm": 0.000336,
-    "ing-20260904-006:t2:asr": 0.00014333333333333334,
-    "ing-20260904-006:t2:llm": 0.000342
+    "ing-20260914-046:t0:asr": 0.00019794333333333333,
+    "ing-20260914-046:t0:llm": 6.240000000000001e-05,
+    "ing-20260914-046:t1:llm": 8.664999999999999e-05,
+    "ing-20260914-046:t2:llm": 0.00037575
   },
   "turn_costs": [
-    0.0015425032362459546,
-    0.002088265372168285,
-    0.0012720647249190938
+    0.0017104326988382488,
+    0.0010404347946248306,
+    0.001230209173203588
   ],
-  "conv_cost": 0.004902833333333334,
+  "conv_cost": 0.003981076666666667,
   "stage_costs": {
-    "asr": 0.0003225,
-    "llm": 0.000897,
+    "asr": 0.00019794333333333333,
+    "llm": 0.0005248,
     "tts": 0.0,
-    "telephony": 0.0036833333333333336
+    "telephony": 0.003258333333333334
   },
   "verdict": {
     "label": "RESOLVED",
@@ -200,7 +188,7 @@
   "findings": [],
   "top_waste_usd": null,
   "_provenance": {
-    "ingest_call": "ing-20260904-006",
+    "ingest_call": "ing-20260914-046",
     "sample": true,
     "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
     "coverage": {

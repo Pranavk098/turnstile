@@ -1,0 +1,255 @@
+{
+  "trace": {
+    "conversation": {
+      "conversation_id": "ing-20260911-014",
+      "agent_version": "voice-agent@3.1.7",
+      "scenario_id": "order_status",
+      "started_at": "2026-09-11T12:38:05Z",
+      "ended_at": "2026-09-11T12:38:23Z",
+      "end_reason": "caller_hangup",
+      "schema_version": "1.1"
+    },
+    "turns": [
+      {
+        "turn_index": 0,
+        "speaker_first": "caller",
+        "wall_start_ms": 0,
+        "wall_end_ms": 7798,
+        "barge_in": false,
+        "vad": [],
+        "asr": [
+          {
+            "span_id": "ing-20260911-014:t0:asr",
+            "start_offset_ms": 200,
+            "duration_ms": 2954,
+            "gen_ai_system": "deepgram",
+            "gen_ai_request_model": "nova-3",
+            "audio_seconds": 2.954,
+            "is_streaming": true,
+            "transcript": "I just want a tracking update on my recent order.",
+            "confidence": 0.9
+          }
+        ],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260911-014:t0:llm",
+            "start_offset_ms": 3525,
+            "duration_ms": 672,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-nano",
+            "input_tokens": 2012,
+            "output_tokens": 15,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "route",
+            "decision_chosen": "order_status",
+            "decision_candidates": [
+              "order_status",
+              "other"
+            ],
+            "output_text": "One moment, I'll pull up the tracking.",
+            "latency_ms": 672,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 1,
+        "speaker_first": "agent",
+        "wall_start_ms": 7798,
+        "wall_end_ms": 12938,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260911-014:t1:llm",
+            "start_offset_ms": 702,
+            "duration_ms": 1022,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 2061,
+            "output_tokens": 16,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "tool_select",
+            "decision_chosen": "lookup_order",
+            "decision_candidates": [
+              "lookup_order"
+            ],
+            "output_text": "Your order 62896 shipped and is out for delivery today.",
+            "latency_ms": 1022,
+            "retry_of": null
+          }
+        ],
+        "tools": [
+          {
+            "span_id": "ing-20260911-014:t1:tool0",
+            "start_offset_ms": 396,
+            "duration_ms": 412,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:844b723101d3f03fce6effafa7ab9da3edf2a7baeb9067de84fe2adcbabbfc97",
+            "args_json": "{\"customer_id\":\"C-30577\",\"ref\":\"62896\"}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 412,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          },
+          {
+            "span_id": "ing-20260911-014:t1:tool1",
+            "start_offset_ms": 259,
+            "duration_ms": 383,
+            "tool_name": "lookup_order",
+            "args_hash": "sha256:e7d756da92107c53e8f4583f742ee7391352ef19b2e9dd729f729789cf2f8c41",
+            "args_json": "{\"customer_id\":\"C-30577\",\"ref\":\"62896\",\"retry\":true}",
+            "result_hash": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "latency_ms": 383,
+            "cost_usd": 0.0,
+            "tool_kind": "lookup",
+            "tool_status": "ok",
+            "effect": "none"
+          }
+        ],
+        "tts": [],
+        "playback": []
+      },
+      {
+        "turn_index": 2,
+        "speaker_first": "agent",
+        "wall_start_ms": 12938,
+        "wall_end_ms": 18949,
+        "barge_in": false,
+        "vad": [],
+        "asr": [],
+        "context": null,
+        "llm": [
+          {
+            "span_id": "ing-20260911-014:t2:llm",
+            "start_offset_ms": 580,
+            "duration_ms": 847,
+            "gen_ai_system": "openai",
+            "gen_ai_request_model": "gpt-5-mini",
+            "input_tokens": 2108,
+            "output_tokens": 31,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+            "decision_kind": "compose",
+            "decision_chosen": "close_call",
+            "decision_candidates": [
+              "close_call"
+            ],
+            "output_text": "That's done. Is there anything else? Great, goodbye!",
+            "latency_ms": 847,
+            "retry_of": null
+          }
+        ],
+        "tools": [],
+        "tts": [],
+        "playback": []
+      }
+    ],
+    "telephony": {
+      "span_id": "ing-20260911-014:leg",
+      "start_offset_ms": 0,
+      "duration_ms": 18000,
+      "provider": "twilio",
+      "direction": "inbound",
+      "billable_seconds": 21
+    }
+  },
+  "span_costs": {
+    "ing-20260911-014:t0:asr": 0.00021170333333333336,
+    "ing-20260911-014:t0:llm": 0.0001066,
+    "ing-20260911-014:t1:llm": 0.00054725,
+    "ing-20260911-014:t2:llm": 0.000589
+  },
+  "turn_costs": [
+    0.001542592214013053,
+    0.0013542318987809386,
+    0.0015327292205393425
+  ],
+  "conv_cost": 0.004429553333333334,
+  "stage_costs": {
+    "asr": 0.00021170333333333336,
+    "llm": 0.00124285,
+    "tts": 0.0,
+    "telephony": 0.002975
+  },
+  "verdict": {
+    "label": "RESOLVED",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "source": "informational_resolution",
+        "rule": "no_required_mutation_intent_served",
+        "end_reason": "caller_hangup",
+        "clean_close": true,
+        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+      }
+    ],
+    "turn_of_no_return": null
+  },
+  "findings": [],
+  "top_waste_usd": null,
+  "_provenance": {
+    "ingest_call": "ing-20260911-014",
+    "sample": true,
+    "note": "Per-call priced trace over an ingested log (turnstile_ingest). SAMPLE -- not production data. LLM/tool layers measured from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry (see coverage).",
+    "coverage": {
+      "1": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "2": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "3": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "4": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "5": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "9": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "10": {
+        "status": "present",
+        "reason": "real telemetry in this input"
+      },
+      "6": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "7": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      },
+      "8": {
+        "status": "absent",
+        "reason": "no data for this input: the log carries no G2 acoustic fields (tts.chars_synthesized/chars_played), so this class cannot be measured"
+      }
+    },
+    "excluded_absent_classes": [
+      6,
+      8
+    ]
+  }
+}
