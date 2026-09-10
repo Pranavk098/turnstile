@@ -1,6 +1,42 @@
-# LIVE-AGENT — environment log (Phase 0 spike, 2026-09-08)
+# LIVE-AGENT — environment log (Phase 0 spike, 2026-09-08; retry 2026-09-10: GO)
 
-## Go / no-go
+## Go / no-go (retry 2026-09-10)
+
+**GO for headless pipeline work.** Ubuntu 26.04 is installed and running;
+`pipecat-ai 1.8.1` installs cleanly under the distro Python 3.14.4 and a
+three-processor pipeline (script source → local transform → collecting sink)
+runs headless in <1s with zero external services (no STT/LLM/TTS, no audio
+devices, no network, no keys), exiting cleanly with output asserted. The
+spike script lives OUTSIDE the repo (owner's WSL home,
+`~/pipecat-spike/bot.py`) — nothing Pipecat-specific is committed; Phase 2
+wires it into `packages/live/` on its own branch.
+
+Caveats carried forward (all observed, none blocking Phase 2's shape):
+
+- **Install path is user-space, no sudo needed** (sudo requires interactive
+  auth in this Ubuntu): `curl -LsSf https://astral.sh/uv/install.sh | sh`,
+  then `uv venv && uv pip install pipecat-ai` in `~/pipecat-spike`.
+  The distro Python has NO pip module (`No module named pip`) — uv is the
+  way in. The repo itself is visible from Ubuntu at
+  `/mnt/c/Users/prana/OneDrive/Desktop/Turnstile/pyproject.toml`, but the
+  spike venv lives in the Linux home dir (9p mounts are slow for venvs).
+- **Machine:** 20 cores, ~15 GB RAM available to WSL — plenty for local
+  Whisper + Piper in Phase 2.
+- **API drift:** `PipelineTask`/`PipelineRunner` are deprecated since Pipecat
+  1.3 (use `PipelineWorker`/`WorkerRunner` + `add_workers()`); the deprecated
+  shims still work. Phase 2 should use the new names. A mid-pipeline
+  `EndFrame` does NOT terminate the 1.8 runner — shutdown is via task cancel
+  (`CancelFrame` unwinds cleanly, observed in the spike log).
+- **Audio:** still no devices in WSL2 (expected) — Phase 2 stays headless by
+  design (prerecorded/file-based caller audio in, synthesized audio to file,
+  no live microphone/speaker).
+- **No paid calls were made** in this spike.
+
+Key installed versions (`uv pip list` in the spike venv): pipecat-ai 1.8.1,
+pydantic 2.13.5, websockets 17.1, aiohttp 3.14.3, numpy 2.5.3, loguru 0.7.3,
+onnxruntime 1.24.4, openai 2.54.0 (transitive dep, unused — no key set).
+
+## Prior entry (2026-09-08: NO-GO, superseded by the retry above)
 
 **NO-GO for tonight (environment only — no Turnstile code is blocked).**
 WSL2 itself runs, but the machine has no usable Linux user distro: the only
