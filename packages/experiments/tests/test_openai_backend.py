@@ -230,8 +230,10 @@ def test_model_cap_substitutes_larger_bucket_on_the_paid_call(monkeypatch):
     context = ReplayContext(conversation_id="c1", scenario_id="refund", turn_index=0, turns_before=())
     original_span = llm("l1", decision_kind=DecisionKind.route, model="gpt-5")
     decision = backend(context, original_span, VariantSpec())
-    assert fake_client.completions.calls[0]["model"] == "gpt-5-mini"  # gpt-5 -> capped
-    assert decision.model == "gpt-5-mini"
+    assert fake_client.completions.calls[0]["model"] == "gpt-5-mini"  # API call is capped (billing)
+    # ...but the model of RECORD stays logical, so replay's margin arbitrage never
+    # prices the cap's own gpt-5->mini downgrade as savings (the 2.79% bug).
+    assert decision.model == "gpt-5"
 
 
 def test_model_cap_leaves_small_bucket_models_untouched(monkeypatch):
@@ -255,8 +257,8 @@ def test_model_cap_reads_env_var(monkeypatch):
     backend = OpenAIBackend(client=fake_client)  # cap picked up from env
     context = ReplayContext(conversation_id="c1", scenario_id="refund", turn_index=0, turns_before=())
     decision = backend(context, llm("l1", decision_kind=DecisionKind.compose, model="gpt-5"), VariantSpec())
-    assert fake_client.completions.calls[0]["model"] == "gpt-5-nano"
-    assert decision.model == "gpt-5-nano"
+    assert fake_client.completions.calls[0]["model"] == "gpt-5-nano"  # capped API call
+    assert decision.model == "gpt-5"  # logical model of record, uncapped
 
 
 # --------------------------------------------------------------------------- #

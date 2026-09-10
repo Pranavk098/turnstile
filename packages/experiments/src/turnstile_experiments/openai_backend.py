@@ -184,15 +184,25 @@ class OpenAIBackend:
     def __call__(
         self, context: ReplayContext, original_span: LlmDecide, variant: VariantSpec
     ) -> ReplayedDecision:
-        model = original_span.gen_ai_request_model
+        # The LOGICAL model of record (what the margin arbitrage in replay.py
+        # prices against): the reroute target if the variant routes this kind,
+        # else the original span's model. The cap must NOT touch this.
+        logical_model = original_span.gen_ai_request_model
         if variant.model_routing:
-            model = variant.model_routing.get(original_span.decision_kind.value, model)
-        model = _cap_model(model, self._model_cap)
+            logical_model = variant.model_routing.get(
+                original_span.decision_kind.value, logical_model)
+        # The PHYSICAL model we actually call -- capped to a small-bucket model to
+        # stay in the free daily allowance. It is a BILLING substitution only and
+        # is never the model of record: pricing the cap's own gpt-5->mini
+        # downgrade as recoverable savings inflates the margin (it did -- a capped
+        # paid n=250 read 2.79% vs the true ~0.55%), so ReplayedDecision.model
+        # below stays logical_model.
+        api_model = _cap_model(logical_model, self._model_cap)
 
         messages = _render_messages(context, original_span)
         start = time.monotonic()
         response = self._client.chat.completions.create(
-            model=model, messages=messages,
+            model=api_model, messages=messages,
             # M-3: bound runaway generations. The gpt-5 family (reasoning
             # models) rejects the legacy `max_tokens` with a 400 and requires
             # `max_completion_tokens` -- the fake-client tests can't see that,
@@ -209,7 +219,7 @@ class OpenAIBackend:
             calls = self._calls
         if announce:
             print(
-                f"[OpenAIBackend] {calls} calls (last model={model}, "
+                f"[OpenAIBackend] {calls} calls (last model={api_model}, "
                 f"{latency_ms}ms)",
                 file=sys.stderr,
                 flush=True,
@@ -237,7 +247,7 @@ class OpenAIBackend:
             warning = (
                 f"[OpenAIBackend] WARNING: completion reached max_tokens "
                 f"cap ({usage.completion_tokens} >= {self._max_completion_tokens}); "
-                f"model={model} conv={context.conversation_id} "
+                f"model={api_model} conv={context.conversation_id} "
                 f"finish_reason={finish_reason} "
                 f"reasoning_tokens={reasoning_tokens} content_chars={len(text)} "
                 f"-- possible truncation"
@@ -254,7 +264,7 @@ class OpenAIBackend:
         # decision (Mock leaves None) so divergent/truncated trials can
         # self-document -- the replay layer persists it, never the schema.
         return ReplayedDecision(
-            model=model,
+            model=logical_model,
             output_text=text,
             decision_chosen=parse_decision_chosen(
                 original_span.decision_kind, text, original_span.decision_candidates
