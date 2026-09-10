@@ -111,10 +111,24 @@ Under that gate, on **real gpt-5-nano calls** (paid, n=250/seed 8, 1,734 calls):
 and, on the non-forked trials, *verdict preservation* — under an elicitation that hands
 the model the span's own candidates (for route, a 2-way `[scenario_id, "other"]` set, so
 the model picks between the correct label and one alternative, not open-ended routing).
-Preservation **under a divergent decision** stays unobserved: the 17 forks are excluded,
+Preservation **under a divergent decision** stays unobserved: the forks are excluded,
 not re-adjudicated, so we have not yet watched a verdict hold or fail when the cheaper
-model decides *differently*. That needs harder decisions (larger candidate sets) or a
-real-baseline build — a Wave-2+ open item.
+model decides *differently*.
+
+**Wave-2+ update (enriched candidates, paid n=250/seed 8, ~$0.43).** We widened the corpus
+route choice to all registered scenarios and ran the paid experiment to see whether a
+registry-grounded oracle could then decide the forks and yield a modeled number. It
+cannot, for an honest reason: given the wider choice the cheaper model replies in **natural
+prose** ("I can help with canceling your subscription — could you confirm the account?")
+rather than a verbatim label, so the parser extracts no decision and the oracle returns
+None (**13/13 forks undecidable**). Most of those prose forks are the model handling the
+*correct* scenario in prose the label-gate simply can't match — not genuine divergence.
+So label-based decidability is the wrong instrument for a real model; larger candidate sets
+were tried and are insufficient. The honest measurement of preservation-under-divergence
+requires **open-loop execution** — run the divergent reply forward and adjudicate the real
+outcome (the live-agent path). Identity preservation on the non-divergent pivots
+reconfirmed ~0.98. (One caveat retired: routing is no longer the 2-way `[scenario_id,
+"other"]` choice noted above; it now offers every registered scenario.)
 
 ## Tier-2: instrumented, not measured
 

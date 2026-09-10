@@ -5,12 +5,21 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-08 · branch `wave0-foundation` · tip `d25f5ed` · 169 commits ·
-**883 passed / 4 skipped**, `ruff check packages/` clean. `TURNSTILE_PAID_MODEL_CAP` added
-(paid runs can stay in OpenAI's free 2.5M/day small-model bucket; deterministic path
-untouched). **Preservation-under-divergence number ON HOLD (billing):** the enriched-corpus
-paid run hit `429 credit_balance_exhausted` — OpenAI needs a positive credit balance and
-free tokens do NOT bypass it; the GMU org billing is likely admin-locked → use a personal
+**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `2173b6b` · 171 commits ·
+**883 passed / 4 skipped**, `ruff check packages/` clean. **Preservation-under-divergence:
+RESOLVED as an open-loop problem, not a label one.** The enriched-corpus paid run (n=250/
+seed 8, ~$0.43 spent) came back `modeled=None`: given wider route candidates the real model
+forks in natural PROSE, not verbatim labels, so the oracle can't decide (13/13 undecidable);
+most forks are correct-routing-in-prose, not real divergence. Honest conclusion in METHOD:
+measuring preservation-under-divergence needs **open-loop execution = live-agent Phase 3**,
+NOT more elicitation. Identity preservation reconfirmed ~0.98. **Cap bug found + fixed
+(`2173b6b`):** `TURNSTILE_PAID_MODEL_CAP` had set `ReplayedDecision.model` to the capped
+model, so replay priced the cap's gpt-5→mini downgrade as savings and the paid margin read
+a bogus 2.79% (true margin still 0.55%/0.573%); the cap now bills the capped model but keeps
+the logical model of record. **Ubuntu now installed → live agent UNBLOCKED** (P0 retry →
+P2 → P3 delegable). `TURNSTILE_PAID_MODEL_CAP` also lets paid runs stay in OpenAI's free
+2.5M/day small-model bucket. **(historical) Earlier hold:** the pre-credit
+paid run hit `429 credit_balance_exhausted` — free tokens do NOT bypass a $0 balance; use a personal
 project key + ~$5 (morning reminder scheduled). **C (live agent) — P1 MERGED:** new
 `turnstile-live` package = text-mode agent loop (mock policy + mock tools + virtual clock,
 zero LLM/audio/spend) that emits ingest-format calls the REAL pipeline prices/adjudicates/
