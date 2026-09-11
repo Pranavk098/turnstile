@@ -46,12 +46,33 @@ LLM_MODEL_DEFAULT = "gpt-5-mini"  # must resolve in pricing/rates.yaml (openai/)
 MODEL_CAP_ENV = "TURNSTILE_PAID_MODEL_CAP"
 PAID_GATE_ENV = "TURNSTILE_ALLOW_PAID"
 
-# Candidate universe the live LLM routes among (mirrors the corpus's enriched
-# route candidates + the baselined ids in docs/INGEST.md).
+# Candidate universe the live LLM routes among on turn 0 (mirrors the
+# corpus's enriched route candidates + the baselined ids in docs/INGEST.md).
 ROUTE_CANDIDATES: tuple[str, ...] = (
     "order_status", "tech_support", "refund", "billing_dispute",
     "cancel_subscription", "appointment_reschedule", "other",
 )
+
+# Turn-appropriate decision labels for the open-loop runner (see
+# turnstile_live.openloop): the route universe on turn 0, action labels after.
+# The model may ONLY pick offered labels -- so the offered set must cover
+# everything the baseline policy can emit, plus (for mutation scenarios) the
+# registry-required terminal tool. Offering less forces divergence and makes
+# preservation unmeasurable (observed: route-labels-only offered zero ways to
+# act, scoring 0.0 by construction).
+TOOL_LABELS = frozenset({"lookup_invoices"})
+ESCALATE_LABELS = frozenset({"escalate"})
+
+
+def kind_for_label(label: str, turn_index: int) -> str:
+    """Map a chosen label to its decision kind (pure, unit-tested)."""
+    if label in TOOL_LABELS:
+        return "tool_select"
+    if label in ESCALATE_LABELS:
+        return "escalate_check"
+    if turn_index == 0:
+        return "route"
+    return "compose"
 
 _CALL_EPOCH = datetime(2026, 9, 10, 9, 0, 0, tzinfo=timezone.utc)
 
@@ -360,11 +381,12 @@ class CappedLlmPolicy:
         text = (response.choices[0].message.content or "").strip()
         usage = response.usage
         low = text.lower()
-        hits = [c for c in self._candidates if c.lower() in low]
+        offered = list(candidates) if candidates is not None else list(self._candidates)
+        hits = [c for c in offered if c.lower() in low]
         if hits:
             label = max(hits, key=len)
             return LlmDecision(
-                decision_kind="route" if turn_index == 0 else "compose",
+                decision_kind=kind_for_label(label, turn_index),
                 decision=label, reply=text,
                 input_tokens=usage.prompt_tokens,
                 output_tokens=usage.completion_tokens,
