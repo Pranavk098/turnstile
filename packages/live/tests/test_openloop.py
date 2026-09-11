@@ -17,6 +17,7 @@ from turnstile_schema import load_rates
 
 from turnstile_live.openloop import (
     BUDGET_CAP_USD,
+    EXTRA_SCRIPTS,
     SCRIPT_SET,
     candidates_for,
     enforce_budget,
@@ -71,6 +72,18 @@ def test_script_set_has_24_conversations_across_6_scenarios():
         "order_status", "refund", "tech_support",
     ]
     assert set(by_scenario.values()) == {4}
+
+
+def test_extra_scripts_extend_each_scenario_without_touching_the_set():
+    assert len(EXTRA_SCRIPTS) == 12
+    assert len(SCRIPT_SET) == 24  # P3's frozen gate
+    by_scenario: dict[str, int] = {}
+    base_ids = {c.id for c in SCRIPT_SET}
+    for conv in EXTRA_SCRIPTS:
+        by_scenario[conv.scenario] = by_scenario.get(conv.scenario, 0) + 1
+        assert len(conv.caller_texts) == 3
+        assert conv.id not in base_ids
+    assert set(by_scenario.values()) == {2}
 
 
 # --------------------------------------------------------------------------- #

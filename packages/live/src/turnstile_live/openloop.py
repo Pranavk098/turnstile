@@ -85,6 +85,29 @@ SCRIPT_SET: tuple[ScriptedConversation, ...] = tuple(
 )
 
 
+def _extra_scripts(scenario: str, short_open: str, alt_detail: str) -> list[ScriptedConversation]:
+    """Phase-5 extension probes (v5/v6): alternate openings/details and a
+    warmer close. SCRIPT_SET stays frozen (P3's gate pins its length)."""
+    return [
+        ScriptedConversation(f"{scenario}-v5", scenario, (short_open, alt_detail, "Great, goodbye!")),
+        ScriptedConversation(f"{scenario}-v6", scenario, (short_open, alt_detail, "Perfect, thanks so much. Bye!")),
+    ]
+
+
+EXTRA_SCRIPTS: tuple[ScriptedConversation, ...] = tuple(
+    conv
+    for scenario, short_open, alt_detail in (
+        ("order_status", "Order status?", "ORD-4481, due Thursday."),
+        ("tech_support", "Internet down again.", "HomeHub 3000, red light."),
+        ("refund", "Refund, please.", "ORD-2207, $42.50."),
+        ("billing_dispute", "Double charge?", "August bill, twice."),
+        ("cancel_subscription", "Cancel, please.", "Renews on the first."),
+        ("appointment_reschedule", "Move my appointment?", "Tuesday, afternoon works."),
+    )
+    for conv in _extra_scripts(scenario, short_open, alt_detail)
+)
+
+
 @dataclass(frozen=True)
 class BaselinePath:
     decisions: tuple[tuple[str, str], ...]

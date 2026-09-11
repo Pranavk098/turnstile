@@ -97,7 +97,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--audio-dir", default="voice-audio",
                         help="voice/bargein mode: where caller/agent wavs go")
     parser.add_argument("--live", action="store_true",
-                        help="voice/bargein mode: use real Whisper + Piper (+ capped LLM)")
+                        help="voice/bargein/openloop mode: use real Whisper + Piper / capped LLM (+ judge)")
     parser.add_argument("--n", type=int, default=50,
                         help="bargein mode: TOTAL calls across sweep levels (runtime guard: start at 50)")
     parser.add_argument("--p-levels", default="0.25,0.5,0.75",
@@ -110,6 +110,10 @@ def main(argv: list[str] | None = None) -> None:
                         help="bargein mode: determinism seed for caller sampling")
     parser.add_argument("--calls-dir", default=None,
                         help="bargein mode: persist each call's ingest JSON here (post-hoc analysis)")
+    parser.add_argument("--policy", choices=("label", "functools"), default="label",
+                        help="openloop mode: label-elicitation or function-calling LLM policy")
+    parser.add_argument("--scripts", choices=("v24", "v36"), default="v24",
+                        help="openloop mode: P3's 24 probes, or +12 Phase-5 extension probes")
     args = parser.parse_args(argv)
     if args.mode == "voice":
         _run_voice(args)
@@ -123,6 +127,7 @@ def main(argv: list[str] | None = None) -> None:
 
 def _run_openloop(args) -> None:
     from turnstile_live.openloop import (
+        EXTRA_SCRIPTS,
         SCRIPT_SET,
         enforce_budget,
         openai_judge_chat,
@@ -133,16 +138,20 @@ def _run_openloop(args) -> None:
         summarize,
     )
     from turnstile_live.policy import decide as mock_decide
-    from turnstile_live.voice import CappedLlmPolicy, LlmDecision
+    from turnstile_live.voice import CappedLlmPolicy, FunctionCallingPolicy, LlmDecision
 
     rates = load_rates(_REPO_ROOT / "pricing" / "rates.yaml")
+    convos = list(SCRIPT_SET) + (list(EXTRA_SCRIPTS) if args.scripts == "v36" else [])
     if args.live:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise SystemExit("--live refuses: set TURNSTILE_ALLOW_PAID=1 (LLM decisions + judge are paid).")
-        enforce_budget(n_convos=len(SCRIPT_SET), turns_each=3)
+        enforce_budget(n_convos=len(convos), turns_each=3)
         from turnstile_live.voice import LLM_MODEL_DEFAULT
 
-        live_policy = CappedLlmPolicy()
+        if args.policy == "functools":
+            live_policy = FunctionCallingPolicy()
+        else:
+            live_policy = CappedLlmPolicy()
         judge = openai_judge_chat(LLM_MODEL_DEFAULT)
     else:
         class _MockPolicy:
@@ -155,7 +164,7 @@ def _run_openloop(args) -> None:
 
     rows: list[dict] = []
     in_tok = out_tok = 0
-    for conv in SCRIPT_SET:
+    for conv in convos:
         baseline = run_baseline(conv)
         executed, _call = run_live(conv, live_policy, rates)
         divergent = executed.divergent_from(baseline)
