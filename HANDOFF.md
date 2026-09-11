@@ -5,8 +5,17 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `adeae3f` · 180 commits ·
-**890 passed / 2 skipped**, `ruff check packages/` clean. **LIVE AGENT P0+P2 MERGED:** P0
+**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `c4dc5d6` · 182 commits ·
+**908 passed / 4 skipped**, `ruff check packages/` clean. **DEVELOPMENT COMPLETE** — Waves
+0–3 + the live agent P0–P3 all merged. **LIVE AGENT PHASE 3 (open-loop) MERGED + MEASURED:**
+preservation-under-divergence measured on a small live probe = **0 under both rules**
+(0/8 registry-tool, 0/10 strict LLM judge; ~$0.20) — the cheaper model *talks without
+acting* (composes a fluent reply but never selects the required tool, even when offered).
+The strict judge disagreed with the lenient clean-close adjudicator 100%, so the identity
+0.98 is preservation of the *clean-close* verdict, not of problem-solving. Landed in METHOD
++ DECISIONS with the small-n caveat; kept SEPARATE from the modeled-None and the 0.98; does
+NOT touch the deterministic margin 0.57%. Total paid spend to date ~**$0.64 of ~$6**.
+**LIVE AGENT P0+P2 MERGED:** P0
 env spike GO (Ubuntu 26.04 + pipecat-ai 1.8.1 headless, `docs/LIVE-AGENT.md`); **P2 = a real
 spoken call end to end** (local Whisper STT + reused Piper TTS + capped `gpt-5-mini` policy
 behind the paid gate + mock tools → a valid `turnstile_ingest` call, RESOLVED, ~$0.001).

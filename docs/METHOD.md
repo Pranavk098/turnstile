@@ -130,6 +130,26 @@ outcome (the live-agent path). Identity preservation on the non-divergent pivots
 reconfirmed ~0.98. (One caveat retired: routing is no longer the 2-way `[scenario_id,
 "other"]` choice noted above; it now offers every registered scenario.)
 
+**Wave-3 update — open-loop measurement (the live agent, ~$0.20).** We built the open-loop
+harness: the cheaper model drives every decision across a full conversation, is offered the
+registry-required tool each turn, and the real outcome is judged under two rules reported
+**side by side, never folded** — rule 1 registry-grounded (did it execute the required
+terminal action?), rule 2 an LLM judge (did the caller's issue actually get solved?). On a
+small scripted probe (24 conversations, 6 scenarios; **8–10 divergent** where the cheaper
+model's path differed from baseline), **measured preservation-under-divergence was 0** on
+*both* rules (0/8 registry, 0/10 judge). The reason is consistent and, in hindsight,
+unsurprising: **the cheaper model talks without acting** — it composes a fluent reply
+("I'll process the credit…") but never selects the tool that would commit the action, even
+when the tool is offered. Two honest caveats: **(a)** this is a *small* open-loop probe on
+synthetic scripts with mock tools — a validated measurement mechanism and an early,
+cautionary signal, not a fleet-scale rate; **(b)** the strict judge disagreed with the
+adjudicator **100%** here (the adjudicator scored 24/24 RESOLVED on its lenient *clean-close*
+standard, the judge 0 on its *problem-solved* standard). That disagreement is itself the
+finding: the identity-preservation 0.98 above is preservation of the *clean-close* verdict,
+not of problem-solving — polite non-action passes the former and fails the latter. None of
+this touches the deterministic recoverable margin (0.57%), which is narrow rate-arbitrage on
+the *route* decision alone and never assumed the cheaper model executes the rest of the call.
+
 ## Tier-2: instrumented, not measured
 
 The voice-stack cost decomposition and the acoustic detectors (D7 barge-in, D8

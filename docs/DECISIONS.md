@@ -39,13 +39,16 @@ See `memory/turnstile-delegation-model.md`.
 Three tiers, labeled on every number: **Measured** (barge-in waste on real Piper;
 deterministic rate-arbitrage recoverable margin 0.57%), **Instrumented-not-measured**
 (voice-stack decomposition, D8 on synthetic acoustics — hypothesis + sensitivity
-sweep, magnitude not claimed), **Partially-measured** (outcome-preservation — the
-Wave-2 kind-aware gate measured it on real calls: routing forks at 7.8% and verdicts
-hold at **0.985** over non-divergent routing pivots, paid n=250/seed 8; but
-preservation *under a divergent decision* stays unobserved, and the route elicitation
-is a 2-way `[scenario_id, "other"]` choice — H-1's structural 1.0 is broken, not the
-whole question closed). Full detail: `docs/METHOD.md`, `docs/LIMITATIONS.md`,
-`docs/DEMO.md`.
+sweep, magnitude not claimed), **Partially-measured** (outcome-preservation, now
+measured three ways and honestly kept apart: **identity** 0.985 on non-divergent
+routing pivots (paid n=250, *clean-close* standard); **modeled under divergence** = None
+(the real model forks in prose the label oracle can't decide); **open-loop under
+divergence** = 0 on a small live probe under BOTH a registry-tool rule and a strict
+LLM judge — the cheaper model talks without acting. The strict judge disagrees with the
+lenient adjudicator 100% there, so 0.985 is preservation of the *clean-close* verdict,
+not of problem-solving. Small n; a validated measurement + a cautionary signal, not a
+fleet rate. None of it touches the deterministic margin 0.57%). Full detail:
+`docs/METHOD.md`, `docs/LIMITATIONS.md`, `docs/DEMO.md`.
 
 ## Variant execution model (why 5/6 "variants" were no-ops)
 Only `model_routing` is applied on the replay **backend**. Every other VariantSpec
