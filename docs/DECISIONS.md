@@ -43,8 +43,10 @@ sweep, magnitude not claimed), **Partially-measured** (outcome-preservation, now
 measured three ways and honestly kept apart: **identity** 0.985 on non-divergent
 routing pivots (paid n=250, *clean-close* standard); **modeled under divergence** = None
 (the real model forks in prose the label oracle can't decide); **open-loop under
-divergence** = 0 on a small live probe under BOTH a registry-tool rule and a strict
-LLM judge — the cheaper model talks without acting. The strict judge disagrees with the
+divergence** — with label-elicitation the cheaper model *talked without acting* (0/0), but
+with **real function-calling it acts**: 42.9% registry (3/7) / 11.1% judge (1/9) on a small
+live probe — a mid-range number, neither the 0 the first probe implied nor the ~96% the
+proposal imagined. The strict judge disagrees with the
 lenient adjudicator 100% there, so 0.985 is preservation of the *clean-close* verdict,
 not of problem-solving. Small n; a validated measurement + a cautionary signal, not a
 fleet rate. None of it touches the deterministic margin 0.57%). Full detail:

@@ -150,14 +150,45 @@ not of problem-solving — polite non-action passes the former and fails the lat
 this touches the deterministic recoverable margin (0.57%), which is narrow rate-arbitrage on
 the *route* decision alone and never assumed the cheaper model executes the rest of the call.
 
+**Wave-3 correction — the 0/0 was mostly a harness artifact (function-calling, ~$0.06).**
+The probe above elicited a *label*; a real agent uses **function-calling**. Re-run with the
+tools passed as real OpenAI function schemas (so the model can *invoke* them), the cheaper
+model **does act**: measured open-loop preservation-under-divergence rose to **3/7 = 42.9%
+registry** (n=36, 9 divergent) and **1/9 = 11.1% under the strict judge**, versus 0/0 with
+label-elicitation. It executed the required terminal tool four times (all RESOLVED),
+including a turn-0 `process_refund` with an empty spoken reply — acting without talking,
+recorded honestly as `""`. So the honest answer to *"is routing to a cheaper model safe?"*
+is: **it can act when given real tools, and preserves the outcome about 43% of the time by
+the tool standard** — not the 0 the first probe implied, and not the ~96% the original
+proposal imagined either. The judge stays much stricter than the registry rule (the same
+*clean-close* vs *problem-solved* split), so the two figures are reported apart, never
+folded. Still a small probe; the honest read is a real, mid-range number that wants scale.
+
 ## Tier-2: instrumented, not measured
 
-The voice-stack cost decomposition and the acoustic detectors (D7 barge-in, D8
-silence tax) are **mechanism demonstrated, magnitude not claimed**. D8 is ~82% of
-corpus findings — presented as a **hypothesis plus a sensitivity sweep** (D8's
-share moves 77.7%→85.8% as the inter-turn-gap median moves 100→450ms), never as a
-bare fact. See `docs/CORPUS.md` and `.superpowers/…/sweeps-report.md`. These
-promote to Tier-1 with no code change once the recorder emits real audio (G1).
+The voice-stack cost decomposition and **D8 (silence tax)** on synthetic acoustics are
+**mechanism demonstrated, magnitude not claimed**. D8 is ~82% of corpus findings —
+presented as a **hypothesis plus a sensitivity sweep** (D8's share moves 77.7%→85.8% as
+the inter-turn-gap median moves 100→450ms), never as a bare fact. See `docs/CORPUS.md`.
+
+**D7 (barge-in) is now Tier-1 — measured on real audio, at volume.** Beyond the controlled
+Piper harness (~4% at a polite 15% rate), we ran the **live agent over 51 full calls** with
+an *interruption-heavy* synthetic caller and measured D7 = synthesized−played (from the real
+Piper accounting + the actual interruption position, never `len(text)`). The honest result
+is that **barge-in waste scales with caller impatience**, reported as a sweep, not a single
+number:
+
+| per-turn barge-in rate | D7 share of TTS spend | 95% CI |
+|---|---|---|
+| 0.25 (≈ polite) | **6.2%** | [1.7, 11.4] |
+| 0.50 | 28.2% | [18.6, 38.0] |
+| 0.75 (impatient) | 38.7% | [29.3, 47.5] |
+
+At the polite end it agrees with the ~4% harness; the impatient regime is where the waste
+becomes large. The pooled ~25% describes the interruption-heavy regime, **not a typical
+fleet** — say so. (Side effects, honestly: the impatient caller drives 38/51 conversations
+to ESCALATED; D6 dead-tokens was 0 throughout; D8 here is a fixed-layout artifact, not
+behavior — D8-at-volume needs varied gap structure, flagged as follow-up.)
 
 ## Modeling choices, stated
 

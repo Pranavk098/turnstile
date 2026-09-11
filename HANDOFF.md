@@ -5,9 +5,19 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `c4dc5d6` · 182 commits ·
-**908 passed / 4 skipped**, `ruff check packages/` clean. **DEVELOPMENT COMPLETE** — Waves
-0–3 + the live agent P0–P3 all merged. **LIVE AGENT PHASE 3 (open-loop) MERGED + MEASURED:**
+**Stamp:** 2026-09-11 · branch `wave0-foundation` · tip `78fe792` · 185 commits ·
+**930 passed / 4 skipped**, `ruff check packages/` clean. **P4 + P5 MERGED — two headline
+upgrades.** **P4 barge-in at volume:** ran the live agent over 51 full calls with an
+interruption-heavy caller; D7 measured on real audio **scales with impatience** — 6.2%
+(polite 0.25) → 28% (0.5) → 39% (0.75), sweep+CI, not one number. Promotes D7 to Tier-1;
+the impatient regime is not a typical fleet (said so). D6=0, D8 a fixed-layout artifact
+(follow-up), 38/51 escalate. **P5 fair open-loop (function-calling):** the Phase-3 0/0 was
+mostly a harness artifact — with **real function schemas the cheaper model ACTS**: measured
+preservation-under-divergence **42.9% registry (3/7) / 11.1% judge (1/9)** vs 0/0
+label-elicitation (n=36, 9 divergent, 4 tool commits). Both landed in METHOD + DECISIONS,
+kept apart. Spend ~$0.74 total of ~$6. **Next (owner):** #1 scale P4 (200 calls ≈ 4h) +
+varied D8 gaps; #2 scale P5 n; #3 real customer data (the ceiling, owner-sourced); #4 merge
+to `main`. **(historical) LIVE AGENT PHASE 3 (open-loop) MERGED + MEASURED:**
 preservation-under-divergence measured on a small live probe = **0 under both rules**
 (0/8 registry-tool, 0/10 strict LLM judge; ~$0.20) — the cheaper model *talks without
 acting* (composes a fluent reply but never selects the required tool, even when offered).
