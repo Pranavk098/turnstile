@@ -5,8 +5,17 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `2173b6b` · 171 commits ·
-**883 passed / 4 skipped**, `ruff check packages/` clean. **Preservation-under-divergence:
+**Stamp:** 2026-09-10 · branch `wave0-foundation` · tip `adeae3f` · 180 commits ·
+**890 passed / 2 skipped**, `ruff check packages/` clean. **LIVE AGENT P0+P2 MERGED:** P0
+env spike GO (Ubuntu 26.04 + pipecat-ai 1.8.1 headless, `docs/LIVE-AGENT.md`); **P2 = a real
+spoken call end to end** (local Whisper STT + reused Piper TTS + capped `gpt-5-mini` policy
+behind the paid gate + mock tools → a valid `turnstile_ingest` call, RESOLVED, ~$0.001).
+The value-add: a voice call carries **measured** acoustics, so D6/D7/D8 render *present*
+(not absent like the log-ingest sample). `packages/live/` only; harness/schema/METHOD
+untouched. **REMAINING: live agent Phase 3 = open-loop preservation** — the ONLY honest way
+to measure preservation-under-divergence (run the divergent reply forward, adjudicate the
+real outcome). Needs a ~10-min owner methodology decision (what "the divergent path
+resolved" means) BEFORE any spend. Spend to date ~$0.44 of ~$6. **Preservation-under-divergence:
 RESOLVED as an open-loop problem, not a label one.** The enriched-corpus paid run (n=250/
 seed 8, ~$0.43 spent) came back `modeled=None`: given wider route candidates the real model
 forks in natural PROSE, not verbatim labels, so the oracle can't decide (13/13 undecidable);
