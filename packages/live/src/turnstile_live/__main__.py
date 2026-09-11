@@ -90,19 +90,33 @@ def _run_voice(args) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run a live demo call.")
-    parser.add_argument("--mode", choices=("text", "voice", "openloop"), default="text")
-    parser.add_argument("--out", required=True, help="output path (ingest call JSON, or openloop report JSON)")
+    parser.add_argument("--mode", choices=("text", "voice", "openloop", "bargein"), default="text")
+    parser.add_argument("--out", required=True, help="output path (ingest call JSON, or run report JSON)")
     parser.add_argument("--call-id", default="live-demo-001")
     parser.add_argument("--scenario", default="billing_dispute")
     parser.add_argument("--audio-dir", default="voice-audio",
-                        help="voice mode: where caller/agent wavs go")
+                        help="voice/bargein mode: where caller/agent wavs go")
     parser.add_argument("--live", action="store_true",
-                        help="voice/openloop mode: use real engines / capped LLM + judge")
+                        help="voice/bargein mode: use real Whisper + Piper (+ capped LLM)")
+    parser.add_argument("--n", type=int, default=50,
+                        help="bargein mode: TOTAL calls across sweep levels (runtime guard: start at 50)")
+    parser.add_argument("--p-levels", default="0.25,0.5,0.75",
+                        help="bargein mode: comma-separated per-turn barge-in probabilities to sweep")
+    parser.add_argument("--pos-lo", type=float, default=0.25,
+                        help="bargein mode: interruption-position window low (audio fraction)")
+    parser.add_argument("--pos-hi", type=float, default=0.75,
+                        help="bargein mode: interruption-position window high (audio fraction)")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="bargein mode: determinism seed for caller sampling")
+    parser.add_argument("--calls-dir", default=None,
+                        help="bargein mode: persist each call's ingest JSON here (post-hoc analysis)")
     args = parser.parse_args(argv)
     if args.mode == "voice":
         _run_voice(args)
     elif args.mode == "openloop":
         _run_openloop(args)
+    elif args.mode == "bargein":
+        _run_bargein(args)
     else:
         _run_text(args)
 
@@ -188,6 +202,126 @@ def _run_openloop(args) -> None:
           f"(n_divergent={figures['n_divergent']}, "
           f"n_undecidable={figures['n_undecidable']}, "
           f"metered=${spend_usd:.4f})")
+
+
+def _run_bargein(args) -> None:
+    import time
+
+    from turnstile_live.bargein import (
+        BARGE_SCRIPT,
+        aggregate_sweep,
+        run_bargein_call,
+        score_call,
+    )
+    from turnstile_live.caller import ImpatientCaller
+    from turnstile_live.openloop import enforce_budget
+
+    if args.live and os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
+        raise SystemExit("--live refuses: set TURNSTILE_ALLOW_PAID=1 (the LLM policy is paid).")
+    enforce_budget(n_convos=args.n, turns_each=len(BARGE_SCRIPT))
+    if args.live:
+        from turnstile_live.voice import CappedLlmPolicy, PiperTts, WhisperStt
+
+        stt: object = WhisperStt()
+        tts: object = PiperTts()
+        llm: object = CappedLlmPolicy()
+        engines = "whisper-tiny.en + piper-lessac + capped-gpt-5-mini"
+    else:
+        from turnstile_live.fakes import FakeLlm, FakeStt, FakeTts
+
+        tts = FakeTts()
+        llm = FakeLlm()
+        engines = "fakes (free dry-run)"
+    rates = load_rates(_REPO_ROOT / "pricing" / "rates.yaml")
+    baselines = Baselines.model_validate_json(
+        (_REPO_ROOT / "fixtures" / "sample" / "baselines.json").read_text(encoding="utf-8")
+    )
+    p_levels = [float(p) for p in args.p_levels.split(",")]
+    per_level = args.n // len(p_levels)
+    if per_level < 1:
+        raise SystemExit(f"--n {args.n} too small for {len(p_levels)} levels.")
+    t0 = time.monotonic()
+    cells: dict[str, list] = {}
+    counts: dict[str, dict[str, float]] = {}
+    verdicts: dict[str, int] = {}
+    examples: dict[str, dict] = {}
+    in_tok = out_tok = 0
+    audio_root = Path(args.audio_dir)
+    calls_root = Path(args.calls_dir) if args.calls_dir else None
+    if calls_root is not None:
+        calls_root.mkdir(parents=True, exist_ok=True)
+    for li, p in enumerate(p_levels):
+        level = f"p{p:g}"
+        cells[level] = []
+        counts[level] = {"d6_waste": 0.0, "d8_waste": 0.0, "n_d6": 0, "n_d7": 0, "n_d8": 0}
+        for i in range(per_level):
+            call_id = f"barge-{level}-{i:03d}"
+            caller = ImpatientCaller(
+                p_barge=p, pos_lo=args.pos_lo, pos_hi=args.pos_hi,
+                seed=args.seed + li * 10000 + i)
+            call_stt = stt if args.live else FakeStt(list(BARGE_SCRIPT))
+            call, notes = run_bargein_call(
+                call_id=call_id, scenario=args.scenario,
+                caller_texts=list(BARGE_SCRIPT), caller=caller,
+                stt=call_stt,
+                tts=tts, llm=llm, audio_dir=audio_root / level,
+            )
+            call_dict = call.model_dump(mode="json")
+            if calls_root is not None:
+                (calls_root / f"{call_id}.json").write_text(
+                    json.dumps(call_dict), encoding="utf-8")
+            scored = score_call(call_dict, rates, baselines)
+            verdicts[scored["verdict"]] = verdicts.get(scored["verdict"], 0) + 1
+            cells[level].append((scored["d7_waste"], scored["tts_spend"]))
+            counts[level]["d6_waste"] += scored["d6_waste"]
+            counts[level]["d8_waste"] += scored["d8_waste"]
+            counts[level]["n_d6"] += scored["n_d6"]
+            counts[level]["n_d7"] += scored["n_d7"]
+            counts[level]["n_d8"] += scored["n_d8"]
+            for turn_note in notes["turns"]:
+                in_tok += turn_note["in_tok"]
+                out_tok += turn_note["out_tok"]
+            if i == 0:
+                examples[level] = {"call_id": call_id, "notes": notes["turns"],
+                                   "d7_waste": scored["d7_waste"],
+                                   "verdict": scored["verdict"]}
+    runtime_s = time.monotonic() - t0
+    table = aggregate_sweep(cells)
+    for level in table:
+        table[level]["d6_waste_usd"] = counts[level]["d6_waste"]
+        table[level]["d8_waste_usd"] = counts[level]["d8_waste"]
+        table[level]["n_d6_findings"] = counts[level]["n_d6"]
+        table[level]["n_d7_findings"] = counts[level]["n_d7"]
+        table[level]["n_d8_findings"] = counts[level]["n_d8"]
+    pooled = [(w, s) for per in cells.values() for w, s in per]
+    from turnstile_live.bargein import d7_share_of_tts_spend
+
+    share, lo, hi = d7_share_of_tts_spend(pooled)
+    total_waste = sum(w for w, _s in pooled)
+    total_spend = sum(s for _w, s in pooled)
+    spend_usd = in_tok / 1e6 * 0.25 + out_tok / 1e6 * 2.00
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({
+        "label": "barge-in at volume (MEASURED D7 on real Piper audio) -- separate from "
+                 "the harness figure; never folded into the margin.",
+        "live": bool(args.live), "engines": engines,
+        "config": {"n": per_level * len(p_levels), "p_levels": p_levels,
+                   "pos_window": [args.pos_lo, args.pos_hi], "seed": args.seed,
+                   "scenario": args.scenario},
+        "sweep": table,
+        "pooled": {"n_calls": len(pooled), "d7_share": share,
+                   "d7_share_ci95": [lo, hi], "d7_waste_usd": total_waste,
+                   "tts_spend_usd": total_spend},
+        "verdicts": verdicts,
+        "usage_tokens": {"input": in_tok, "output": out_tok},
+        "spend_usd_metered": spend_usd,
+        "runtime_s": runtime_s,
+        "examples": examples,
+    }, indent=2), encoding="utf-8")
+    print(f"wrote {out}: pooled D7 share={share:.2%} [{lo:.2%}, {hi:.2%}] "
+          f"over {len(pooled)} calls in {runtime_s:.0f}s "
+          f"(metered=${spend_usd:.4f}; verdicts={verdicts})")
 
 
 if __name__ == "__main__":

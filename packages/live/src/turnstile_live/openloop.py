@@ -142,9 +142,10 @@ def candidates_for(scenario: str, turn_index: int) -> tuple[str, ...]:
     return tuple(labels)
 
 
-def _tools_for(decision_kind: str, decision: str) -> list:
+def tools_for(decision_kind: str, decision: str) -> list:
     """Executed tool records for one decision: the selected mock tool on
-    tool_select, the committed handoff on escalate, nothing otherwise."""
+    tool_select, the committed handoff on escalate, nothing otherwise.
+    Shared single source with the barge-in loop (same package)."""
     if decision_kind == "tool_select":
         result = run_mock_tool(decision, {})
         return [result]
@@ -165,7 +166,7 @@ def _emit_call(conv: ScriptedConversation, decisions: list[LlmDecision]) -> Inge
                 name=result.name, kind=result.kind, effect=result.effect,
                 args=result.args,
             )
-            for result in _tools_for(action.decision_kind, action.decision)
+            for result in tools_for(action.decision_kind, action.decision)
         ]
         turns.append(IngestTurn(
             start_ms=base, end_ms=base + text_loop.TURN_SLOT_MS,
@@ -214,7 +215,7 @@ def run_live(conv: ScriptedConversation, policy, rates) -> tuple[ExecutedConvers
             ExecutedTurn(
                 decision_kind=d.decision_kind, decision=d.decision, reply=d.reply,
                 tools=tuple(
-                    (r.name, r.effect) for r in _tools_for(d.decision_kind, d.decision)
+                    (r.name, r.effect) for r in tools_for(d.decision_kind, d.decision)
                 ),
                 input_tokens=d.input_tokens, output_tokens=d.output_tokens,
             )

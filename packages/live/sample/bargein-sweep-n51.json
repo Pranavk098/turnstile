@@ -1,0 +1,256 @@
+{
+  "label": "barge-in at volume (MEASURED D7 on real Piper audio) -- separate from the harness figure; never folded into the margin.",
+  "live": true,
+  "engines": "whisper-tiny.en + piper-lessac + capped-gpt-5-mini",
+  "config": {
+    "n": 51,
+    "p_levels": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "pos_window": [
+      0.25,
+      0.75
+    ],
+    "seed": 7,
+    "scenario": "billing_dispute"
+  },
+  "sweep": {
+    "p0.25": {
+      "n_calls": 17,
+      "n_barged": 8,
+      "d7_share": 0.061564070591265216,
+      "d7_share_ci95": [
+        0.017127819414918637,
+        0.11346299026660046
+      ],
+      "d7_waste_usd": 0.04125716190673639,
+      "tts_spend_usd": 0.67015,
+      "d6_waste_usd": 0.0,
+      "d8_waste_usd": 0.0036125000000000003,
+      "n_d6_findings": 0,
+      "n_d7_findings": 10,
+      "n_d8_findings": 85
+    },
+    "p0.5": {
+      "n_calls": 17,
+      "n_barged": 14,
+      "d7_share": 0.2821260881588485,
+      "d7_share_ci95": [
+        0.1861655213335387,
+        0.3796608985909008
+      ],
+      "d7_waste_usd": 0.21258906057989632,
+      "tts_spend_usd": 0.753525,
+      "d6_waste_usd": 0.0,
+      "d8_waste_usd": 0.0036125000000000003,
+      "n_d6_findings": 0,
+      "n_d7_findings": 28,
+      "n_d8_findings": 85
+    },
+    "p0.75": {
+      "n_calls": 17,
+      "n_barged": 17,
+      "d7_share": 0.3867776740132506,
+      "d7_share_ci95": [
+        0.29288763660455874,
+        0.47535323264617946
+      ],
+      "d7_waste_usd": 0.2873177951407432,
+      "tts_spend_usd": 0.74285,
+      "d6_waste_usd": 0.0,
+      "d8_waste_usd": 0.0036125000000000003,
+      "n_d6_findings": 0,
+      "n_d7_findings": 33,
+      "n_d8_findings": 85
+    }
+  },
+  "pooled": {
+    "n_calls": 51,
+    "d7_share": 0.24978434018872428,
+    "d7_share_ci95": [
+      0.19029521697716476,
+      0.31019962060809064
+    ],
+    "d7_waste_usd": 0.5411640176273759,
+    "tts_spend_usd": 2.166525
+  },
+  "verdicts": {
+    "ESCALATED": 38,
+    "RESOLVED": 13
+  },
+  "usage_tokens": {
+    "input": 14676,
+    "output": 168346
+  },
+  "spend_usd_metered": 0.34036099999999997,
+  "runtime_s": 3671.139236200019,
+  "examples": {
+    "p0.25": {
+      "call_id": "barge-p0.25-000",
+      "notes": [
+        {
+          "scripted": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "heard": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "decision": "billing_dispute",
+          "llm_fallback": false,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 837,
+          "played_chars": 837,
+          "in_tok": 74,
+          "out_tok": 1153
+        },
+        {
+          "scripted": "No, listen \u2014 order ORD-4481, the August bill. Fix it now.",
+          "heard": "No, listen. Order a R.D. 4,481. The August pill. Fix it now.",
+          "decision": "escalate",
+          "llm_fallback": false,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 808,
+          "played_chars": 808,
+          "in_tok": 82,
+          "out_tok": 1025
+        },
+        {
+          "scripted": "Just tell me the refund amount. Now.",
+          "heard": "Just tell me the refund amount. Now.",
+          "decision": "inform",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 43,
+          "played_chars": 43,
+          "in_tok": 69,
+          "out_tok": 807
+        },
+        {
+          "scripted": "Fine. Thanks, bye.",
+          "heard": "Fine, thanks, bye.",
+          "decision": "close_call",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 66,
+          "played_chars": 66,
+          "in_tok": 66,
+          "out_tok": 280
+        }
+      ],
+      "d7_waste": 0,
+      "verdict": "ESCALATED"
+    },
+    "p0.5": {
+      "call_id": "barge-p0.5-000",
+      "notes": [
+        {
+          "scripted": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "heard": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "decision": "billing_dispute",
+          "llm_fallback": false,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 1001,
+          "played_chars": 1001,
+          "in_tok": 74,
+          "out_tok": 1118
+        },
+        {
+          "scripted": "No, listen \u2014 order ORD-4481, the August bill. Fix it now.",
+          "heard": "No, listen. Order our D4,481. The August bill. Fix it now.",
+          "decision": "escalate",
+          "llm_fallback": false,
+          "barge_fraction": 0.443167739262314,
+          "barged": true,
+          "synth_chars": 595,
+          "played_chars": 264,
+          "in_tok": 79,
+          "out_tok": 785
+        },
+        {
+          "scripted": "Just tell me the refund amount. Now.",
+          "heard": "Just tell me the refund amount, now.",
+          "decision": "inform",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 43,
+          "played_chars": 43,
+          "in_tok": 69,
+          "out_tok": 1621
+        },
+        {
+          "scripted": "Fine. Thanks, bye.",
+          "heard": "Fine, thanks, bye.",
+          "decision": "close_call",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 66,
+          "played_chars": 66,
+          "in_tok": 66,
+          "out_tok": 290
+        }
+      ],
+      "d7_waste": 0.009148394957983193,
+      "verdict": "ESCALATED"
+    },
+    "p0.75": {
+      "call_id": "barge-p0.75-000",
+      "notes": [
+        {
+          "scripted": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "heard": "Hi, I was charged twice on my bill. This is ridiculous.",
+          "decision": "billing_dispute",
+          "llm_fallback": false,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 1064,
+          "played_chars": 1064,
+          "in_tok": 74,
+          "out_tok": 819
+        },
+        {
+          "scripted": "No, listen \u2014 order ORD-4481, the August bill. Fix it now.",
+          "heard": "No, listen. Oro RD 4,481. The August bill. Fix it now.",
+          "decision": "escalate",
+          "llm_fallback": false,
+          "barge_fraction": 0.7428521147396263,
+          "barged": true,
+          "synth_chars": 954,
+          "played_chars": 709,
+          "in_tok": 79,
+          "out_tok": 1637
+        },
+        {
+          "scripted": "Just tell me the refund amount. Now.",
+          "heard": "Just tell me the refund amount, now.",
+          "decision": "inform",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 43,
+          "played_chars": 43,
+          "in_tok": 69,
+          "out_tok": 587
+        },
+        {
+          "scripted": "Fine. Thanks, bye.",
+          "heard": "Fine, thanks bye.",
+          "decision": "close_call",
+          "llm_fallback": true,
+          "barge_fraction": null,
+          "barged": false,
+          "synth_chars": 66,
+          "played_chars": 66,
+          "in_tok": 65,
+          "out_tok": 226
+        }
+      ],
+      "d7_waste": 0.006965807127882599,
+      "verdict": "ESCALATED"
+    }
+  }
+}
