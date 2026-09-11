@@ -1,0 +1,145 @@
+{
+  "calls": [
+    {
+      "id": "live-voice-001",
+      "scenario": "billing_dispute",
+      "started": "2026-09-10T09:00:00Z",
+      "ended": "2026-09-10T09:02:54.952000Z",
+      "end_reason": "caller_hangup",
+      "agent_version": "turnstile-live voice@v1",
+      "telephony": {
+        "provider": "twilio",
+        "direction": "inbound",
+        "billable_seconds": 175
+      },
+      "turns": [
+        {
+          "start_ms": 0,
+          "end_ms": 93825,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "Hi, I was charged twice on my bill.",
+            "start_ms": 0,
+            "duration_ms": 2392,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 70,
+            "output_tokens": 1066,
+            "decision_kind": "route",
+            "decision": "billing_dispute",
+            "output_text": "Sorry about that \u2014 I can help and will flag this as billing_dispute to get it resolved.\n\nTo get started I need a few details (please do not send full card numbers or your SSN):\n- Account email or phone number on the account\n- Date(s) of the duplicate charge and the exact amounts\n- Last 4 digits of the card used\n- Any order number or transaction ID(s), or a screenshot of the statement showing the two charges (you can blur all but the merchant name, date, amount, and last 4 digits)\n\nWhat I\u2019ll do once you provide those:\n- Check whether one charge is a pending authorization (these usually drop off in 1\u20137 days) or two posted charges\n- If it\u2019s a posted duplicate, I\u2019ll open an internal dispute and request a refund on your behalf\n- I\u2019ll keep you updated on next steps and give an estimated timeline\n\nEstimated timelines:\n- Pending authorizations often clear within 1\u20137 days\n- Refunds we issue typically appear on your statement within 3\u20137 business days, though some banks can take longer\n- If we open a formal investigation, it may take up to ~10 business days to complete\n\nIf you\u2019d like me to start the investigation now, reply with the details above and confirm you authorize me to check your account. If you prefer phone support, tell me and I\u2019ll give the number and hours.",
+            "start_ms": 2392,
+            "duration_ms": 20765,
+            "system": "openai",
+            "decision_candidates": [
+              "billing_dispute"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "Sorry about that \u2014 I can help and will flag this as billing_dispute to get it resolved.\n\nTo get started I need a few details (please do not send full card numbers or your SSN):\n- Account email or phone number on the account\n- Date(s) of the duplicate charge and the exact amounts\n- Last 4 digits of the card used\n- Any order number or transaction ID(s), or a screenshot of the statement showing the two charges (you can blur all but the merchant name, date, amount, and last 4 digits)\n\nWhat I\u2019ll do once you provide those:\n- Check whether one charge is a pending authorization (these usually drop off in 1\u20137 days) or two posted charges\n- If it\u2019s a posted duplicate, I\u2019ll open an internal dispute and request a refund on your behalf\n- I\u2019ll keep you updated on next steps and give an estimated timeline\n\nEstimated timelines:\n- Pending authorizations often clear within 1\u20137 days\n- Refunds we issue typically appear on your statement within 3\u20137 business days, though some banks can take longer\n- If we open a formal investigation, it may take up to ~10 business days to complete\n\nIf you\u2019d like me to start the investigation now, reply with the details above and confirm you authorize me to check your account. If you prefer phone support, tell me and I\u2019ll give the number and hours.",
+            "start_ms": 23157,
+            "duration_ms": 70368,
+            "system": "piper",
+            "chars_synthesized": 1275,
+            "chars_played": 1275
+          },
+          "tools": []
+        },
+        {
+          "start_ms": 94325,
+          "end_ms": 158033,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "It is order RRD 4,481, the August Bill.",
+            "start_ms": 94325,
+            "duration_ms": 4191,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 74,
+            "output_tokens": 895,
+            "decision_kind": "compose",
+            "decision": "billing_dispute",
+            "output_text": "Thanks \u2014 I see this is order RRD 4,481 for the August bill and I can help. To get started, please tell me:\n\n- What\u2019s wrong with the charge (overcharged, duplicate charge, item not ordered, missing discount, late fee, etc.)  \n- The exact amount you\u2019re disputing (or what you expected to be billed)  \n- How you\u2019d like it resolved (refund to card, account credit, or adjustment)\n\nI\u2019ll also need to verify your identity before I open an investigation \u2014 please confirm one of these: last 4 digits of the payment card on file, billing ZIP code, or the email on the account. Once I have that info I\u2019ll open a billing_dispute and aim to complete the review within 5\u20137 business days. If you prefer, I can escalate you to a billing specialist now. Which would you like to do?",
+            "start_ms": 98516,
+            "duration_ms": 14995,
+            "system": "openai",
+            "decision_candidates": [
+              "billing_dispute"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "Thanks \u2014 I see this is order RRD 4,481 for the August bill and I can help. To get started, please tell me:\n\n- What\u2019s wrong with the charge (overcharged, duplicate charge, item not ordered, missing discount, late fee, etc.)  \n- The exact amount you\u2019re disputing (or what you expected to be billed)  \n- How you\u2019d like it resolved (refund to card, account credit, or adjustment)\n\nI\u2019ll also need to verify your identity before I open an investigation \u2014 please confirm one of these: last 4 digits of the payment card on file, billing ZIP code, or the email on the account. Once I have that info I\u2019ll open a billing_dispute and aim to complete the review within 5\u20137 business days. If you prefer, I can escalate you to a billing specialist now. Which would you like to do?",
+            "start_ms": 113511,
+            "duration_ms": 44222,
+            "system": "piper",
+            "chars_synthesized": 761,
+            "chars_played": 761
+          },
+          "tools": []
+        },
+        {
+          "start_ms": 158533,
+          "end_ms": 174952,
+          "speaker_first": "caller",
+          "barge_in": false,
+          "asr": {
+            "transcript": "Thanks, that is all. Bye.",
+            "start_ms": 158533,
+            "duration_ms": 2136,
+            "model": "nova-3",
+            "system": "deepgram",
+            "confidence": 0.9,
+            "streaming": true
+          },
+          "llm": {
+            "model": "gpt-5-mini",
+            "input_tokens": 68,
+            "output_tokens": 418,
+            "decision_kind": "compose",
+            "decision": "billing_dispute",
+            "output_text": "You're welcome \u2014 glad I could help. If anything else comes up, feel free to reach out. Goodbye. billing_dispute",
+            "start_ms": 160669,
+            "duration_ms": 7806,
+            "system": "openai",
+            "decision_candidates": [
+              "billing_dispute"
+            ],
+            "tool_calls": [],
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "tts": {
+            "text": "You're welcome \u2014 glad I could help. If anything else comes up, feel free to reach out. Goodbye. billing_dispute",
+            "start_ms": 168475,
+            "duration_ms": 6177,
+            "system": "piper",
+            "chars_synthesized": 108,
+            "chars_played": 108
+          },
+          "tools": []
+        }
+      ]
+    }
+  ]
+}
