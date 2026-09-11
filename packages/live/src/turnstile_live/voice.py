@@ -399,3 +399,160 @@ class CappedLlmPolicy:
             output_tokens=usage.completion_tokens,
             fallback=True, latency_ms=latency_ms,
         )
+
+
+# --------------------------------------------------------------------------- #
+# Function-calling policy (Phase 5): the model gets real tools.               #
+# --------------------------------------------------------------------------- #
+
+# name -> (description, {param: json-type}). Small, real params; the mock
+# tools accept anything, but these schemas are what the model actually sees.
+_KNOWN_FUNCTIONS: dict[str, tuple[str, dict[str, str]]] = {
+    "lookup_account": (
+        "Look up a caller account by id.",
+        {"account_id": "string"},
+    ),
+    "lookup_invoices": (
+        "Look up invoices for an order.",
+        {"order_id": "string"},
+    ),
+    "retrieve_kb_article": (
+        "Retrieve a help-center article by topic.",
+        {"topic": "string"},
+    ),
+    "process_refund": (
+        "Refund a charged order back to its payment method.",
+        {"order_id": "string", "amount_usd": "number"},
+    ),
+    "adjust_billing": (
+        "Adjust an incorrect bill.",
+        {"order_id": "string", "amount_usd": "number"},
+    ),
+    "reschedule_appointment": (
+        "Move an appointment to a new time.",
+        {"appointment_id": "string", "new_time": "string"},
+    ),
+    "cancel_subscription": (
+        "Cancel a subscription.",
+        {"account_id": "string"},
+    ),
+}
+
+_LOOKUP_FUNCTION_NAMES: tuple[str, ...] = (
+    "lookup_account", "lookup_invoices", "retrieve_kb_article",
+)
+
+
+def _function_schema(name: str) -> dict:
+    description, params = _KNOWN_FUNCTIONS[name]
+    return {"type": "function", "function": {
+        "name": name, "description": description,
+        "parameters": {"type": "object", "properties": {
+            field: {"type": ftype} for field, ftype in params.items()
+        }, "additionalProperties": False},
+    }}
+
+
+def function_schemas_for(scenario: str) -> list[dict]:
+    """OpenAI function schemas for a scenario: the lookup tools plus the
+    registry-required terminal tool when the scenario has one (unknown
+    required names are never offered -- the model can only invoke real
+    mock tools). Pure, deterministic, no network."""
+    from turnstile_verdict.registry import lookup
+
+    names = list(_LOOKUP_FUNCTION_NAMES)
+    spec = lookup(scenario)
+    required = spec.requires_mutation if spec is not None else None
+    if required is not None and required in _KNOWN_FUNCTIONS and required not in names:
+        names.append(required)
+    return [_function_schema(name) for name in names]
+
+
+class FunctionCallingPolicy:
+    """Real tool-calling decisions inside the free small-model bucket
+    (owner-gated: refuses unless TURNSTILE_ALLOW_PAID=1). The scenario's
+    tools ride as OpenAI function schemas -- the model can INVOKE one
+    instead of composing prose. A tool call records tool_select + the
+    function name; the harness runs the existing mock tool (single-source
+    `_tools_for`), which commits the registry-required tool when selected.
+
+    Content handling: model text rides through verbatim; a tool-only turn
+    (no content) records output_text "" -- the TRUE record that the model
+    acted without speaking, never a fabricated utterance. A turn with
+    neither tool calls nor a parseable label falls back to the mock policy
+    (fallback=True, reported). `client=` injects a fake for tests."""
+
+    def __init__(
+        self,
+        model: str | None = None,
+        client: Any | None = None,
+    ) -> None:
+        if os.environ.get(PAID_GATE_ENV) != "1":
+            raise RuntimeError(
+                "FunctionCallingPolicy refuses to run: set TURNSTILE_ALLOW_PAID=1 "
+                "to explicitly authorize real (paid) OpenAI API calls."
+            )
+        self._model = (
+            model or os.environ.get(MODEL_CAP_ENV) or LLM_MODEL_DEFAULT
+        )
+        self._client = client
+
+    def decide(
+        self, scenario: str, transcript: str, turn_index: int,
+        candidates: tuple[str, ...] | None,
+    ) -> LlmDecision:
+        from turnstile_live.policy import decide as mock_decide
+
+        start = time.perf_counter()
+        client = self._client
+        if client is None:
+            from openai import OpenAI
+
+            client = OpenAI()
+        response = client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {"role": "system", "content": (
+                    f"You are the voice agent for scenario '{scenario}'. "
+                    "Use the provided tools when the caller needs action; "
+                    "otherwise reply naturally in one or two sentences."
+                )},
+                {"role": "user", "content": transcript},
+            ],
+            tools=function_schemas_for(scenario),
+            timeout=60.0,
+        )
+        latency_ms = (time.perf_counter() - start) * 1000.0
+        message = response.choices[0].message
+        usage = response.usage
+        tool_calls = getattr(message, "tool_calls", None) or []
+        if tool_calls:
+            name = tool_calls[0].function.name
+            return LlmDecision(
+                decision_kind="tool_select", decision=name,
+                reply=(message.content or "").strip(),
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+                fallback=False, latency_ms=latency_ms,
+            )
+        text = (message.content or "").strip()
+        from turnstile_live.openloop import candidates_for
+
+        offered = list(candidates_for(scenario, turn_index))
+        hits = [c for c in offered if c.lower() in text.lower()]
+        if hits:
+            label = max(hits, key=len)
+            return LlmDecision(
+                decision_kind=kind_for_label(label, turn_index),
+                decision=label, reply=text,
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+                fallback=False, latency_ms=latency_ms,
+            )
+        mock = mock_decide(scenario, transcript, turn_index)
+        return LlmDecision(
+            decision_kind=mock.decision_kind, decision=mock.decision,
+            reply=mock.reply, input_tokens=usage.prompt_tokens,
+            output_tokens=usage.completion_tokens,
+            fallback=True, latency_ms=latency_ms,
+        )
