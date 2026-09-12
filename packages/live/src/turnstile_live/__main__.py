@@ -112,8 +112,8 @@ def main(argv: list[str] | None = None) -> None:
                         help="bargein mode: persist each call's ingest JSON here (post-hoc analysis)")
     parser.add_argument("--policy", choices=("label", "functools"), default="label",
                         help="openloop mode: label-elicitation or function-calling LLM policy")
-    parser.add_argument("--scripts", choices=("v24", "v36"), default="v24",
-                        help="openloop mode: P3's 24 probes, or +12 Phase-5 extension probes")
+    parser.add_argument("--scripts", choices=("v24", "v36", "v72"), default="v24",
+                        help="openloop mode: P3's 24 probes, +12 Phase-5 probes, or +36 scale probes")
     args = parser.parse_args(argv)
     if args.mode == "voice":
         _run_voice(args)
@@ -128,6 +128,7 @@ def main(argv: list[str] | None = None) -> None:
 def _run_openloop(args) -> None:
     from turnstile_live.openloop import (
         EXTRA_SCRIPTS,
+        EXTRA_SCRIPTS_2,
         SCRIPT_SET,
         enforce_budget,
         openai_judge_chat,
@@ -141,7 +142,11 @@ def _run_openloop(args) -> None:
     from turnstile_live.voice import CappedLlmPolicy, FunctionCallingPolicy, LlmDecision
 
     rates = load_rates(_REPO_ROOT / "pricing" / "rates.yaml")
-    convos = list(SCRIPT_SET) + (list(EXTRA_SCRIPTS) if args.scripts == "v36" else [])
+    convos = list(SCRIPT_SET)
+    if args.scripts in ("v36", "v72"):
+        convos += list(EXTRA_SCRIPTS)
+    if args.scripts == "v72":
+        convos += list(EXTRA_SCRIPTS_2)
     if args.live:
         if os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
             raise SystemExit("--live refuses: set TURNSTILE_ALLOW_PAID=1 (LLM decisions + judge are paid).")
