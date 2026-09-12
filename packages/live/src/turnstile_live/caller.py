@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from turnstile_corpus.distributions import sample_inter_turn_gap_ms
+
 
 @dataclass(frozen=True)
 class ImpatientCaller:
@@ -40,6 +42,21 @@ class ImpatientCaller:
         if rng.random() >= self.p_barge:
             return None
         return float(rng.uniform(self.pos_lo, self.pos_hi))
+
+    def gap_ms(self) -> int:
+        """Inter-turn response gap: the corpus's cited lognormal (Stivers et
+        al. 2009, median ~200ms) drawn from this caller's own stream -- the
+        fixed 300ms floor that made D8 constant is gone."""
+        return sample_inter_turn_gap_ms(self.__dict__["_rng"])
+
+    def processing_gap_ms(self) -> int:
+        """ASR->LLM handoff silence: the corpus's cited processing-latency
+        lognormal (Telnyx stitched-stack benchmark, median ~1100ms). Real
+        dead air inside the turn, which D8 can see (inter-turn gaps sit
+        between turn walls, outside D8's per-turn union)."""
+        from turnstile_corpus.distributions import sample_processing_latency_ms
+
+        return sample_processing_latency_ms(self.__dict__["_rng"])
 
     def utterance(self, turn_index: int, script: tuple[str, ...] | list[str]) -> str:
         """The scripted caller text for this turn (clamped to the script)."""

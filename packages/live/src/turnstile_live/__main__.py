@@ -213,21 +213,57 @@ def _run_openloop(args) -> None:
           f"metered=${spend_usd:.4f})")
 
 
+def _score_persisted_or_run(
+    call_id: str, calls_dir: Path | None, rates, baselines, run_fn,
+) -> tuple[dict, bool, int, int]:
+    """Resume helper: a persisted call JSON is scored, never re-run (no
+    re-spend after a crash on a multi-hour run). Usage tokens are re-read
+    from the persisted llm blocks, so spend stays metered across resumes.
+    Returns (scored, fresh, in_tok, out_tok)."""
+    from turnstile_live.bargein import score_call
+
+    if calls_dir is not None:
+        persisted = calls_dir / f"{call_id}.json"
+        if persisted.exists():
+            call_dict = json.loads(persisted.read_text(encoding="utf-8"))
+            scored = score_call(call_dict, rates, baselines)
+            usage = [(t.get("llm") or {}).get("input_tokens", 0)
+                     for t in call_dict["turns"]]
+            usage_out = [(t.get("llm") or {}).get("output_tokens", 0)
+                         for t in call_dict["turns"]]
+            return scored, False, sum(usage), sum(usage_out)
+    call, notes = run_fn()
+    call_dict = call.model_dump(mode="json")
+    if calls_dir is not None:
+        (calls_dir / f"{call_id}.json").write_text(
+            json.dumps(call_dict), encoding="utf-8")
+    from turnstile_live.bargein import score_call as score_fresh
+
+    scored = score_fresh(call_dict, rates, baselines)
+    in_tok = sum(t["in_tok"] for t in notes["turns"])
+    out_tok = sum(t["out_tok"] for t in notes["turns"])
+    return scored, True, in_tok, out_tok
+
+
 def _run_bargein(args) -> None:
     import time
 
     from turnstile_live.bargein import (
         BARGE_SCRIPT,
         aggregate_sweep,
+        over_budget,
         run_bargein_call,
-        score_call,
     )
     from turnstile_live.caller import ImpatientCaller
     from turnstile_live.openloop import enforce_budget
 
     if args.live and os.environ.get("TURNSTILE_ALLOW_PAID") != "1":
         raise SystemExit("--live refuses: set TURNSTILE_ALLOW_PAID=1 (the LLM policy is paid).")
-    enforce_budget(n_convos=args.n, turns_each=len(BARGE_SCRIPT))
+    # Calibrated upfront gate: $0.002/call is 1.2x the measured n=51 mean
+    # ($0.00167); the pessimistic default bound would refuse any honest
+    # volume run. The mid-run brake below is the real protection.
+    enforce_budget(n_convos=args.n, turns_each=len(BARGE_SCRIPT),
+                   judges_per_convo=0, worst_case_usd_per_call=0.002)
     if args.live:
         from turnstile_live.voice import CappedLlmPolicy, PiperTts, WhisperStt
 
@@ -246,15 +282,18 @@ def _run_bargein(args) -> None:
         (_REPO_ROOT / "fixtures" / "sample" / "baselines.json").read_text(encoding="utf-8")
     )
     p_levels = [float(p) for p in args.p_levels.split(",")]
-    per_level = args.n // len(p_levels)
-    if per_level < 1:
+    base, rem = divmod(args.n, len(p_levels))
+    per_level_counts = [base + (1 if li < rem else 0) for li in range(len(p_levels))]
+    if min(per_level_counts) < 1:
         raise SystemExit(f"--n {args.n} too small for {len(p_levels)} levels.")
     t0 = time.monotonic()
     cells: dict[str, list] = {}
+    d8_cells: dict[str, list] = {}
     counts: dict[str, dict[str, float]] = {}
     verdicts: dict[str, int] = {}
     examples: dict[str, dict] = {}
     in_tok = out_tok = 0
+    stopped_early = False
     audio_root = Path(args.audio_dir)
     calls_root = Path(args.calls_dir) if args.calls_dir else None
     if calls_root is not None:
@@ -262,26 +301,42 @@ def _run_bargein(args) -> None:
     for li, p in enumerate(p_levels):
         level = f"p{p:g}"
         cells[level] = []
+        d8_cells[level] = []
         counts[level] = {"d6_waste": 0.0, "d8_waste": 0.0, "n_d6": 0, "n_d7": 0, "n_d8": 0}
-        for i in range(per_level):
+        for i in range(per_level_counts[li]):
             call_id = f"barge-{level}-{i:03d}"
             caller = ImpatientCaller(
                 p_barge=p, pos_lo=args.pos_lo, pos_hi=args.pos_hi,
                 seed=args.seed + li * 10000 + i)
             call_stt = stt if args.live else FakeStt(list(BARGE_SCRIPT))
-            call, notes = run_bargein_call(
-                call_id=call_id, scenario=args.scenario,
-                caller_texts=list(BARGE_SCRIPT), caller=caller,
-                stt=call_stt,
-                tts=tts, llm=llm, audio_dir=audio_root / level,
-            )
-            call_dict = call.model_dump(mode="json")
-            if calls_root is not None:
-                (calls_root / f"{call_id}.json").write_text(
-                    json.dumps(call_dict), encoding="utf-8")
-            scored = score_call(call_dict, rates, baselines)
+
+            def _run_one():
+                return run_bargein_call(
+                    call_id=call_id, scenario=args.scenario,
+                    caller_texts=list(BARGE_SCRIPT), caller=caller,
+                    stt=call_stt,
+                    tts=tts, llm=llm, audio_dir=audio_root / level,
+                )
+
+            if calls_root is not None and (calls_root / f"{call_id}.json").exists():
+                scored, fresh, res_in, res_out = _score_persisted_or_run(
+                    call_id, calls_root, rates, baselines, _run_one)
+                notes = {"turns": []}
+                in_tok += res_in
+                out_tok += res_out
+            else:
+                call, notes = _run_one()
+                call_dict = call.model_dump(mode="json")
+                if calls_root is not None:
+                    (calls_root / f"{call_id}.json").write_text(
+                        json.dumps(call_dict), encoding="utf-8")
+                from turnstile_live.bargein import score_call
+
+                scored = score_call(call_dict, rates, baselines)
+                fresh = True
             verdicts[scored["verdict"]] = verdicts.get(scored["verdict"], 0) + 1
             cells[level].append((scored["d7_waste"], scored["tts_spend"]))
+            d8_cells[level].append(scored["d8_waste"])
             counts[level]["d6_waste"] += scored["d6_waste"]
             counts[level]["d8_waste"] += scored["d8_waste"]
             counts[level]["n_d6"] += scored["n_d6"]
@@ -290,12 +345,18 @@ def _run_bargein(args) -> None:
             for turn_note in notes["turns"]:
                 in_tok += turn_note["in_tok"]
                 out_tok += turn_note["out_tok"]
-            if i == 0:
+            if i == 0 and notes["turns"]:
                 examples[level] = {"call_id": call_id, "notes": notes["turns"],
                                    "d7_waste": scored["d7_waste"],
                                    "verdict": scored["verdict"]}
+            spend_usd = in_tok / 1e6 * 0.25 + out_tok / 1e6 * 2.00
+            if fresh and over_budget(spend_usd):
+                stopped_early = True
+                break
+        if stopped_early:
+            break
     runtime_s = time.monotonic() - t0
-    table = aggregate_sweep(cells)
+    table = aggregate_sweep(cells, d8_cells=d8_cells)
     for level in table:
         table[level]["d6_waste_usd"] = counts[level]["d6_waste"]
         table[level]["d8_waste_usd"] = counts[level]["d8_waste"]
@@ -303,9 +364,12 @@ def _run_bargein(args) -> None:
         table[level]["n_d7_findings"] = counts[level]["n_d7"]
         table[level]["n_d8_findings"] = counts[level]["n_d8"]
     pooled = [(w, s) for per in cells.values() for w, s in per]
-    from turnstile_live.bargein import d7_share_of_tts_spend
+    from turnstile_live.bargein import d7_share_of_tts_spend, mean_bootstrap_ci
 
     share, lo, hi = d7_share_of_tts_spend(pooled)
+    pooled_d8 = [w for per in d8_cells.values() for w in per]
+    d8_mean = sum(pooled_d8) / len(pooled_d8) if pooled_d8 else 0.0
+    d8_lo, d8_hi = mean_bootstrap_ci(pooled_d8)
     total_waste = sum(w for w, _s in pooled)
     total_spend = sum(s for _w, s in pooled)
     spend_usd = in_tok / 1e6 * 0.25 + out_tok / 1e6 * 2.00
@@ -315,13 +379,15 @@ def _run_bargein(args) -> None:
         "label": "barge-in at volume (MEASURED D7 on real Piper audio) -- separate from "
                  "the harness figure; never folded into the margin.",
         "live": bool(args.live), "engines": engines,
-        "config": {"n": per_level * len(p_levels), "p_levels": p_levels,
+        "config": {"n": sum(per_level_counts), "p_levels": p_levels,
                    "pos_window": [args.pos_lo, args.pos_hi], "seed": args.seed,
-                   "scenario": args.scenario},
+                   "scenario": args.scenario, "stopped_early": stopped_early},
         "sweep": table,
         "pooled": {"n_calls": len(pooled), "d7_share": share,
                    "d7_share_ci95": [lo, hi], "d7_waste_usd": total_waste,
-                   "tts_spend_usd": total_spend},
+                   "tts_spend_usd": total_spend,
+                   "d8_mean_per_call_usd": d8_mean,
+                   "d8_mean_ci95": [d8_lo, d8_hi]},
         "verdicts": verdicts,
         "usage_tokens": {"input": in_tok, "output": out_tok},
         "spend_usd_metered": spend_usd,
@@ -330,7 +396,9 @@ def _run_bargein(args) -> None:
     }, indent=2), encoding="utf-8")
     print(f"wrote {out}: pooled D7 share={share:.2%} [{lo:.2%}, {hi:.2%}] "
           f"over {len(pooled)} calls in {runtime_s:.0f}s "
-          f"(metered=${spend_usd:.4f}; verdicts={verdicts})")
+          f"(metered=${spend_usd:.4f}; verdicts={verdicts}; "
+          f"D8 mean=${d8_mean:.6f} [{d8_lo:.6f}, {d8_hi:.6f}]"
+          f"{'; STOPPED EARLY on budget brake' if stopped_early else ''})")
 
 
 if __name__ == "__main__":

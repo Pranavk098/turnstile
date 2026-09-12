@@ -1658,12 +1658,14 @@ name = "turnstile-live"
 version = "0.0.0"
 source = { editable = "packages/live" }
 dependencies = [
+    { name = "turnstile-corpus" },
     { name = "turnstile-ingest" },
     { name = "turnstile-schema" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "turnstile-corpus", editable = "packages/corpus" },
     { name = "turnstile-ingest", editable = "packages/ingest" },
     { name = "turnstile-schema", editable = "packages/schema" },
 ]

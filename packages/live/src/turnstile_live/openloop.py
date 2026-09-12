@@ -301,16 +301,25 @@ def openai_judge_chat(model: str):
     return call
 
 
-def estimate_worst_case_usd(n_convos: int, turns_each: int) -> float:
-    """Pessimistic spend bound: every decision + one judge per conversation
-    at worst-case tokens. Judges are bounded by conversation count (only
-    divergent conversations are judged, and divergent <= all)."""
-    return (n_convos * turns_each + n_convos) * _WORST_CASE_USD_PER_CALL
+def estimate_worst_case_usd(
+    n_convos: int, turns_each: int, judges_per_convo: int = 1,
+    worst_case_usd_per_call: float = _WORST_CASE_USD_PER_CALL,
+) -> float:
+    """Pessimistic spend bound: every decision + bounded judges at
+    worst-case tokens. Callers without judges (barge-in volume) pass
+    judges_per_convo=0; callers with measured unit costs pass a calibrated
+    per-call bound (documented at the call site)."""
+    return (n_convos * turns_each + n_convos * judges_per_convo) * worst_case_usd_per_call
 
 
-def enforce_budget(n_convos: int, turns_each: int, cap_usd: float = BUDGET_CAP_USD) -> float:
+def enforce_budget(
+    n_convos: int, turns_each: int, cap_usd: float = BUDGET_CAP_USD,
+    judges_per_convo: int = 1,
+    worst_case_usd_per_call: float = _WORST_CASE_USD_PER_CALL,
+) -> float:
     """Refuse (RuntimeError) when the worst-case estimate exceeds the cap."""
-    estimate = estimate_worst_case_usd(n_convos, turns_each)
+    estimate = estimate_worst_case_usd(
+        n_convos, turns_each, judges_per_convo, worst_case_usd_per_call)
     if estimate > cap_usd:
         raise RuntimeError(
             f"open-loop run refuses: worst-case estimate ${estimate:.2f} "

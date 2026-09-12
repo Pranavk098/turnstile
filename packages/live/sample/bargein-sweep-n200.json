@@ -1,0 +1,111 @@
+{
+  "label": "barge-in at volume (MEASURED D7 on real Piper audio) -- separate from the harness figure; never folded into the margin.",
+  "live": true,
+  "engines": "whisper-tiny.en + piper-lessac + capped-gpt-5-mini",
+  "config": {
+    "n": 200,
+    "p_levels": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "pos_window": [
+      0.25,
+      0.75
+    ],
+    "seed": 7,
+    "scenario": "billing_dispute",
+    "stopped_early": false
+  },
+  "sweep": {
+    "p0.25": {
+      "n_calls": 67,
+      "n_barged": 39,
+      "d7_share": 0.12104514191133961,
+      "d7_share_ci95": [
+        0.08095882271811887,
+        0.16418476576170704
+      ],
+      "d7_waste_usd": 0.31226015258868284,
+      "tts_spend_usd": 2.5797000000000003,
+      "d8_mean_per_call_usd": 0.0006612323383084577,
+      "d8_mean_ci95": [
+        0.0006351064676616917,
+        0.0006891575870646766
+      ],
+      "d8_waste_usd": 0.04430256666666668,
+      "d6_waste_usd": 0.0,
+      "n_d6_findings": 0,
+      "n_d7_findings": 48,
+      "n_d8_findings": 268
+    },
+    "p0.5": {
+      "n_calls": 67,
+      "n_barged": 62,
+      "d7_share": 0.31657911038073605,
+      "d7_share_ci95": [
+        0.26822107656707683,
+        0.36679031963283154
+      ],
+      "d7_waste_usd": 0.8548348283278231,
+      "tts_spend_usd": 2.700225,
+      "d8_mean_per_call_usd": 0.0007039141791044777,
+      "d8_mean_ci95": [
+        0.0006682162935323383,
+        0.0007396014925373134
+      ],
+      "d8_waste_usd": 0.04716225000000002,
+      "d6_waste_usd": 0.0,
+      "n_d6_findings": 0,
+      "n_d7_findings": 114,
+      "n_d8_findings": 268
+    },
+    "p0.75": {
+      "n_calls": 66,
+      "n_barged": 62,
+      "d7_share": 0.41391196853617296,
+      "d7_share_ci95": [
+        0.36262863030562864,
+        0.4621456656672315
+      ],
+      "d7_waste_usd": 1.1389201726241336,
+      "tts_spend_usd": 2.7516000000000003,
+      "d8_mean_per_call_usd": 0.0006477450757575758,
+      "d8_mean_ci95": [
+        0.0006201994949494949,
+        0.0006759131313131314
+      ],
+      "d8_waste_usd": 0.04275117499999999,
+      "d6_waste_usd": 0.0,
+      "n_d6_findings": 0,
+      "n_d7_findings": 143,
+      "n_d8_findings": 264
+    }
+  },
+  "pooled": {
+    "n_calls": 200,
+    "d7_share": 0.2871204601293826,
+    "d7_share_ci95": [
+      0.2545161886585634,
+      0.3197909842174525
+    ],
+    "d7_waste_usd": 2.3060151535406397,
+    "tts_spend_usd": 8.031525,
+    "d8_mean_per_call_usd": 0.0006710799583333334,
+    "d8_mean_ci95": [
+      0.000653344,
+      0.0006889944166666667
+    ]
+  },
+  "verdicts": {
+    "ESCALATED": 134,
+    "RESOLVED": 66
+  },
+  "usage_tokens": {
+    "input": 57598,
+    "output": 659998
+  },
+  "spend_usd_metered": 1.3343954999999998,
+  "runtime_s": 1299.9707012000144,
+  "examples": {}
+}
