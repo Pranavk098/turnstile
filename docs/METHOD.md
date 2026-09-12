@@ -172,7 +172,7 @@ presented as a **hypothesis plus a sensitivity sweep** (D8's share moves 77.7%�
 the inter-turn-gap median moves 100→450ms), never as a bare fact. See `docs/CORPUS.md`.
 
 **D7 (barge-in) is now Tier-1 — measured on real audio, at volume.** Beyond the controlled
-Piper harness (~4% at a polite 15% rate), we ran the **live agent over 51 full calls** with
+Piper harness (~4% at a polite 15% rate), we ran the **live agent over 200 full calls** with
 an *interruption-heavy* synthetic caller and measured D7 = synthesized−played (from the real
 Piper accounting + the actual interruption position, never `len(text)`). The honest result
 is that **barge-in waste scales with caller impatience**, reported as a sweep, not a single
@@ -180,15 +180,30 @@ number:
 
 | per-turn barge-in rate | D7 share of TTS spend | 95% CI |
 |---|---|---|
-| 0.25 (≈ polite) | **6.2%** | [1.7, 11.4] |
-| 0.50 | 28.2% | [18.6, 38.0] |
-| 0.75 (impatient) | 38.7% | [29.3, 47.5] |
+| 0.25 (≈ polite) | **12.1%** | [8.1, 16.4] |
+| 0.50 | 31.7% | [26.8, 36.7] |
+| 0.75 (impatient) | 41.4% | [36.3, 46.2] |
+| pooled | 28.7% | [25.5, 32.0] |
 
-At the polite end it agrees with the ~4% harness; the impatient regime is where the waste
-becomes large. The pooled ~25% describes the interruption-heavy regime, **not a typical
-fleet** — say so. (Side effects, honestly: the impatient caller drives 38/51 conversations
-to ESCALATED; D6 dead-tokens was 0 throughout; D8 here is a fixed-layout artifact, not
-behavior — D8-at-volume needs varied gap structure, flagged as follow-up.)
+n = 200 (67/67/66 across levels, `billing_dispute`, seed 7). Scaling from the earlier n=51
+probe roughly **halved every CI width** and corrected the polite end upward (6.2%→12.1%: the
+old point sat at the low edge of a wide interval). At the polite end it stays the same order
+as the ~4% harness — higher because the caller is ruder, the replies are verbose real-LLM
+audio (40–70s), and there are three cut opportunities per call. The pooled 28.7% describes
+the interruption-heavy regime, **not a typical fleet** — say so.
+
+**D8-at-volume is now a real number, not a fixed-layout artifact.** The earlier fixed-gap
+floors (turn tail + a phantom tool slot) are gone, replaced by per-turn silence sampled from
+the corpus's cited distributions (Stivers 2009 response gaps + a Telnyx processing-latency
+lognormal), with mock tools contributing a zero-length span so no phantom silence is billed.
+Measured over the same 200 calls, D8 = **$0.000671/call** [0.000653, 0.000689], ~4
+findings/call, and — the honest, predicted result — **flat across barge rate** (per-level
+0.000661/0.000704/0.000648, overlapping CIs): processing-latency silence does not depend on
+how often the caller interrupts. It remains Tier-2 in kind (synthetic acoustics, not real
+customer audio), but it is now behavior, not layout. (Side effects, honestly: the impatient
+caller drives 134/200 conversations to ESCALATED; D6 dead-tokens was 0 throughout. Stated
+trade-off in the harness: on cut turns the TTS span duration reads *played*, not *generated*,
+while D7's billed waste keeps the full synthesized chars — exact D8 union, exact D7 metadata.)
 
 ## Modeling choices, stated
 
