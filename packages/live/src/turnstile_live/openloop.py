@@ -108,6 +108,76 @@ EXTRA_SCRIPTS: tuple[ScriptedConversation, ...] = tuple(
 )
 
 
+def _scale_scripts(
+    scenario: str,
+    v7_open: str, v8_open: str, v8_detail: str, v9_open: str,
+    v10_detail: str, v12_open: str,
+) -> list[ScriptedConversation]:
+    """Phase-5 scale probes (v7-v12): divergence bait + balance.
+
+    v7 cue-less open (mock falls back to "other"); v8 cross-scenario cue
+    words that misroute the mock's first-match keyword order; v9
+    question-open (mock "other"); v10 lookup-worded detail; v11 turn-2
+    escalate (likely convergent -- honest balance); v12 verbose open.
+    Turn 3 always closes. Earlier sets stay frozen (lengths pinned)."""
+    detail_std = {
+        "order_status": "It is order ORD-4481.",
+        "tech_support": "HomeHub 3000.",
+        "refund": "ORD-2207.",
+        "billing_dispute": "The August bill.",
+        "cancel_subscription": "My plan.",
+        "appointment_reschedule": "Tuesday.",
+    }[scenario]
+    return [
+        ScriptedConversation(f"{scenario}-v7", scenario, (v7_open, detail_std, "Thanks, bye!")),
+        ScriptedConversation(f"{scenario}-v8", scenario, (v8_open, v8_detail, "Ok, goodbye.")),
+        ScriptedConversation(f"{scenario}-v9", scenario, (v9_open, detail_std, "Thanks, bye!")),
+        ScriptedConversation(f"{scenario}-v10", scenario, (v7_open, v10_detail, "Thanks, bye!")),
+        ScriptedConversation(
+            f"{scenario}-v11", scenario,
+            (v7_open, detail_std, "Actually, get me your supervisor.")),
+        ScriptedConversation(f"{scenario}-v12", scenario, (v12_open, detail_std, "Appreciated, bye!")),
+    ]
+
+
+EXTRA_SCRIPTS_2: tuple[ScriptedConversation, ...] = tuple(
+    conv
+    for scenario, v7_open, v8_open, v8_detail, v9_open, v10_detail, v12_open in (
+        ("order_status",
+         "Package?", "My bill is wrong for order ORD-4481.", "It arrived Thursday damaged.",
+         "What are my options for tracking?", "My account email is me@example.com.",
+         "Hi there, I'm calling because my order ORD-4481 was supposed to arrive "
+         "Thursday and it still hasn't shown up, can you check?"),
+        ("tech_support",
+         "Broken.", "My internet bill doubled and wifi drops.", "HomeHub 3000 evenings.",
+         "What are my options for support?", "My account email is me@example.com.",
+         "Hi, so for the past week every evening around eight my wifi just dies "
+         "completely, router is a HomeHub 3000, any ideas?"),
+        ("refund",
+         "Help?", "I was charged $42.50 twice on order ORD-2207.", "Last Tuesday.",
+         "What are my options for getting money back?", "My account is under jdoe@mail.",
+         "Hi, I'm calling about order ORD-2207 from last Tuesday for $42.50, the item "
+         "arrived broken so I'd like to send it back for a refund."),
+        ("billing_dispute",
+         "Huh?", "I want my money back for August.", "Two identical charges.",
+         "What are my options for charges?", "My account number is 44881.",
+         "Hi, looking at my August statement there are two identical charges for the "
+         "same amount and I'd like one removed."),
+        ("cancel_subscription",
+         "Hi?", "You charged me after I cancelled, refund it.", "Renews on the first.",
+         "What are my options for ending this?", "Account jdoe@mail, renews on the first.",
+         "Hi, I'd like to stop my subscription before it renews on the first of next "
+         "month, what do you need from me?"),
+        ("appointment_reschedule",
+         "Hello?", "My bill for Tuesday's visit is wrong, also move it.", "Afternoon works.",
+         "What are my options for changing this?", "My account is under Jane.",
+         "Hi, something came up Tuesday so I need to shift my appointment to sometime "
+         "next week, preferably an afternoon, what have you got?"),
+    )
+    for conv in _scale_scripts(scenario, v7_open, v8_open, v8_detail, v9_open, v10_detail, v12_open)
+)
+
+
 @dataclass(frozen=True)
 class BaselinePath:
     decisions: tuple[tuple[str, str], ...]
@@ -328,28 +398,62 @@ def enforce_budget(
     return estimate
 
 
+def _wilson(successes: int, n: int) -> list[float] | None:
+    """Wilson 95% CI as a JSON-safe [lo, hi]; None with no denominator."""
+    if n == 0:
+        return None
+    from turnstile_replay.stats import wilson_interval
+
+    lo, hi = wilson_interval(successes, n)
+    return [lo, hi]
+
+
+def classify_divergence(
+    baseline_path: list | tuple, live_path: list | tuple
+) -> str:
+    """What diverged: identical paths -> "converged"; a turn-0 route-label
+    difference (the mock-fallback/misroute shape) -> "turn0-label";
+    anything else (tool/close/escalate action differences) -> "action-level".
+    Reporting aid only -- the figures never condition on it."""
+    if list(live_path) == list(baseline_path):
+        return "converged"
+    if live_path and baseline_path and tuple(live_path[0]) != tuple(baseline_path[0]):
+        return "turn0-label"
+    return "action-level"
+
+
 def summarize(rows: list[dict]) -> dict:
     """Collapse per-conversation rows to the two SEPARATE measured figures.
 
     Registry denominator: divergent rows with rule1 True/False (None
     excluded, counted as n_undecidable). Judge denominator: divergent rows
     with rule2 True/False (unparsed excluded, counted as n_judge_unparsed).
-    Never folded into each other, into identity, or into modeled -- the
-    returned keys carry no such figure."""
+    Each figure carries a Wilson 95% CI (None with no denominator). Never
+    folded into each other, into identity, or into modeled -- the returned
+    keys carry no such figure."""
     divergent = [r for r in rows if r["divergent"]]
     reg_decided = [r for r in divergent if r["rule1"] is not None]
     judge_decided = [r for r in divergent if r["rule2"] is not None]
+    reg_preserved = sum(1 for r in reg_decided if r["rule1"])
+    judge_preserved = sum(1 for r in judge_decided if r["rule2"])
+    mix: dict[str, int] = {}
+    for r in divergent:
+        kind = classify_divergence(r.get("baseline_path", []), r.get("live_path", []))
+        mix[kind] = mix.get(kind, 0) + 1
     return {
         "n_conversations": len(rows),
         "n_divergent": len(divergent),
         "n_undecidable": sum(1 for r in divergent if r["rule1"] is None),
         "n_judge_unparsed": sum(1 for r in divergent if r["rule2"] is None),
         "registry": (
-            sum(1 for r in reg_decided if r["rule1"]) / len(reg_decided)
+            reg_preserved / len(reg_decided)
             if reg_decided else None
         ),
+        "registry_ci95": _wilson(reg_preserved, len(reg_decided)),
         "llm_judge": (
-            sum(1 for r in judge_decided if r["rule2"]) / len(judge_decided)
+            judge_preserved / len(judge_decided)
             if judge_decided else None
         ),
+        "llm_judge_ci95": _wilson(judge_preserved, len(judge_decided)),
+        "divergence_mix": mix,
     }
