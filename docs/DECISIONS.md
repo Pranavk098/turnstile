@@ -44,9 +44,12 @@ measured three ways and honestly kept apart: **identity** 0.985 on non-divergent
 routing pivots (paid n=250, *clean-close* standard); **modeled under divergence** = None
 (the real model forks in prose the label oracle can't decide); **open-loop under
 divergence** — with label-elicitation the cheaper model *talked without acting* (0/0), but
-with **real function-calling it acts**: 42.9% registry (3/7) / 11.1% judge (1/9) on a small
-live probe — a mid-range number, neither the 0 the first probe implied nor the ~96% the
-proposal imagined. The strict judge disagrees with the
+with **real function-calling it acts** — but narrowly: at scale (n=72, Wilson CIs) 16.7%
+registry (3/18 [5.8, 39.2]) / 4.5% judge (1/22 [0.8, 21.8]), the point falling from the
+n=36 mid-read (42.9%/11.1%, overlapping CIs — consistent, not contradictory) because 36 bait
+probes added divergences but zero new preserved cases; the acts concentrate in
+`process_refund` (other required tools never invoked). Neither the 0 the first probe implied
+nor the ~96% the proposal imagined. The strict judge disagrees with the
 lenient adjudicator 100% there, so 0.985 is preservation of the *clean-close* verdict,
 not of problem-solving. Small n; a validated measurement + a cautionary signal, not a
 fleet rate. None of it touches the deterministic margin 0.57%). Full detail:

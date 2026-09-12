@@ -5,24 +5,24 @@ the real tip SHA / commit count / test count / date, and delete any "next action
 that are done. A stale handoff is the single biggest cause of re-derivation (audit
 Task-1). Trust this + `git log` + `docs/DECISIONS.md` over any recollection.
 
-**Stamp:** 2026-09-11 · branch `wave0-foundation` · tip `2d895b5` · 189 commits ·
-**940 passed / 2 skipped**, `ruff check packages/` clean. `main` pushed to GitHub (= earlier
-`d86803f`; owner to set it default in repo settings). **P4-SCALE MERGED — n=200, tightened
-CIs, D8 now real.** **P4 barge-in at volume (n=200, 67/67/66, seed 7):** D7 share
-**12.1%** (polite 0.25, [8.1,16.4]) → **31.7%** (0.5, [26.8,36.7]) → **41.4%** (impatient
-0.75, [36.3,46.2]); pooled 28.7% [25.5,32.0]. Scaling from n=51 halved every CI width and
-corrected the polite end up (6.2%→12.1%). **D8 is now behavior, not layout:** fixed gap
-floors replaced by per-turn silence sampled from the corpus's cited distributions (Stivers
-2009 + Telnyx); measured **$0.000671/call** [0.000653,0.000689], flat across barge rate
-(processing silence doesn't depend on interruptions — predicted, honest). D6=0, 134/200
-escalate. Spend $1.33 of $2 (usage-metered, brake never tripped). **P5 fair open-loop
-(function-calling), still n=36:** with real function schemas the cheaper model ACTS — 42.9%
-registry (3/7) / 11.1% judge (1/9) vs 0/0 label-elicitation. Both in METHOD + DECISIONS,
-kept apart. Paid spend ~$2.1 total of ~$6. **Next (owner):** #1 **P5-scale still pending**
-(larger n / more probe scripts on `opencode/live-p5-scale`, brief `glm-live-p5-scale` — to
-firm up 42.9%/11.1% with a real n_divergent + CIs); #2 real customer data via ingest (the
-ceiling, owner-sourced); #3 set `main` default in GitHub settings. **(historical) LIVE
-AGENT PHASE 3 (open-loop) MERGED + MEASURED:**
+**Stamp:** 2026-09-12 · branch `wave0-foundation` · tip `08900ff` · 192 commits ·
+**942 passed / 4 skipped**, `ruff check packages/` clean. `main` pushed to GitHub (owner to
+set it default in repo settings). **P4-SCALE + P5-SCALE MERGED — both live headlines now at
+scale.** **P4 barge-in at volume (n=200, 67/67/66, seed 7):** D7 share **12.1%** (polite
+0.25, [8.1,16.4]) → **31.7%** (0.5, [26.8,36.7]) → **41.4%** (impatient 0.75, [36.3,46.2]);
+pooled 28.7% [25.5,32.0]. Scaling from n=51 halved every CI width, corrected polite end up
+(6.2%→12.1%). **D8 now behavior, not layout:** per-turn silence sampled from corpus-cited
+distributions (Stivers 2009 + Telnyx); **$0.000671/call** [0.000653,0.000689], flat across
+barge rate. D6=0, 134/200 escalate. **P5 fair open-loop at scale (n=72, 22 divergent,
+Wilson CIs):** function-calling preservation-under-divergence firms to **16.7% registry
+(3/18 [5.8,39.2]) / 4.5% judge (1/22 [0.8,21.8])** — the point FELL from the n=36 mid-read
+(42.9%/11.1%) because 36 bait probes added 13 divergences and ZERO new preserved cases;
+CIs overlap so it's consistent, not contradictory. Two systematic model weaknesses recorded:
+acts concentrate in `process_refund` (other required tools never invoked in 72 convos);
+billing/refund/cancel cross-wired to refund. Both rules kept apart, never folded. Paid spend
+~$2.2 total of ~$6. **Next (owner):** #1 real customer data via ingest (the ceiling,
+owner-sourced) — the last big lever; #2 set `main` default in GitHub settings. **(historical)
+LIVE AGENT PHASE 3 (open-loop) MERGED + MEASURED:**
 preservation-under-divergence measured on a small live probe = **0 under both rules**
 (0/8 registry-tool, 0/10 strict LLM judge; ~$0.20) — the cheaper model *talks without
 acting* (composes a fluent reply but never selects the required tool, even when offered).

@@ -153,16 +153,26 @@ the *route* decision alone and never assumed the cheaper model executes the rest
 **Wave-3 correction — the 0/0 was mostly a harness artifact (function-calling, ~$0.06).**
 The probe above elicited a *label*; a real agent uses **function-calling**. Re-run with the
 tools passed as real OpenAI function schemas (so the model can *invoke* them), the cheaper
-model **does act**: measured open-loop preservation-under-divergence rose to **3/7 = 42.9%
-registry** (n=36, 9 divergent) and **1/9 = 11.1% under the strict judge**, versus 0/0 with
-label-elicitation. It executed the required terminal tool four times (all RESOLVED),
-including a turn-0 `process_refund` with an empty spoken reply — acting without talking,
-recorded honestly as `""`. So the honest answer to *"is routing to a cheaper model safe?"*
-is: **it can act when given real tools, and preserves the outcome about 43% of the time by
-the tool standard** — not the 0 the first probe implied, and not the ~96% the original
-proposal imagined either. The judge stays much stricter than the registry rule (the same
-*clean-close* vs *problem-solved* split), so the two figures are reported apart, never
-folded. Still a small probe; the honest read is a real, mid-range number that wants scale.
+model **does act**: a first n=36 probe (9 divergent) read **3/7 = 42.9% registry** and
+**1/9 = 11.1% judge**, versus 0/0 with label-elicitation. It executed the required terminal
+tool four times (all RESOLVED), including a turn-0 `process_refund` with an empty spoken
+reply — acting without talking, recorded honestly as `""`.
+
+**Wave-3 scale — the number firms down, not up (n=72, 22 divergent, ~$0.13).** Adding 36
+divergence-bait probes and reporting Wilson CIs, open-loop preservation measures **3/18 =
+16.7% registry [5.8, 39.2]** and **1/22 = 4.5% judge [0.8, 21.8]**. This is *consistent* with
+the n=36 read — the small-sample CIs ([15, 75] / [2, 43]) overlap the scaled ones throughout —
+but the point estimate falls: the 36 new probes added 13 divergences and **zero** new
+preserved cases. The structure sharpened into two systematic weaknesses, recorded straight:
+**(1)** the acts concentrate almost entirely in `process_refund` — all three registry-True
+cases are the original refund probes, and required tools other than refund (e.g.
+`cancel_subscription`) were **never invoked** across 72 conversations; **(2)** the model
+cross-wires billing/refund/cancel intents to the refund tool. So the honest answer to *"is
+routing to a cheaper model safe?"* is: **it can act when given real tools, but preserves the
+divergent outcome only ~1 in 6 times by the tool standard, and its acting is narrow** — not
+the 0 the first probe implied, not the ~96% the proposal imagined, and below the n=36 mid-read
+once measured at scale. The judge stays much stricter than the registry rule (the same
+*clean-close* vs *problem-solved* split), so the two figures are reported apart, never folded.
 
 ## Tier-2: instrumented, not measured
 
