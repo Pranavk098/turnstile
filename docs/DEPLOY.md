@@ -6,12 +6,50 @@
 first deploy (Render assigns the exact hostname at service creation; keep
 this file as the single source of truth and link it from the README).
 
-**Status (2026-09-14, Track A Day-1): NOT YET LIVE — service not created.**
-Probed `https://turnstile-demo.onrender.com/health` → HTTP 404
-`text/plain "Not Found"` with `x-render-routing: no-server` (Render has no
-service at this hostname yet). Creating it needs one human dashboard pass
-(~10 min, $0) — see "First-time setup" below. Do NOT treat this URL as live
-until `/health` returns 200 + commit (honesty: no claim without a check).
+**Status (2026-09-14, Track A Day-1): LIVE — verified 2026-09-14 ~14:36 PDT.**
+`GET /health` → 200 `{"ok":true,"commit":"unknown"}` (commit traces below —
+Render served `unknown`; see note). Warm page + API all green; forced-cold
+first paint measured 22.4 s (over the 5 s budget — container boot, not
+content; see "Cold-start behavior" + remedy).
+
+Warm verification transcript (all HTTP 200, PDT 2026-09-14):
+
+```text
+GET /health     → 200, time_total=0.356s, {"ok":true,"commit":"unknown"}
+GET /           → 200, time_total=0.258s, size=104997 (byte-identical to local image)
+GET /api/fleet  → 200, time_total=0.314s, label "Reference fleet (23 golden fixtures)"
+GET /api/calls  → 200, 23 calls, each {cost_usd + quality{label,tier}} side-by-side (tier "measured")
+POST /api/evaluate (docs example) → 200, time_total=0.183s, RESOLVED, 0 findings, quality block present
+```
+
+Single-origin: `/` serves `uvicorn` via Render with NO
+`Access-Control-Allow-Origin` header (no CORS surface). $0: service code
+contains no provider client/key handling (scan clean); evaluate ran the
+MockBackend path only.
+
+Forced-cold transcript (17 min idle, no traffic, then first contact):
+
+```text
+COLD GET /          → 200, time_total=22.393s, time_starttransfer=22.365s, size=104997
+     GET /api/fleet → 200, time_total=0.217s (immediately after wake)
+     GET /health    → 200, {"ok":true,"commit":"unknown"}
+```
+
+Cold reading: first paint came from committed bytes (no compute waited on —
+the 22 s is pure free-tier container boot), but 22.4 s > 5 s cold budget, so
+the cold-timing criterion is RED. Remedy (Day-1 P1 #6, out of Track-A-P0#1
+scope): enable keep-warm — ping `/health` every ~10 min from any free
+scheduler — which makes the common path the measured warm path (0.26 s).
+Until then, cold boot shows the documented "Computing…"/loading states, not
+an error.
+
+Commit-trace note: `/health.commit` returns `"unknown"`, meaning this
+deploy is not associated with a git SHA (manual deploy or missing
+`RENDER_GIT_COMMIT`). The app honors `TURNSTILE_COMMIT` →
+`RENDER_GIT_COMMIT` → git → `"unknown"` in that order. Owner one-click fix:
+Render dashboard → service → "Manual Deploy → Deploy latest commit" from
+the connected repo (or confirm the service tracks the repo branch with
+`autoDeploy: true`), then re-probe `/health` until `commit` shows the SHA.
 
 ## Host choice + why + fallback (Track A Day-1 record, binding)
 
@@ -152,11 +190,9 @@ packages/service/src` → no matches; no model client, key handling, or
 egress in the request path. Tests (with commit `cb25051` tree minus a
 concurrent track's uncommitted files): 1082 passed, 0 failed, 4 skipped.
 
-Live proof (BLOCKED — environmental, needs human): the public URL does not
-exist yet (`x-render-routing: no-server`, transcript above). Re-run the
-cold-open + warm-open timed curls of `/`, `/health`, `/api/fleet` after the
-"First-time setup" dashboard pass, then flip the Status line above to LIVE
-with the measured ms + commit SHA.
+Live proof (DONE 2026-09-14 — was blocked on service creation, owner has
+since created it): see the "Status: LIVE" transcripts above (warm + forced
+cold + commit). Re-verify after any redeploy with the warm/cold curl set.
 
 ## Manual verify script (no browser needed)
 
