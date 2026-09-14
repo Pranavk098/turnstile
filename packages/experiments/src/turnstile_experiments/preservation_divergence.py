@@ -1,4 +1,4 @@
-"""Re-analysis entry: the intent-preservation oracle over REAL forks (Wave-2).
+"""Re-analysis entry: the intent-preservation oracle over REAL forks .
 
 Reads an existing paid-matrix result JSON (``--result``; no new paid calls,
 no network) and runs ``turnstile_verdict.fork_oracle.preserved_under_divergence``
@@ -7,7 +7,7 @@ deterministically regenerated ground-truth intent -- deliberately NEVER by
 re-adjudicating the fork through pinned downstream tools.
 
 Forked labels come from the result JSON's ``divergent_records`` block
-(Wave-2 exp-hardening Item 1: fresh runs self-document their forks, so no
+(Experiment-hardening: fresh runs self-document their forks, so no
 sidecar is needed); ``--sidecar`` (``{trace_id: label}``) remains as a legacy
 override for runs that predated fork-persistence. A fork with neither is
 ``unrecorded`` and can only be reported as undecidable-by-data.
@@ -86,7 +86,7 @@ def analyze_forks(
     """Run the intent oracle over the result JSON's divergent exemplars.
 
     Forked labels come from the result JSON's ``divergent_records`` block
-    (Wave-2 exp-hardening Item 1: fresh paid runs self-document their forks)
+    (Experiment-hardening: fresh paid runs self-document their forks)
     with an optional ``--sidecar`` JSON as a legacy override (sidecar wins on
     conflict). A fork with neither is ``unrecorded`` (undecidable-by-data).
 

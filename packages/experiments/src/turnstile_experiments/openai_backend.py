@@ -33,7 +33,7 @@ from turnstile_schema import VariantSpec
 from turnstile_schema.enums import DecisionKind
 from turnstile_schema.spans import LlmDecide
 from turnstile_replay.backend import ReplayContext, ReplayedDecision
-# Wave-2 Item 2: the decision parser is the SHARED single source in
+# the decision parser is the SHARED single source in
 # turnstile_replay.decisions (the gate and this backend must parse
 # identically); experiments depends on replay, so this re-import preserves
 # the dependency direction. Behavior unchanged -- this module's tests stay
@@ -68,7 +68,7 @@ DEFAULT_MAX_COMPLETION_TOKENS = 256
 DEFAULT_REASONING_EFFORT = "minimal"
 
 
-# Wave-2 Item 1b: kinds whose bounded label vocabulary is elicited verbatim
+# kinds whose bounded label vocabulary is elicited verbatim
 # in the replay prompt (the span's own decision_candidates supply the labels).
 # slot_fill is deliberately absent (single-label, verdict-content-sensitive).
 ELICITED_KINDS = frozenset({
@@ -92,7 +92,7 @@ def _render_messages(context: ReplayContext, original_span: LlmDecide) -> list[d
         f"You are the voice agent for scenario '{context.scenario_id}'. "
         f"Make the '{original_span.decision_kind.value}' decision for this turn."
     )
-    # Wave-2 Item 1b elicitation contract: bounded multi-label kinds ask for
+    # the elicitation contract: bounded multi-label kinds ask for
     # the verbatim label inside a natural reply (parseable, verdict content
     # reads intact). slot_fill is EXCLUDED -- single-label ["request_slot"]
     # plus verdict-content sensitivity: eliciting it would fake the verdict
@@ -260,7 +260,7 @@ class OpenAIBackend:
         # candidate tool name contained in the utterance; every other kind ->
         # documented passthrough). The RAW completion utterance stays in
         # `output_text` verbatim. See parse_decision_chosen.
-        # Wave-2 exp-hardening Item 1: the API's finish_reason rides on the
+        # Experiment-hardening: the API's finish_reason rides on the
         # decision (Mock leaves None) so divergent/truncated trials can
         # self-document -- the replay layer persists it, never the schema.
         return ReplayedDecision(

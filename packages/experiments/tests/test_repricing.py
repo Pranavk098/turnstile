@@ -423,7 +423,7 @@ def test_context_window_over_corpus_deterministic_never_positive():
 def _escalating_trace(with_telephony=False):
     # Fixture-shaped ESCALATED conversation (mirrors golden 09's narrative,
     # compressed): escalation predictable at turn 1 (earliest escalate_check
-    # -- D9's Wave-1 stand-in cutoff), handoff committed at turn 2.
+    # -- D9's deterministic stand-in cutoff), handoff committed at turn 2.
     t0 = turn(0, wall_start=0, wall_end=1000,
               llm_spans=[llm("l0", decision_kind=DecisionKind.route,
                              decision_chosen="s1", input_tokens=100, output_tokens=10)])

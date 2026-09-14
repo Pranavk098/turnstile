@@ -1,6 +1,6 @@
 """Minimal scenario registry (GAP-11, Section C2 of the overnight batch doc).
 
-Wave 1's verdict layer has no structured notion of "what the scenario
+The verdict layer has no structured notion of "what the scenario
 requires", which is why ``PARTIALLY_RESOLVED`` / ``MISROUTED`` were never
 emitted. This registry is the minimal fix: ``scenario_id -> the tool the
 intent requires`` (or ``None`` for lookup intents that require NO mutation).
@@ -14,7 +14,7 @@ Sources, in priority order:
 
 Deliberately NOT in scope here: required-slot lists (``requires_slots``),
 per-outcome effect matrices, or a per-scenario verdict policy. Those are the
-Wave-2 scenario registry's job (PRD Sec.7's source-2 refinement); this module
+the scenario registry's job (PRD Sec.7's source-2 refinement); this module
 is only what MISROUTED / PARTIALLY_RESOLVED emission needs.
 
 A scenario_id absent from the registry carries no claim either way: verdicts

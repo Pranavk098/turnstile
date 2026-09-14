@@ -97,7 +97,7 @@ def test_leadcap_sweep_label_is_the_stated_policy_band():
 
 
 # --------------------------------------------------------------------------- #
-# The chunk-granularity sweep (batch 2 T1): the atomic cancellation unit,     #
+# The chunk-granularity sweep: the atomic cancellation unit,     #
 # D6/D7's remedy -- each point re-synthesizes at that granularity (measured), #
 # caller behavior shared across points via a common seed.                     #
 # --------------------------------------------------------------------------- #

@@ -526,7 +526,7 @@ def build_ingest(sample_dir: Path = SAMPLE_DIR) -> dict | None:
 
 def build_manifest(calls_index: list[dict], ingest: dict | None = None) -> dict:
     hook = {
-        "status": "awaiting W3-A Item 5",
+        "status": "awaiting ingest",
         "report_path": None,
         "contract": INGEST_CONTRACT,
     }

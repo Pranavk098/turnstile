@@ -1,4 +1,4 @@
-"""The ground-truth INTENT oracle for preservation-under-divergence (Wave-2).
+"""The ground-truth INTENT oracle for preservation-under-divergence .
 
 Question answered: when the cheaper model's replayed decision DIFFERS from the
 original (a fork -- excluded from the measured identity-preservation figure by

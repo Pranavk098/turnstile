@@ -12,14 +12,14 @@ escalation classifier, so per the wave brief `t = verdict.turn_of_no_return`
 used as-is). Waste = "full cost of turns t..end", read as
 `sum(turn_costs[t:])` inclusive.
 
-STAND-IN, FLAGGED NOT SILENT (GAP-05; corrected in 879babb): Wave 1's
+STAND-IN, FLAGGED NOT SILENT (GAP-05; corrected in 879babb): the deterministic layer's
 `adjudicate()` sets `turn_of_no_return` for an ESCALATED verdict to the
 EARLIEST turn with an `llm.decide escalate_check` span -- escalation intent
 first becoming visible -- falling back to the terminal handoff turn only when
 no such span exists (sourced in the verdict evidence as
 `turn_of_no_return_source`). This is a deterministic proxy for the PRD Sec.6
 D9 escalation classifier, not the classifier itself (real classifier is
-Wave-2/3, out of this package's scope). With it, tier 1's "turns t..end"
+future work, out of this package's scope). With it, tier 1's "turns t..end"
 recovers the fixture narrative it was built for (09_escalation_debt:
 "predictable at turn 3, ran 9 more turns" -- the corrected debt is ~11x the
 old single-turn figure).
@@ -42,7 +42,7 @@ from turnstile_schema.enums import Effect, ToolKind, VerdictLabel
 
 ESCALATION_DEBT_VARIANT = VariantSpec(escalation_policy="threshold:0.85")
 
-# Tier 1 rests entirely on a Wave-1 stand-in (verdict.turn_of_no_return -- the
+# Tier 1 rests entirely on a deterministic stand-in (verdict.turn_of_no_return -- the
 # earliest escalate_check turn, a deterministic proxy for a live escalation
 # classifier; see module docstring's STAND-IN note) for what should be a live
 # escalation classifier; tier 2 is an exact, deterministic read of
@@ -85,7 +85,7 @@ def detect_escalation_debt(trace: PricedTrace, verdict: Verdict, baselines: Base
                             "tier": 1,
                             "turn_of_no_return": t,
                             "conversation_end_turn": turns[-1].turn_index,
-                            "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live "
+                            "note": "t is verdict.turn_of_no_return (deterministic stand-in for a live "
                                      "escalation classifier -- earliest escalate_check turn, "
                                      "handoff-turn fallback; see module docstring).",
                         },

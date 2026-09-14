@@ -1,4 +1,4 @@
-"""Deterministic outcome-preservation scaffolding (Wave-3 W3-C).
+"""Deterministic outcome-preservation scaffolding .
 
 MECHANISM, not a measured number. Outcome-preservation is the one number
 Turnstile honestly labels "not measured" (docs/METHOD.md): on the golden

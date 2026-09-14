@@ -1,4 +1,4 @@
-"""Tests for the preservation harness (turnstile_experiments.preservation, W3-C).
+"""Tests for the preservation harness (turnstile_experiments.preservation).
 
 Deterministic preservation-measurement scaffolding: an authored
 DecisionBackend (no model call, no network, no credit) drives the REAL

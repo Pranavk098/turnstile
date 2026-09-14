@@ -6,7 +6,7 @@ Usage::
 
 Reads one call object, a {"calls": [...]} file, or the bundled sample;
 runs price -> adjudicate -> detect with the honest acoustic-absence envelope;
-writes ``<out>/data.json`` (the artifact W3-B renders: fleet + findings +
+writes ``<out>/data.json`` (the artifact the dashboard renders: fleet + findings +
 per-call reports + coverage, same fleet/findings shapes the dashboard
 consumes); prints the headline (recoverable margin + which detectors had
 data).

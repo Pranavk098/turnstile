@@ -1,7 +1,7 @@
 """Detector 4 -- Turn inflation (PRD §6, row 4).
 
 Detection rule (verbatim): `turns_to_resolution > p75(intent baseline)`.
-`turns_to_resolution` is the conversation's total turn count (Wave 1 has no
+`turns_to_resolution` is the conversation's total turn count (there is no
 per-turn "resolution" flag on the trace itself; the whole trace IS one
 resolution attempt, so its turn count is the number that gets compared).
 `intent baseline` is `Baselines.per_intent[trace.trace.conversation.

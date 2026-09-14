@@ -3,7 +3,7 @@
 (PRD Sec.4.3), and write results to JSON.
 
 Default path spends NOTHING: MockBackend only (``packages/replay``'s free,
-deterministic Wave-1 backend). ``--paid`` selects the real
+deterministic backend). ``--paid`` selects the real
 ``turnstile_experiments.OpenAIBackend`` -- but it REFUSES to run unless
 ``TURNSTILE_ALLOW_PAID=1`` is set in the environment: it prints the cost
 estimate and exits instead, exactly as docs/CORPUS.md's "gated, owner-
@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> None:
     matrix, real_usage = run_matrix_checkpointed_detailed(
         corpus, VARIANTS, checkpoint_path, backend=backend, max_workers=args.workers)
 
-    # Wave-2 exp-hardening Items 1+2: enrich each variant block with its
+    # the experiment-hardening work: enrich each variant block with its
     # fork/truncation side blocks (alongside, never inside, the frozen
     # ExperimentResult). Divergent trials self-document (forked_label /
     # forked_text / finish_reason) so analyze_forks needs no sidecar;
@@ -164,7 +164,7 @@ def main(argv: list[str] | None = None) -> None:
 
     # Section A: deterministic re-pricing remedies -- no backend, no spend,
     # no fabricated preservation. Their savings land in the margin's
-    # SEPARATE conditional bucket (preservation unverified, Wave-2), never
+    # SEPARATE conditional bucket (preservation unverified), never
     # in proven_savings; the gated matrix above is untouched.
     conditional = run_repricing_matrix(corpus, REPRICING_VARIANTS, rates=rates)
 

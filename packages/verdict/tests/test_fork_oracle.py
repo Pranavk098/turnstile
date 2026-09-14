@@ -1,4 +1,4 @@
-"""Wave-2 preservation-under-divergence oracle (TDD -- written FIRST, red).
+"""Preservation-under-divergence oracle (TDD -- written FIRST, red).
 
 The oracle judges a FORKED decision against the trace's ground-truth intent
 via ``turnstile_verdict.registry`` semantics -- deliberately NEVER by

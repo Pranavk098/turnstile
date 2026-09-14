@@ -3,7 +3,7 @@
 Pinned replay (PRD Sec.8.1, baseline, must ship): the caller side (asr / vad /
 context / tts / playback spans) is fixed from the original trace for every
 turn. Tool responses are served from the trace's own args_hash-keyed cache
-(Wave-1 MockBackend never proposes a different tool_select decision, so this
+(the MockBackend never proposes a different tool_select decision, so this
 is always a cache hit against the tool's own original entry -- see
 `_tool_cache` below). Only the AGENT's `llm.decide` spans from `from_turn`
 onward are re-run, through an injectable `DecisionBackend`
@@ -29,7 +29,7 @@ workloads -- the gated one the corpus's synthetic-scale tokens, the
 companion the real rendered tokens (far smaller) -- so their absolute
 magnitudes are not directly comparable; each is internally a clean arbitrage.
 
-Divergence (PRD Sec.8.1, Wave-2 kind-aware gate): the FIRST replayed decision
+Divergence (PRD Sec.8.1, the kind-aware gate): the FIRST replayed decision
 at or after `from_turn` (the "pivot" -- PRD Sec.8.1's "utterance at turn k")
 determines fork vs. continuation.
   * Bounded-vocab kinds (`route`, `tool_select`, `escalate_check`, `compose`
@@ -43,17 +43,17 @@ determines fork vs. continuation.
     be containment-unpacked back into a label. An unparseable replayed reply
     (raw passthrough, no in-vocab label) is divergent -- you cannot confirm
     the same decision, so it is never folded as preserved. This gate replaced
-    the Wave-1 difflib-on-full-text proxy, which measured 217/217 divergent
+    the original difflib-on-full-text proxy, which measured 217/217 divergent
     (paid, 2026-09-06) on sensible real replies -- a lexical null, not a
     decision signal.
   * `slot_fill` and any other/unbounded kind: the difflib text gate below --
     single-label slot_fill's verdict rides on utterance CONTENT (clean-close),
     so its divergence stays the `_similarity` comparison + re-adjudication
-    (the W3-C authored probes depend on this exact behavior).
+    (the authored probes depend on this exact behavior).
 Below the gate the pinned caller audio is no longer a valid continuation
 ("the conversation has forked") -- the trial is marked `status="divergent"`
 and is NOT re-priced (`delta_cost`, `delta_latency_ms`, `outcome_preserved`
-are all `None`). Wave 1 has no open-loop fallback (PRD Sec.8.1's stretch
+are all `None`). there is no open-loop fallback (PRD Sec.8.1's stretch
 mode), so divergent trials stay `"divergent"` rather than becoming
 `"excluded"` -- `aggregate_experiment` counts them toward `n` and lists them
 in `divergent_exemplars`, which is how the exclusion/fork rate gets reported
@@ -89,7 +89,7 @@ DIVERGENCE_SIMILARITY_THRESHOLD = 0.75
 
 
 def _similarity(a: str, b: str) -> float:
-    """Wave-1 documented proxy for semantic similarity: difflib.SequenceMatcher
+    """documented proxy for semantic similarity: difflib.SequenceMatcher
     ratio on output_text (PRD Sec.8.1 / task brief -- no embedding model this
     wave)."""
     return difflib.SequenceMatcher(None, a, b).ratio()
@@ -109,12 +109,12 @@ def _llm_spans_from(trace: Trace, from_turn: int) -> list[tuple[int, LlmDecide]]
 
 def _tool_cache(trace: Trace) -> dict[str, ToolCall]:
     """args_hash -> ToolCall, pooled across the whole trace. Pinned replay
-    (PRD Sec.8.1) serves tool responses from this cache; Wave-1 MockBackend
+    (PRD Sec.8.1) serves tool responses from this cache; the MockBackend
     never changes a tool_select decision, so every lookup below hits the
     tool's own original entry. A future backend that DOES propose different
     tool args would see a cache miss here -- the fixed caller audio has no
     live response for that hash. That should be treated as another
-    divergence trigger; no Wave-1 backend produces that case, so it is
+    divergence trigger; no mock backend produces that case, so it is
     documented but not implemented."""
     cache: dict[str, ToolCall] = {}
     for turn in trace.turns:
@@ -158,7 +158,7 @@ class ReplayOutcome(NamedTuple):
     magnitudes are not directly comparable. Informational only, NEVER gated
     (PRD Sec.8.3's gate applies to `Trial.delta_cost` alone).
 
-    Wave-2 exp-hardening: the outcome also carries the fork/truncation
+    Experiment-hardening: the outcome also carries the fork/truncation
     metadata the frozen `Trial` cannot hold (same pattern as CR-B's companion
     figure -- alongside, never inside, the schema):
 
@@ -220,7 +220,7 @@ def replay_with_real_usage_cost(
         )
         replaced[span.span_id] = backend(context, span, variant)
 
-    # -- Truncation gate (Wave-2 exp-hardening Item 2, flag-and-exclude):
+    # -- Truncation gate (flag-and-exclude):
     #    ANY replaced decision with finish_reason == "length" is a clipped
     #    reply whose parsed decision is untrustworthy. The trial is truncated
     #    (status="excluded" so every aggregate excludes it out of numerator
@@ -249,7 +249,7 @@ def replay_with_real_usage_cost(
         )
 
     # -- Divergence gate: the pivot is the FIRST replayed decision at/after
-    #    from_turn (PRD Sec.8.1's "utterance at turn k"). Kind-aware (Wave-2):
+    #    from_turn (PRD Sec.8.1's "utterance at turn k"). Kind-aware:
     #    bounded kinds compare the parsed DECISION label (backend-parsed via
     #    the shared parser; raw passthrough != label -> divergent, never
     #    folded); slot_fill / unbounded kinds keep the content/_similarity
@@ -359,7 +359,7 @@ def _earliest_applicable_turn(trace: PricedTrace, variant: VariantSpec) -> int:
     """The earliest turn_index `variant` applies to, for experiment()'s
     per-trace `from_turn` (PRD Sec.5's `experiment(traces, variant)`).
 
-    Wave 1: `model_routing` is the only VariantSpec knob MockBackend
+    `model_routing` is the only VariantSpec knob MockBackend
     differentiates on (see backend.py's docstring), so this is the first turn
     with an llm.decide span whose decision_kind is a model_routing key.
       * No match anywhere in the trace -> returns `len(trace.turns)`, which

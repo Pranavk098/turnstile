@@ -109,7 +109,7 @@ def test_conditional_bucket_is_separate_and_labeled():
     bucket = margin["conditional_savings"]
     assert bucket["label"] == CONDITIONAL_SAVINGS_LABEL
     assert bucket["label"] == (
-        "deterministic conditional saving — preservation unverified (Wave-2)")
+        "deterministic conditional saving — preservation unverified")
     assert "H-1" in bucket["note"]
     assert "NOT in proven_savings_usd" in bucket["note"]
 

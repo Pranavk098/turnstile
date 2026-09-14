@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Design status: approved baseline (Wave-1). Intentionally frozen as-is;
+<!-- Design status: approved baseline. Intentionally frozen as-is;
      future development extends this design rather than replacing it. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -547,7 +547,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       <div class="sec-head">
         <span class="idx">05</span>
         <h2>Conditional remedies</h2>
-        <span class="tag"><b class="warn">preservation unverified (Wave-2)</b> · NOT the proven margin</span>
+        <span class="tag"><b class="warn">preservation unverified</b> · NOT the proven margin</span>
       </div>
       <div id="conditional-rows"></div>
       <div class="ctotal">
@@ -650,7 +650,7 @@ async function loadJSON(url) {
   if (!res.ok) throw new Error("GET " + url + ": http " + res.status);
   return await res.json();
 }
-/* Optional data (e.g. the W3-A ingest report hook in manifest.json):
+/* Optional data (e.g. the ingest report hook in manifest.json):
  * null when absent — the dashboard renders the golden-fleet data instead. */
 async function loadOptional(url) {
   try {
@@ -1384,7 +1384,7 @@ async function routeCall(calls, focus) {
   }
 }
 
-/* Item 5 hook: the W3-A turnstile_ingest report plugs in here. Absent
+/* Item 5 hook: the turnstile_ingest report plugs in here. Absent
  * (report_path null or fetch fails) the dashboard honestly says so and
  * renders the golden-fleet data; present, its label + provenance render
  * verbatim and the dataset switch above selects which fleet the

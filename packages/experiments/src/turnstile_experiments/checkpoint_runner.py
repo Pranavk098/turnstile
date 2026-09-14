@@ -44,7 +44,7 @@ def variant_extras(
     store: CheckpointStore, variant_name: str, corpus: list[PricedTrace]
 ) -> dict:
     """Build the result-JSON side blocks for one variant from the checkpoint
-    store (Wave-2 exp-hardening Items 1+2).
+    store (the experiment-hardening work).
 
     Returns ``{"divergent_records": [...], "n_truncated": int,
     "truncated_exemplars": [...]}`` where each divergent record carries
@@ -98,7 +98,7 @@ class CheckpointStore:
     run can still report it for trials it did not recompute. Legacy records
     without the field read back as ``None``.
 
-    Wave-2 exp-hardening: records additionally carry the fork/truncation
+    Experiment-hardening: records additionally carry the fork/truncation
     metadata the frozen ``Trial`` cannot hold (same alongside-not-inside
     pattern): divergent trials persist ``forked_label`` / ``forked_text`` /
     ``finish_reason`` so ``analyze_forks`` needs no sidecar; truncated trials

@@ -1,4 +1,4 @@
-"""Decision parsing shared by the replay gate and the backends (Wave-2).
+"""Decision parsing shared by the replay gate and the backends .
 
 Single source of `parse_decision_chosen`: relocated verbatim from
 `turnstile_experiments.openai_backend` (which now re-imports it -- experiments
@@ -18,7 +18,7 @@ from turnstile_schema.enums import DecisionKind
 
 # Containment keyword lists for escalate_check, stated constants with the
 # same convention as the verdict layer's heuristics; full calibration was
-# Wave-1's M-2 work.
+# earlier M-2 work.
 ESCALATE_CONTAINMENT_MARKERS = (
     "escalate", "escalating", "transfer", "transferring", "specialist",
     "supervisor", "human agent", "connect you", "connecting you",
@@ -58,7 +58,7 @@ def parse_decision_chosen(
       an unelicited reply abstains rather than guessing.
     * every other kind (``slot_fill``) -> documented passthrough (the raw
       text): single-label ``["request_slot"]`` carries no discriminating
-      signal (value-level treatment is Wave-2 Item 2's open edge).
+      signal (value-level treatment is a future open edge).
     """
     low = text.lower()
     if decision_kind is DecisionKind.escalate_check:

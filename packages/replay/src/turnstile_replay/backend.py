@@ -11,11 +11,11 @@ a getter/setter pair, not a constructor argument.
     set_backend(my_backend)     # installs `my_backend` for all subsequent
                                  # replay()/experiment() calls in this process
     ...
-    reset_backend()             # restore the Wave-1 MockBackend() default
+    reset_backend()             # restore the MockBackend() default
 
 A `DecisionBackend` is any callable
 `(ReplayContext, LlmDecide, VariantSpec) -> ReplayedDecision`. `MockBackend`
-below is the Wave-1 default -- deterministic, no live LLM/API call.
+below is the default -- deterministic, no live LLM/API call.
 
 How a real OpenAI backend plugs in later: implement the SAME callable shape
 -- render `ReplayContext.turns_before` (the pinned conversation history) plus
@@ -68,7 +68,7 @@ class ReplayedDecision:
     Per-decision_kind parsing (escalate_check -> escalate/continue,
     tool_select -> tool name) is queued, not built, this wave.
 
-    Wave-2 exp-hardening Item 1: `finish_reason` is the API's completion
+    Experiment-hardening: `finish_reason` is the API's completion
     finish reason (`"stop"`, `"length"`, ...). OpenAIBackend returns it;
     MockBackend leaves it `None`. A `"length"` finish means the reply was
     clipped by the completion cap -- the trial is truncated (flag-and-exclude,
@@ -92,7 +92,7 @@ class DecisionBackend(Protocol):
 
 
 # --------------------------------------------------------------------------- #
-# MockBackend -- Wave-1 deterministic stand-in (PRD Sec.8, task brief). NO     #
+# MockBackend -- deterministic stand-in (PRD Sec.8, task brief). NO     #
 # live LLM/API call.                                                           #
 # --------------------------------------------------------------------------- #
 
@@ -150,7 +150,7 @@ def _divergent_reroute(span: LlmDecide, target_model: str) -> ReplayedDecision:
 
 
 class MockBackend:
-    """Deterministic Wave-1 DecisionBackend. No live LLM/API call.
+    """Deterministic DecisionBackend. No live LLM/API call.
 
     Rules, checked in order, driven entirely by
     `variant.model_routing.get(original_span.decision_kind.value)`:
@@ -159,8 +159,7 @@ class MockBackend:
        identity replay -- the decision is returned unchanged. Every other
        VariantSpec knob (context_strategy, prefix_caching, retrieval_policy,
        tts_chunking, escalation_policy, tool_batching) is reserved for a
-       future/real backend; MockBackend does not vary behavior on them in
-       Wave 1.
+       future/real backend; MockBackend does not vary behavior on them.
     2. Entry routes to a `MOCK_SAFE_REROUTE_MODELS` model: same output_text/
        decision_chosen, cheaper model id -- re-pricing this under the new
        model's rate is what produces delta_cost < 0 with outcome_preserved
@@ -202,6 +201,6 @@ def set_backend(backend: DecisionBackend) -> None:
 
 
 def reset_backend() -> None:
-    """Restore the Wave-1 MockBackend() default."""
+    """Restore the MockBackend() default."""
     global _current_backend
     _current_backend = _DEFAULT_BACKEND

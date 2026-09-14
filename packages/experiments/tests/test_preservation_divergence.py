@@ -1,4 +1,4 @@
-"""Wave-2 preservation-under-divergence RE-ANALYSIS entry (TDD, written red).
+"""Preservation-under-divergence RE-ANALYSIS entry (TDD, written red).
 
 Runs the ground-truth intent oracle (``turnstile_verdict.fork_oracle``) over
 the REAL forks recorded in an existing paid-matrix result JSON -- no new paid

@@ -77,7 +77,7 @@ def recoverable_margin(
       (CI flipped to savings, like the gated bucket) plus
       ``total_savings_usd``. NEVER summed into ``proven_savings``, the
       margin %, or ``annualized_usd`` -- the owner decides presentation
-      after Wave-2 preservation verification. Empty dict when ``None``.
+      after preservation verification. Empty dict when ``None``.
 
     **Annualization assumption** (stated explicitly, PRD Sec.4.3 errata): the
     per-call savings rate observed on this run
@@ -156,7 +156,7 @@ def recoverable_margin(
                 "transform reduces or re-rates work, so the saving is "
                 "conditional on preserving the outcome, which is "
                 "unmeasurable on the synthetic corpus (H-1). Verify "
-                "preservation in Wave-2 before treating these as proven."
+                "preservation before treating these as proven."
             ),
             "variants": conditional_variants,
             "total_savings_usd": conditional_total_usd,

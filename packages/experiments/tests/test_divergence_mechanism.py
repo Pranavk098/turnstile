@@ -5,7 +5,7 @@ trials ``status="divergent"``, and those trials must be EXCLUDED from the
 divergent exemplars -- end-to-end through ``run_matrix`` (and the checkpointed
 paid path), not just at the replay layer.
 
-Wave-2 (kind-aware gate): the pivot is a bounded-vocab ``route`` decision, so
+the kind-aware gate: the pivot is a bounded-vocab ``route`` decision, so
 the fork is induced through the LABEL channel -- the fake backend returns a
 different parsed label for the chosen pair of traces (a different-text/same-
 label reply is NOT divergent anymore; that case is the paraphrase signal the

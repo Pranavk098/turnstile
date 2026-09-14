@@ -1,4 +1,4 @@
-"""Wave-2 Item 2: the KIND-AWARE decision divergence gate (TDD).
+"""the KIND-AWARE decision divergence gate (TDD).
 
 The difflib-on-full-text gate died on real model replies (paid evidence
 2026-09-06: 217/217 divergent at ~0.04 lexical similarity despite sensible
@@ -9,7 +9,7 @@ decisions). The new gate, per the finalized ruling:
   original span's recorded (parsed) label; an unparseable replayed reply
   (raw passthrough) is divergent -- never folded as preserved;
 * slot_fill: UNCHANGED content/_similarity path (single-label kind whose
-  verdict rides on utterance content) -- the W3-C authored probes in
+  verdict rides on utterance content) -- the authored probes in
   packages/experiments/tests/test_preservation.py must classify EXACTLY as
   before; a label gate marking the break case preserved is the forbidden
   regression these guards pin.
@@ -127,7 +127,7 @@ def test_unparseable_replayed_reply_is_divergent(kind, original_label, candidate
 
 
 # --------------------------------------------------------------------------- #
-# slot_fill: the content path is UNCHANGED (W3-C regression guards).          #
+# slot_fill: the content path is UNCHANGED (regression guards).          #
 # --------------------------------------------------------------------------- #
 
 def test_slot_fill_label_channel_is_ignored():

@@ -267,7 +267,7 @@
         "tier": 1,
         "turn_of_no_return": 2,
         "conversation_end_turn": 3,
-        "note": "t is verdict.turn_of_no_return (Wave-1 stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
+        "note": "t is verdict.turn_of_no_return (deterministic stand-in for a live escalation classifier -- earliest escalate_check turn, handoff-turn fallback; see module docstring)."
       }
     }
   ],

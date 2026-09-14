@@ -1,4 +1,4 @@
-"""W3-B Item 2 -- the explorable UI: a call-list index routes (by hash) to a
+"""The explorable UI: a call-list index routes (by hash) to a
 per-call detail view, keyboard-accessibly.
 
 Two layers: the shipped sample/*.json must back every index row with a real

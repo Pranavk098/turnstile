@@ -10,12 +10,12 @@ Evidence precedence (PRD Sec.7, highest wins; the deciding source is recorded in
   1. Terminal tool state    -- deterministic; ``ToolCall.effect`` on the intent's
                                terminal required mutation/handoff. Strongest.
   2. Required-slot completion against the scenario. No scenario/slot registry
-     exists in Wave 1, so this is APPROXIMATED from the trace (was the agent still
-     soliciting a required slot when the call ended?). Wave-2 refinement: a real
+     exists in the deterministic layer, so this is APPROXIMATED from the trace (was the agent still
+     soliciting a required slot when the call ended?). A future refinement: a real
      scenario registry names the required slots and the required terminal mutation.
   3. Caller-confirmation / clean-close utterance in the final two turns.
   4. Absence of an escalation span.
-  5. LLM judgment -- lowest weight, tie-break only. Wave 1 implements this as a
+  5. LLM judgment -- lowest weight, tie-break only. this is implemented as a
      deterministic ABSTAIN stub (``_llm_judgment_stub``); NO live LLM/API call.
 
 Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
@@ -24,7 +24,7 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
     ``effect in {pending, rejected}`` or ``tool_status == error``. Deterministic.
     The assertion is BOUND TO INTENT (Section B3): the final utterance must
     contain a completion keyword AND reference an intent token parsed from
-    the scenario_id / terminal tool_name (Wave-1 stand-in for the scenario
+    the scenario_id / terminal tool_name (deterministic stand-in for the scenario
     registry; with no derivable intent tokens FALSE_RESOLVE is never claimed).
   - unknown blocks confident verdicts: any required mutation at ``effect ==
     unknown`` caps confidence at 0.6, forbids RESOLVED/FALSE_RESOLVE, and records
@@ -42,11 +42,11 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
 it as "the earliest turn at which the final verdict was already determined."
 For an ESCALATED verdict this wave has no live escalation classifier (PRD
 Sec.6 D9's "escalation classifier >= 0.9 at turn t"), so
-``_earliest_escalate_check`` is used as a deterministic Wave-1 stand-in: the
+``_earliest_escalate_check`` is used as a deterministic deterministic stand-in: the
 earliest turn containing an ``llm.decide`` span with
 ``decision_kind == escalate_check``. If no such span exists, this falls back
 to the handoff's own turn (the pre-fix behavior). The real classifier is
-Wave-2/3 work. This only changes ``turn_of_no_return`` -- it never changes
+future work. This only changes ``turn_of_no_return`` -- it never changes
 the verdict LABEL.
 """
 from __future__ import annotations
@@ -70,7 +70,7 @@ from turnstile_verdict.registry import lookup
 # --------------------------------------------------------------------------- #
 # Named constants -- documented thresholds and keyword lists (never inline      #
 # magic literals). Full calibration (60 hand labels, Cohen's kappa) is deferred #
-# to the Wave-3 corpus; these are the fixed Wave-1 priors validated against the #
+# to the the corpus; these are the fixed priors validated against the #
 # 23 golden fixtures.                                                           #
 # --------------------------------------------------------------------------- #
 
@@ -110,7 +110,7 @@ CONFIRMATION_WINDOW_TURNS = 2
 # substring match against the agent's final output_text -- BOUND TO THE SCENARIO
 # INTENT (Section B3): a keyword hit alone is not an assertion of THE INTENT's
 # completion; the utterance must also reference an intent token (parsed from the
-# scenario_id / terminal mutation's tool_name, see _intent_terms). Wave-2
+# scenario_id / terminal mutation's tool_name, see _intent_terms). A future
 # refinement: replace with a scenario-registry-aware completion classifier.
 COMPLETION_ASSERTION_KEYWORDS = (
     "processed", "completed", "is complete", "all set", "done",
@@ -153,7 +153,7 @@ def _terminal_mutation(
 ) -> tuple[int, ToolCall] | None:
     """The intent's terminal required mutation/handoff.
 
-    Wave-1 approximation: the LAST mutating span in the trace. Wave-2 refinement:
+    approximation: the LAST mutating span in the trace. A future refinement:
     the scenario registry names the required terminal mutation explicitly rather
     than inferring it positionally.
     """
@@ -183,8 +183,8 @@ def _earliest_escalate_check(trace: Trace) -> int | None:
     """Earliest turn containing an ``llm.decide`` span with
     ``decision_kind == escalate_check``, if any.
 
-    Wave-1 deterministic stand-in for PRD Sec.6 D9's "escalation classifier
-    >= 0.9 at turn t" (GAP-05). The real classifier is Wave-2/3; this proxy
+    deterministic stand-in for PRD Sec.6 D9's "escalation classifier
+    >= 0.9 at turn t" (GAP-05). The real classifier is future work; this proxy
     lets ESCALATED verdicts' ``turn_of_no_return`` reflect the turn escalation
     became predictable rather than only the turn of the eventual handoff.
     """
@@ -196,8 +196,8 @@ def _earliest_escalate_check(trace: Trace) -> int | None:
 
 
 def _intent_terms(scenario_id: str | None, tool_name: str | None) -> frozenset[str]:
-    """The intent's identifying tokens -- the Wave-1 deterministic stand-in
-    for the scenario registry (Wave-2): parsed from the scenario_id and the
+    """The intent's identifying tokens -- the deterministic stand-in
+    for the scenario registry: parsed from the scenario_id and the
     terminal mutation's tool_name (split on non-alphanumerics; fragments
     under 4 chars dropped as noise). Both sources may be opaque, in which
     case the set is empty and no completion assertion can be bound."""
@@ -240,7 +240,7 @@ def _has_clean_close(trace: Trace) -> bool:
 def _llm_judgment_stub(trace: Trace) -> None:
     """Evidence source 5 (lowest weight, tie-break only).
 
-    Wave 1 ABSTAINS -- no live LLM. This is the future hook where a calibrated
+    The deterministic path ABSTAINS -- no live LLM. This is the future hook where a calibrated
     LLM judge would return a (label, confidence) signal to break ties the
     deterministic sources leave open. It returns None (no signal) and is never
     consulted for a case the higher sources already decide.
@@ -312,7 +312,7 @@ def _adjudicate_handoff(trace: Trace, turn_idx: int, tool: ToolCall) -> Verdict:
     if tool.effect is Effect.committed:
         # GAP-05 (PRD Sec.6 D9): turn_of_no_return is the earliest turn
         # escalation became predictable, not merely the handoff's own turn.
-        # Wave-1 deterministic proxy: the earliest escalate_check decision, if
+        # deterministic proxy: the earliest escalate_check decision, if
         # any (see _earliest_escalate_check); otherwise fall back to the
         # handoff turn (pre-fix behavior).
         escalate_turn = _earliest_escalate_check(trace)
@@ -496,8 +496,8 @@ def _adjudicate_informational(trace: Trace) -> Verdict:
         "rule": "no_required_mutation_intent_served",
         "end_reason": trace.conversation.end_reason.value,
         "clean_close": _has_clean_close(trace),
-        "note": "no required mutation/handoff; informational intent. Wave-2 "
-                "scenario registry needed to confirm required-slot completion.",
+        "note": "no required mutation/handoff; informational intent. A "
+                "scenario registry is needed to confirm required-slot completion.",
     }]
     return Verdict(
         label=VerdictLabel.RESOLVED,

@@ -22,7 +22,7 @@ re-rate work, so each saving is CONDITIONAL on the change preserving the
 conversation's outcome -- unmeasurable on the synthetic corpus (H-1, no
 preservation data). Every figure derived from a transform must carry
 ``repricing.CONDITIONAL_SAVINGS_LABEL`` ("deterministic conditional saving --
-preservation unverified (Wave-2)") and must stay OUT of the gated
+preservation unverified") and must stay OUT of the gated
 ``proven_savings`` bucket (``margin.recoverable_margin(conditional=...)``
 enforces the separate bucket).
 """
@@ -354,7 +354,7 @@ def _transform_escalation_early_cutoff(pt: PricedTrace, value: object) -> Trace:
 
     The cutoff is D9's own, already-computed quantity (the batch doc: "reuse
     what is already computed"): ``adjudicate(pt).turn_of_no_return`` -- the
-    Wave-1 deterministic stand-in for a live escalation classifier (earliest
+    deterministic stand-in for a live escalation classifier (earliest
     ``escalate_check`` turn, handoff-turn fallback; see d09's STAND-IN note).
     Applied only when the verdict is ``ESCALATED`` and the cutoff exists and
     is not already the last turn; every other trace is left UNCHANGED

@@ -21,7 +21,7 @@ the conversation's outcome, which is unmeasurable on the synthetic corpus
   SEPARATE bucket, never added to gated ``proven_savings`` / the margin %;
 * the PRD Sec.8.3 gate (preservation >= 0.95 AND ci_upper(delta_cost) < 0)
   can never pass for a re-pricing-only variant, because no preservation
-  rate exists -- that is the honest state until Wave-2 preservation data
+  rate exists -- that is the honest state until preservation data
   lands.
 
 CI convention: the same deterministic percentile bootstrap as the gated
@@ -48,7 +48,7 @@ RATES_PATH = "pricing/rates.yaml"
 # The batch doc's exact honesty label for Section-A contributions. Every
 # conditional number must carry it verbatim.
 CONDITIONAL_SAVINGS_LABEL = (
-    "deterministic conditional saving — preservation unverified (Wave-2)"
+    "deterministic conditional saving — preservation unverified"
 )
 
 

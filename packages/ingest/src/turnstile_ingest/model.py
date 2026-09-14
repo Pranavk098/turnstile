@@ -1,4 +1,4 @@
-"""External ingest format for Turnstile (W3-A).
+"""External ingest format for Turnstile .
 
 A real voice-AI platform log is simpler than the internal v1.1 ``Trace``: one
 call with conversation metadata and a flat list of turns, each carrying at

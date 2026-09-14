@@ -452,7 +452,7 @@ def test_tool_select_with_no_contained_candidate_passes_through(monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
-# Wave-2 Item 1a: M-2 parsing extends to route/compose (longest contained     #
+# M-2 parsing extends to route/compose (longest contained     #
 # candidate, mirroring tool_select). Labels carry underscores, so natural     #
 # prose without the verbatim label passes through -- the elicitation line     #
 # (Item 1b) is load-bearing, not an optimization.                             #
@@ -579,7 +579,7 @@ def test_escalate_check_resolve_maps_to_continue(monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
-# Wave-2 Item 1b: per-kind elicitation prompt contract. Bounded multi-label   #
+# per-kind elicitation prompt contract. Bounded multi-label   #
 # kinds carry "include exactly one of these labels verbatim" so a real model  #
 # emits parseable text while replying naturally (verdict content reads stay   #
 # intact). slot_fill is EXCLUDED: single-label and content-sensitive, needing #

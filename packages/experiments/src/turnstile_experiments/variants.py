@@ -53,7 +53,7 @@ VARIANTS: dict[str, VariantSpec] = {
 
 # Re-pricing-executable -- deterministic transform exists (Section A); run
 # via run_repricing_matrix, NEVER via the backend. Savings are conditional
-# (preservation unverified, Wave-2) and reported in the separate conditional
+# (preservation unverified) and reported in the separate conditional
 # bucket, never in gated proven_savings.
 REPRICING_VARIANTS: dict[str, VariantSpec] = {
     "context_window_8": VariantSpec(context_strategy="window:8"),

@@ -1,5 +1,5 @@
 # The 23 golden fixtures (v1.1). category drives the contract-test distribution
-# check. expected_verdict is test metadata for the verdict layer (Wave 1) --
+# check. expected_verdict is test metadata for the verdict layer --
 # it lives here, never in the Trace schema, so ground truth can't leak into
 # the data a verdict engine consumes.
 fixtures:

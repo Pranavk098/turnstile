@@ -281,7 +281,7 @@ def test_committed_handoff_without_escalate_check_falls_back_to_handoff_turn():
 
 def test_escalated_turn_of_no_return_is_earliest_escalate_check_turn():
     """GAP-05 fix: for ESCALATED, turn_of_no_return should be the earliest
-    escalate_check turn, not the (later) handoff turn -- the Wave-1
+    escalate_check turn, not the (later) handoff turn -- the
     deterministic stand-in for the escalation classifier (PRD Sec.6 D9)."""
     turns = [
         Turn(turn_index=0, speaker_first="agent", wall_start_ms=0, wall_end_ms=500,

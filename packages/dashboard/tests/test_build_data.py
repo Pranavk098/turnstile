@@ -1,4 +1,4 @@
-"""Tests for the dashboard's data builder (batch 2 T3/T4, W3-B Items 1-2).
+"""Tests for the dashboard's data builder .
 
 The load-bearing assertions: the barge-in panel's numbers TRACE to the
 harness report (nothing recomputed or hardcoded), per-call data traces to
@@ -86,7 +86,7 @@ def test_load_bargein_report_fails_loud_when_missing(tmp_path):
 # --------------------------------------------------------------------------- #
 
 # --------------------------------------------------------------------------- #
-# W3-B Item 1: the build writes ONLY data -- index.html is hand-authored and  #
+# The build writes ONLY data -- index.html is hand-authored and  #
 # fetches sample/*.json. Running build_data.py must modify no .html file.    #
 # --------------------------------------------------------------------------- #
 
@@ -167,7 +167,7 @@ def test_conditional_panel_carries_the_label_verbatim_and_stays_separate():
     panel = build_data.build_conditional_savings(rates, corpus)
     # The label verbatim, in the panel data AND on every row.
     assert panel["label_verbatim"] == (
-        "deterministic conditional saving — preservation unverified (Wave-2)")
+        "deterministic conditional saving — preservation unverified")
     assert panel["label_verbatim"] == CONDITIONAL_SAVINGS_LABEL
     assert all(v["label"] == CONDITIONAL_SAVINGS_LABEL
                for v in panel["variants"].values())
@@ -197,12 +197,12 @@ def test_index_html_carries_the_conditional_panel():
     assert "sample/conditional.sample.json" in html
     assert "data-conditional" not in html
     # Visually + textually separated: the heading itself carries the label.
-    assert "preservation unverified (Wave-2)" in html
+    assert "preservation unverified" in html
     assert "NOT the proven margin" in html
 
 
 # --------------------------------------------------------------------------- #
-# W3-B Item 2 -- per-call data for ALL calls traces to the real pipeline.     #
+# Per-call data for ALL calls traces to the real pipeline.     #
 # --------------------------------------------------------------------------- #
 
 def _rates_and_baselines():
@@ -275,7 +275,7 @@ def test_build_main_writes_per_call_data(tmp_path, monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
-# W3-B Item 5 hook -- manifest.json: source declaration + the ingest slot.    #
+# the dashboard Item 5 hook -- manifest.json: source declaration + the ingest slot.    #
 # --------------------------------------------------------------------------- #
 
 def test_build_main_writes_manifest_with_ingest_hook(tmp_path, monkeypatch):
@@ -306,4 +306,4 @@ def test_build_ingest_returns_none_when_artifact_absent(tmp_path, monkeypatch):
     assert build_data.build_ingest(tmp_path) is None
     manifest = build_data.build_manifest([], None)
     assert manifest["ingest"]["report_path"] is None
-    assert "W3-A" in manifest["ingest"]["status"]
+    assert "ingest" in manifest["ingest"]["status"]

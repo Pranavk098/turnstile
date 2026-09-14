@@ -1,5 +1,5 @@
 {
-  "label": "Wave-1 real fleet (23 golden fixtures)",
+  "label": "Reference fleet (23 golden fixtures)",
   "note": "Real computed aggregate over the 23 golden fixtures -- not a production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3.",
   "n_conversations": 23,
   "n_resolved": 14,
@@ -16,6 +16,6 @@
   },
   "_provenance": {
     "n": 23,
-    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. Recoverable margin is a PER-DATASET figure (it depends on the fleet), always deterministic rate arbitrage and needing no live calls: THIS panel's number is over these 23 golden fixtures; the reproducible reference is 0.57% over the 250-trace corpus. A live backend adds only real latency/throughput, not the margin."
+    "note": "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) modeled by the fixture generator, not a live audio pipeline; replay via the MockBackend (mechanism, not measured). See docs/METHOD.md and docs/LIMITATIONS.md for the tiers. Recoverable margin is a PER-DATASET figure (it depends on the fleet), always deterministic rate arbitrage and needing no live calls: THIS panel's number is over these 23 golden fixtures; the reproducible reference is 0.57% over the 250-trace corpus. A live backend adds only real latency/throughput, not the margin."
   }
 }

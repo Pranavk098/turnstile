@@ -1,4 +1,4 @@
-"""Tests for the TTS chunk-granularity knob (batch 2 T1) -- the atomic
+"""Tests for the TTS chunk-granularity knob -- the atomic
 cancellation unit of the barge-in harness. Mechanics are verified on the
 deterministic FakeEngine; a separate Piper-gated test measures the real
 engine when the extra + voice model are present."""

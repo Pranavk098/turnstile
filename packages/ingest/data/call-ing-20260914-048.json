@@ -194,7 +194,7 @@
         "rule": "no_required_mutation_intent_served",
         "end_reason": "caller_hangup",
         "clean_close": true,
-        "note": "no required mutation/handoff; informational intent. Wave-2 scenario registry needed to confirm required-slot completion."
+        "note": "no required mutation/handoff; informational intent. A scenario registry is needed to confirm required-slot completion."
       }
     ],
     "turn_of_no_return": null

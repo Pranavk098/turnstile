@@ -1,4 +1,4 @@
-"""W3-B Item 4 -- design-audit P0/P1 fixes, pinned as static assertions on the
+"""Design-audit P0/P1 fixes, pinned as static assertions on the
 hand-authored HTML (no browser in CI; the <680px pass is a structural check
 that every table owns an overflow container + a narrow-CSS review note)."""
 from __future__ import annotations

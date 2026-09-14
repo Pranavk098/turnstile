@@ -1,4 +1,4 @@
-"""W3-B Item 3 -- home.html is the product entry: what Turnstile is, the honest
+"""home.html is the product entry: what Turnstile is, the honest
 tiers, and a clear path into the dashboard (including the call list).
 
 The headline numbers are snapshots -- this pins them to the pipeline output

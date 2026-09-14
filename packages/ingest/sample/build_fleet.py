@@ -1,4 +1,4 @@
-"""Author the realistic ingest SAMPLE fleet (Wave-3 B).
+"""Author the realistic ingest SAMPLE fleet .
 
 This writes ``sample/calls.json`` -- a deterministic, seeded, ~50-call fleet in
 the external ingest format, authored to read like real voice-AI traffic:
