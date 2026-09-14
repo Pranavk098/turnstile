@@ -1,7 +1,15 @@
 [project]
 name = "turnstile-ingest"
 version = "0.0.0"
+description = "Maps real voice-AI platform logs (native format + Vapi adapter) to schema-valid traces; runs the full pipeline."
 requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Pranav Koduru", email = "pranavkoduruc@gmail.com" }]
+urls = { Repository = "https://github.com/Pranavk098/turnstile", Demo = "https://turnstile-demo.onrender.com" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+]
 dependencies = ["turnstile-schema", "turnstile-pricing", "turnstile-verdict", "turnstile-detectors", "turnstile-replay", "pydantic>=2.6", "pyyaml>=6.0"]
 
 [build-system]

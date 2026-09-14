@@ -1,0 +1,155 @@
+{
+  "sample": true,
+  "_note": "SYNTHETIC schema-conformant example -- NOT real customer traffic. Hand-authored to Vapi's published Call/export shape (artifact.messages timeline, costBreakdown totals, endedReason vocabulary) to demonstrate the turnstile_ingest Vapi adapter. Run it with: uv run python -m turnstile_ingest --provider vapi --in packages/ingest/sample/vapi-export.sample.json --out <dir>",
+  "id": "7f3b2c1a-9e4d-4f6a-b8c2-1a2b3c4d5e6f",
+  "orgId": "org-synthetic-example",
+  "createdAt": "2026-09-12T09:02:10.000Z",
+  "updatedAt": "2026-09-12T09:02:42.000Z",
+  "type": "inboundPhoneCall",
+  "status": "ended",
+  "endedReason": "customer-ended-call",
+  "startedAt": "2026-09-12T09:02:11.000Z",
+  "endedAt": "2026-09-12T09:02:41.000Z",
+  "cost": 0.087,
+  "costBreakdown": {
+    "transport": 0.004,
+    "stt": 0.003,
+    "llm": 0.012,
+    "tts": 0.018,
+    "vapi": 0.05,
+    "total": 0.087,
+    "llmPromptTokens": 3900,
+    "llmCompletionTokens": 150,
+    "llmCachedPromptTokens": 390,
+    "ttsCharacters": 312
+  },
+  "phoneCallProvider": "twilio",
+  "phoneCallTransport": "pstn",
+  "assistantId": "asst-billing-synthetic",
+  "assistant": {
+    "name": "Billing Assistant",
+    "model": {
+      "provider": "openai",
+      "model": "gpt-5-mini"
+    },
+    "voice": {
+      "provider": "cartesia"
+    },
+    "transcriber": {
+      "provider": "deepgram",
+      "model": "nova-3"
+    }
+  },
+  "artifact": {
+    "transcript": "AI: Hi, thanks for calling Acme support. How can I help? User: Hi, I was charged twice for my July bill, can you fix that? AI: I found the duplicate charge from July. I'll apply a correction now. User: Yes, please fix it. AI: Done -- I've refunded the duplicate $79 charge. Anything else? User: No, that's all. Thanks, bye! AI: You're welcome. Goodbye!",
+    "messages": [
+      {
+        "role": "bot",
+        "message": "Hi, thanks for calling Acme support. How can I help?",
+        "time": 1789203731000,
+        "endTime": 1789203733200,
+        "secondsFromStart": 0.0,
+        "duration": 2200
+      },
+      {
+        "role": "user",
+        "message": "Hi, I was charged twice for my July bill, can you fix that?",
+        "time": 1789203733600,
+        "endTime": 1789203736600,
+        "secondsFromStart": 2.6,
+        "duration": 3000
+      },
+      {
+        "role": "tool_calls",
+        "message": "Calling lookup_invoices.",
+        "time": 1789203737000,
+        "endTime": 1789203737400,
+        "secondsFromStart": 6.0,
+        "toolCalls": [
+          {
+            "id": "toolu_01lookup001",
+            "name": "lookup_invoices",
+            "parameters": {
+              "customer_id": "C-10293"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool_call_result",
+        "toolCallId": "toolu_01lookup001",
+        "name": "lookup_invoices",
+        "result": "{\"invoices\": [{\"id\": \"INV-8821\", \"amount\": 79.0, \"status\": \"paid\"}, {\"id\": \"INV-8822\", \"amount\": 79.0, \"status\": \"duplicate\"}]}",
+        "time": 1789203737800,
+        "endTime": 1789203738200,
+        "secondsFromStart": 6.8
+      },
+      {
+        "role": "bot",
+        "message": "I found the duplicate charge from July. I'll apply a correction now.",
+        "time": 1789203738400,
+        "endTime": 1789203741600,
+        "secondsFromStart": 7.4,
+        "duration": 3200
+      },
+      {
+        "role": "user",
+        "message": "Yes, please fix it.",
+        "time": 1789203742200,
+        "endTime": 1789203744000,
+        "secondsFromStart": 11.2,
+        "duration": 1800
+      },
+      {
+        "role": "tool_calls",
+        "message": "Calling adjust_billing.",
+        "time": 1789203744400,
+        "endTime": 1789203744800,
+        "secondsFromStart": 13.4,
+        "toolCalls": [
+          {
+            "id": "toolu_01adjust002",
+            "name": "adjust_billing",
+            "parameters": {
+              "customer_id": "C-10293",
+              "invoice_id": "INV-8822"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool_call_result",
+        "toolCallId": "toolu_01adjust002",
+        "name": "adjust_billing",
+        "result": "{\"status\": \"refunded\", \"amount\": 79.0, \"invoice_id\": \"INV-8822\"}",
+        "time": 1789203745200,
+        "endTime": 1789203745600,
+        "secondsFromStart": 14.2
+      },
+      {
+        "role": "bot",
+        "message": "Done -- I've refunded the duplicate $79 charge. Anything else?",
+        "time": 1789203745800,
+        "endTime": 1789203748400,
+        "secondsFromStart": 14.8,
+        "duration": 2600
+      },
+      {
+        "role": "user",
+        "message": "No, that's all. Thanks, bye!",
+        "time": 1789203748800,
+        "endTime": 1789203750400,
+        "secondsFromStart": 17.8,
+        "duration": 1600
+      },
+      {
+        "role": "bot",
+        "message": "You're welcome. Goodbye!",
+        "time": 1789203750800,
+        "endTime": 1789203752600,
+        "secondsFromStart": 19.8,
+        "duration": 1800
+      }
+    ]
+  }
+}

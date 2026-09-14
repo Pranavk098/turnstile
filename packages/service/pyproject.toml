@@ -1,7 +1,7 @@
 [project]
-name = "turnstile-corpus"
+name = "turnstile-service"
 version = "0.0.0"
-description = "Sampled voice-AI call corpus from cited distributions; never tuned to make detectors fire."
+description = "Deployed live eval service: FastAPI shell over the deterministic engine plus the static dashboard."
 requires-python = ">=3.12"
 license = "Apache-2.0"
 authors = [{ name = "Pranav Koduru", email = "pranavkoduruc@gmail.com" }]
@@ -10,14 +10,21 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["turnstile-schema", "numpy"]
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+    "turnstile-schema",
+    "turnstile-ingest",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/turnstile_corpus"]
+packages = ["src/turnstile_service"]
 
 [tool.uv.sources]
 turnstile-schema = { workspace = true }
+turnstile-ingest = { workspace = true }

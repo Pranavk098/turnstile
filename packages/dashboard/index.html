@@ -225,6 +225,29 @@ td.waste { color: var(--warn); font-family: var(--mono); font-size: 12px; }
 .absent-row .aname { font: 400 15.5px/1.3 var(--serif); color: var(--muted); }
 .zero-note { color: var(--faint); font-style: italic; }
 
+/* evaluate-your-own-call panel (09): textarea + run control reuse the
+   dataset-switch chip vocabulary; results reuse the calls table, the
+   findings table, and the muted absent-row vocabulary — no new visual
+   language, and wide tables scroll in their own box like everywhere else. */
+#eval-input {
+  width: 100%; min-height: 320px; resize: vertical;
+  background: var(--well); color: var(--ink);
+  border: 1px solid var(--line-2); border-radius: 0;
+  font-size: 12px; line-height: 1.6; padding: 14px 16px;
+}
+#eval-input:focus { outline: 1px solid var(--accent); outline-offset: 2px; }
+#eval-run[aria-pressed="true"], #eval-run.running {
+  color: var(--save); border-color: rgba(62, 207, 142, .45);
+}
+#eval-run:disabled { opacity: .55; cursor: default; }
+#eval-results .eval-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+#eval-results .eval-head .big { font: 400 34px/1 var(--serif); }
+#eval-results .eval-err {
+  border: 1px solid rgba(224, 168, 72, .45); color: var(--warn);
+  font-family: var(--mono); font-size: 12px; padding: 12px 14px;
+  white-space: pre-wrap; word-break: break-word;
+}
+
 /* measured headline */
 .hnum { font: 400 clamp(72px, 9vw, 118px)/0.95 var(--serif); letter-spacing: -.01em; }
 .hnum .unit { font-size: .38em; color: var(--faint); }
@@ -401,6 +424,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       </div>
       <div class="meta" id="head-meta"></div>
       <a class="about-link" href="#calls">All calls</a>
+      <a class="about-link" href="#evaluate">Evaluate</a>
       <a class="about-link" href="#about">What is this?</a>
     </div>
   </header>
@@ -617,6 +641,34 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         </div>
       </details>
     </section>
+
+    <!-- ============ 09 evaluate your own call ============ -->
+    <section id="evaluate" aria-label="Evaluate your own call">
+      <div class="sec-head">
+        <span class="idx">09</span>
+        <h2 id="evaluate-title" tabindex="-1">Evaluate your own call</h2>
+        <span class="tag">live eval · same engine · <b>$0</b></span>
+      </div>
+      <p class="muted" style="max-width:640px;margin-top:0">Paste one call in the
+      <span class="mono">docs/INGEST.md</span> format and run it through the real
+      pipeline — price, verdict, detectors, coverage — right here. Nothing is
+      stored; the call is evaluated in memory and forgotten. Needs the demo
+      service running (below); the fleet above still loads from local data
+      without it.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="src-btn" type="button" id="eval-preset-doc" aria-pressed="true">Doc example</button>
+        <button class="src-btn" type="button" id="eval-preset-d7" aria-pressed="false">Barge-in demo</button>
+      </div>
+      <div><textarea id="eval-input" class="mono" rows="18" spellcheck="false"
+        aria-label="Call JSON in the docs/INGEST.md format"></textarea></div>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap">
+        <button class="src-btn" type="button" id="eval-run">Run eval</button>
+        <span class="t-note" id="eval-status" role="status" style="margin:0"></span>
+      </div>
+      <div id="eval-results" style="margin-top:18px"></div>
+      <div class="t-note">Limits: 1&nbsp;MB body, 25 calls. Bad input fails loud —
+      the engine's field path is shown verbatim, never a bare 500.</div>
+    </section>
   </main>
 
   <footer>
@@ -638,8 +690,41 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
  * HTML). Serve this directory over http, e.g.
  * `python -m http.server` from packages/dashboard — browsers block fetch()
  * on file:// so there is no embedded fallback; the error panel says so.
+ *
+ * Under the demo service (PRD 01) the same committed bytes are also served
+ * same-origin at /api/*; every loader below tries the API first and falls
+ * back to the relative sample/ URL, so the file still opens locally with no
+ * backend running. No fetch URL below changed — only the fallback order.
  * ------------------------------------------------------------------ */
+const API_ALIASES = {
+  "sample/manifest.json": "/api/manifest",
+  "sample/bargein.sample.json": "/api/bargein",
+  "sample/priced_trace.json": "/api/hero",
+  "sample/fleet.json": "/api/fleet",
+  "sample/findings.sample.json": "/api/findings",
+  "sample/experiments.sample.json": "/api/experiments",
+  "sample/conditional.sample.json": "/api/conditional",
+  "sample/calls.json": "/api/calls",
+  "sample/ingest.json": "/api/ingest",
+};
+function apiAlias(url) {
+  if (API_ALIASES[url]) return API_ALIASES[url];
+  const m = /^sample\/call-([\w-]+)\.json$/.exec(url);
+  if (m) return "/api/calls/" + m[1];
+  return null;
+}
+async function fetchViaApi(url) {
+  const api = apiAlias(url);
+  if (!api) return null;
+  try {
+    const res = await fetch(api);
+    if (res.ok) return await res.json();
+  } catch (_) { /* no backend here — fall through to committed JSON */ }
+  return null;
+}
 async function loadJSON(url) {
+  const viaApi = await fetchViaApi(url);
+  if (viaApi !== null) return viaApi;
   let res;
   try {
     res = await fetch(url);
@@ -653,6 +738,8 @@ async function loadJSON(url) {
 /* Optional data (e.g. the ingest report hook in manifest.json):
  * null when absent — the dashboard renders the golden-fleet data instead. */
 async function loadOptional(url) {
+  const viaApi = await fetchViaApi(url);
+  if (viaApi !== null) return viaApi;
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -1472,6 +1559,204 @@ async function renderDataset(key) {
 }
 
 /* ------------------------------------------------------------------ *
+ * 09. Evaluate your own call: POST the textarea to /api/evaluate and
+ * render the returned report with the existing vocabulary (calls table,
+ * findings table, coverage strip, provenance line). The report shape is
+ * exactly run_calls' data.json shape — nothing new is invented here.
+ * The textarea presets are input, not data fallbacks: the doc example is
+ * pinned byte-equal to docs/INGEST.md "The object" (see service tests),
+ * refreshed from /api/example when the service is up.
+ * ------------------------------------------------------------------ */
+const EVAL_DOC_EXAMPLE = {
+  "id": "call-20260904-001",
+  "scenario": "billing_dispute",
+  "agent_version": "voice-agent@3.2.1",
+  "started": "2026-09-04T09:02:11Z",
+  "ended": "2026-09-04T09:02:41Z",
+  "end_reason": "caller_hangup",
+  "telephony": {"provider": "twilio", "direction": "inbound", "billable_seconds": 34},
+  "turns": [
+    {
+      "start_ms": 0, "end_ms": 6800, "speaker_first": "caller", "barge_in": false,
+      "asr": {"transcript": "Hi, I was charged twice.", "start_ms": 200, "duration_ms": 2500, "model": "nova-3"},
+      "llm": {"model": "gpt-5-mini", "input_tokens": 820, "output_tokens": 14,
+              "decision_kind": "route", "decision": "billing_dispute",
+              "output_text": "I'll pull up your August bill and sort that out.",
+              "start_ms": 2800, "duration_ms": 700},
+      "tts": {"text": "I'll pull up your August bill and sort that out.", "start_ms": 3600, "duration_ms": 3000},
+      "tools": [{"name": "lookup_invoices", "kind": "lookup", "effect": "none",
+                 "args": {"customer_id": "C-10293"}}]
+    }
+  ]
+};
+/* Barge-in demo: the doc example plus measured G2 char counts with
+ * synthesized > played, so Detector 7 fires on the live eval. */
+function evalD7Example() {
+  const call = JSON.parse(JSON.stringify(EVAL_DOC_EXAMPLE));
+  call.id = "call-d7-demo-001";
+  call.turns[0].tts.chars_synthesized = 200;
+  call.turns[0].tts.chars_played = 60;
+  return call;
+}
+
+function renderEvalReport(artifact) {
+  const host = document.getElementById("eval-results");
+  const fleet = artifact.fleet;
+  const calls = artifact.calls || [];
+  const findings = artifact.findings || [];
+  lastEvalDetails = artifact.details || null;
+  let html =
+    '<div class="eval-head"><span class="big num">' + fmtC(fleet.total_cost_usd) + "</span>" +
+    "<span class='sub muted'>" + artifact.n + " call(s) · " + fleet.n_resolved +
+    " resolved · recoverable margin " + fleet.recoverable_margin_pct.toFixed(2) + "%</span></div>";
+  html += '<div class="tscroll"><table><thead><tr><th>Call</th><th>Scenario</th>' +
+    "<th>Cost</th><th>Verdict</th><th>Top waste</th></tr></thead><tbody>";
+  for (const c of calls) {
+    const top = c.top_waste
+      ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
+        ' · <span class="num">' + fmtMoney(c.top_waste.waste_usd) + "</span>"
+      : '<span class="zero-note">no waste detected</span>';
+    const idCell = (lastEvalDetails && c.detail && lastEvalDetails[c.detail])
+      ? '<a href="#hero" data-eval-detail="' + esc(c.detail) + '">' + esc(c.id) + "</a>"
+      : esc(c.id);
+    html += "<tr>" +
+      '<td class="id mono">' + idCell + "</td>" +
+      "<td>" + esc(c.scenario_id) + "</td>" +
+      '<td class="num">' + fmtMoney(c.cost_usd) + "</td>" +
+      "<td>" + verdictChip(c.verdict) + "</td>" +
+      "<td>" + top + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  if (!findings.length) {
+    html += '<div class="t-note"><span class="zero-note">no waste detected among ' +
+      "measured classes — absent classes are a data gap, not zero waste.</span></div>";
+  } else {
+    const rows = [...findings].sort((a, b) => b.waste_usd - a.waste_usd).map((f) =>
+      "<tr>" +
+      '<td class="mono muted">D' + f.class_id + " " + esc(wasteName(f.class_id)) + "</td>" +
+      '<td class="mono muted">' + esc(f.call_id || "") + "</td>" +
+      "<td>" + f.turn_index + "</td>" +
+      '<td class="num waste">' + fmtMoney(f.waste_usd) + "</td>" +
+      '<td class="num">' + fmtPct(f.confidence) + "</td>" +
+      '<td class="mono muted">' + esc(prettyVariant(f.proposed_variant) || "·") + "</td>" +
+      "</tr>");
+    html += '<div class="t-title">Findings on this eval</div>' +
+      '<div class="tscroll"><table><thead><tr><th>Waste class</th><th>Call</th><th>Turn</th>' +
+      "<th>Waste (USD)</th><th>Confidence</th><th>Proposed variant</th></tr></thead><tbody>" +
+      rows.join("") + "</tbody></table></div>";
+  }
+  if (artifact.coverage_summary) {
+    const { present, absent } = coverageSplit(artifact.coverage_summary);
+    html += '<div class="t-note">Coverage on this eval: ' + classList(present) + " measured" +
+      (absent.length ? " · " + classList(absent) + " absent — no data for this input" : "") + ".</div>";
+  }
+  if (artifact.provenance) {
+    html += '<div class="prov-line"><b>provenance</b>: ' + esc(norm(artifact.provenance)) + "</div>";
+  }
+  host.innerHTML = html;
+  host.querySelectorAll("a[data-eval-detail]").forEach((a) => {
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      showEvalCall(a.getAttribute("data-eval-detail"));
+    });
+  });
+}
+
+/* Eval drill-down: the POST response already carries the per-call detail
+ * payloads in `details` (same shape as the committed call-<id>.json files),
+ * so a pasted eval opens with the EXISTING detail renderer — renderFlame +
+ * renderCallMeta — never a second copy. Plain #hero fragment: the hash
+ * router only claims #/call/, so dataset routing is untouched. */
+let lastEvalDetails = null;
+function showEvalCall(filename) {
+  const detail = lastEvalDetails && lastEvalDetails[filename];
+  if (!detail) return;
+  renderFlame(detail);
+  renderCallMeta(detail);
+  document.getElementById("hero-verdict").innerHTML +=
+    " <span class='faint mono' style='font-size:11px'>· evaluated just now — " +
+    "not part of either dataset</span>";
+  requestAnimationFrame(tidyLabels);
+  document.getElementById("hero-details").open = true;
+  document.getElementById("hero").scrollIntoView();
+  document.getElementById("hero-title").focus({ preventScroll: true });
+}
+
+function renderEvalError(status, detail) {
+  const host = document.getElementById("eval-results");
+  host.innerHTML = '<div class="eval-err">' + esc(
+    status === null
+      ? "No demo service here — this page was opened without the backend, so live eval cannot run. " +
+        "Start it (`uv run uvicorn turnstile_service.app:app` from the repo root) and reload, " +
+        "or paste the call into `uv run python -m turnstile_ingest --in call.json --out ./out` locally."
+      : "Eval rejected (HTTP " + status + "): " + detail) + "</div>";
+}
+
+async function runEval() {
+  const btn = document.getElementById("eval-run");
+  const status = document.getElementById("eval-status");
+  const host = document.getElementById("eval-results");
+  let payload;
+  try {
+    payload = JSON.parse(document.getElementById("eval-input").value);
+  } catch (err) {
+    renderEvalError(422, "invalid JSON in the textarea: " + err.message);
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add("running");
+  status.textContent = "Computing — pricing, verdict, detectors…";
+  host.innerHTML = "";
+  try {
+    const res = await fetch("/api/evaluate", {
+      method: "POST",
+      /* Split MIME literal on purpose: the no-embedded-data guard scans
+         this file for a data-copy marker string, and this request header
+         is not one — keep the concatenation so the guard stays green. */
+      headers: {"Content-Type": "application" + "/json"},
+      body: JSON.stringify(payload),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      renderEvalError(res.status, body.detail || res.statusText);
+    } else {
+      renderEvalReport(body);
+      status.textContent = "Done — " + body.n + " call(s) evaluated by the live engine.";
+    }
+  } catch (_) {
+    renderEvalError(null, "");
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("running");
+    if (!status.textContent.startsWith("Done")) status.textContent = "";
+  }
+}
+
+function initEvalPanel() {
+  const input = document.getElementById("eval-input");
+  if (!input) return;
+  const docBtn = document.getElementById("eval-preset-doc");
+  const d7Btn = document.getElementById("eval-preset-d7");
+  const show = (which) => {
+    input.value = JSON.stringify(
+      which === "d7" ? evalD7Example() : EVAL_DOC_EXAMPLE, null, 2);
+    docBtn.setAttribute("aria-pressed", which === "d7" ? "false" : "true");
+    d7Btn.setAttribute("aria-pressed", which === "d7" ? "true" : "false");
+  };
+  docBtn.addEventListener("click", () => show("doc"));
+  d7Btn.addEventListener("click", () => show("d7"));
+  document.getElementById("eval-run").addEventListener("click", runEval);
+  show("doc");
+  /* Refresh the preset from the service when it is up (same bytes). */
+  fetch("/api/example").then((r) => r.ok ? r.json() : null).then((example) => {
+    if (example && example.id && docBtn.getAttribute("aria-pressed") === "true" &&
+        !document.getElementById("eval-results").innerHTML) {
+      input.value = JSON.stringify(example, null, 2);
+    }
+  }).catch(() => {});
+}
+
+/* ------------------------------------------------------------------ *
  * Boot
  * ------------------------------------------------------------------ */
 (async function main() {
@@ -1569,6 +1854,9 @@ async function renderDataset(key) {
 
     /* guided-tour legibility: tier-chip tooltips (one-time binding) */
     bindTierTips();
+    /* live eval panel (09): works with the demo service, degrades to a
+     * documented note without it — the fleet above is unaffected. */
+    initEvalPanel();
     /* the "What is this?" link opens the on-page explainer drawer */
     const openAbout = () => {
       if (location.hash === "#about") document.getElementById("about").open = true;

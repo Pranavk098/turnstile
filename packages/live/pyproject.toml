@@ -3,6 +3,13 @@ name = "turnstile-live"
 version = "0.0.0"
 description = "Live conversational agent, Phase 1: free text-mode loop (mock policy + mock tools) emitting ingest-format calls."
 requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Pranav Koduru", email = "pranavkoduruc@gmail.com" }]
+urls = { Repository = "https://github.com/Pranavk098/turnstile", Demo = "https://turnstile-demo.onrender.com" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+]
 dependencies = ["turnstile-schema", "turnstile-ingest", "turnstile-corpus"]
 
 [build-system]

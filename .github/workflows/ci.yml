@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run --frozen python -m pytest -q
+
+  # Proves `make demo`'s build works from a clean clone with only `uv`:
+  # no secrets are granted to this job, and it fails if any paid-path
+  # variable is present in the environment.
+  keyless-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: prove no secrets are available
+        run: |
+          test -z "${OPENAI_API_KEY:-}" || (echo "OPENAI_API_KEY must not be set" && exit 1)
+          test -z "${TURNSTILE_ALLOW_PAID:-}" || (echo "TURNSTILE_ALLOW_PAID must not be set" && exit 1)
+      - run: make report
+      - name: report was produced
+        run: |
+          test -f packages/dashboard/sample/fleet.json
+          test -f packages/dashboard/sample/manifest.json
+          test -f packages/ingest/data/data.json
+
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run --frozen python scripts/check_links.py

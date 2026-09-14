@@ -142,6 +142,16 @@ route→nano replay; 0.0 with no claim when the gate doesn't pass).
 `excluded_absent_classes` names classes whose raw findings were dropped for
 lack of data — auditability for the honesty claim.
 
+Margin-denominator choice (headline semantics, stated plainly): the % is
+computed over the **measurable subset only** — provider-adapted calls whose
+`decision_kind` was inferred are excluded from *both* the proven-savings
+numerator and the spend denominator, and the exclusion is disclosed in the
+fleet note (`coverage_summary.margin_excluded` carries the count). This keeps
+the % a true statement about the analyzable spend: including unmeasurable
+calls in the denominator would dilute it, and letting inferred labels into the
+numerator would inflate it. See [LIMITATIONS.md](LIMITATIONS.md) for what
+"measurable" excludes.
+
 ## Sample
 
 `packages/ingest/sample/calls.json`: seven hand-authored calls (billing
@@ -150,3 +160,87 @@ rescheduling, tech support). Generate-first / detect-second: written to read
 like real logs, never tuned to detectors. No acoustic fields (the typical
 real log), so D6/D7/D8 are absent throughout. Labeled `sample` in-file and
 in every artifact; never present aggregates from it as fleet measurements.
+
+## Vapi provider exports
+
+A real Vapi call export runs end-to-end with no re-instrumentation: the
+adapter (`packages/ingest/src/turnstile_ingest/providers/vapi.py`) maps one
+Vapi call object to the `IngestCall` format above, then the **existing**
+pipeline runs unchanged (price → adjudicate → detect → report).
+
+```bash
+uv run python -m turnstile_ingest --provider vapi --in vapi-export.json --out ./out
+# --provider {turnstile,vapi}; default "turnstile" (the native format above).
+# With no --in, --provider vapi runs the bundled Vapi sample.
+```
+
+Input is one Vapi call object, a bare list, or a list-wrapper (`{"calls"}`,
+`{"results"}` (Vapi's list shape), or `{"data"}`). Output is the standard
+`<out>/data.json` + per-call files; the report envelope carries
+`source: Vapi export ...` in its provenance, and each per-call
+`_provenance` records the provider, the export version, and which fields
+were inferred vs. read directly.
+
+### Mapping table
+
+Vapi field names verified Sep 2026 against the published Call schema
+(`docs.vapi.ai/api-reference/calls/*`), the ended-reason catalog
+(`docs.vapi.ai/calls/call-ended-reason`), and the `CostBreakdown` /
+`UserMessage` / `BotMessage` / `ToolCallMessage` / `ToolCallResultMessage`
+schemas:
+
+| `IngestCall` | Vapi source | Notes |
+|---|---|---|
+| `id` | `id` | UUIDs pass the dashboard's `[A-Za-z0-9_-]+` route |
+| `scenario` | `assistant.name` → `name` → `squad.name`/`squadId` | slugified (`Billing Assistant` → `billing_assistant`); absent → `"unknown"` (D4 then stays silent, as for any unbaselined id) |
+| `agent_version` | `assistantId` | as `vapi/<id>`; absent → `vapi/unknown` |
+| `started` / `ended` | `startedAt` / `endedAt` | RFC3339; both required |
+| `end_reason` | `endedReason` | exact table for the common codes (`customer-ended-call` → `caller_hangup`, `assistant-ended-call*` → `agent_hangup`, `assistant-forwarded-call` → `escalated`, `exceeded-max-duration` / `silence-timed-out` → `timeout`), error families by prefix (`pipeline-error-*`, `call.start.*`, `call.in-progress.*`, …) plus the no-answer/connectivity codes → `error`. Anything else → `IngestError` naming the value |
+| `telephony` | `type` + `phoneCallProvider` + call duration | `inboundPhoneCall` → `inbound`, `outboundPhoneCall` → `outbound`; `webCall` / `vapi.websocketCall` carry no phone leg → omitted (D8 ABSENT). `billable_seconds` from `endedAt − startedAt`. The provider string passes through exactly — it must resolve in `pricing/rates.yaml` (see below) |
+| `turns[]` | `artifact.messages` (else top-level `messages`) | time-ordered by `secondsFromStart` (clamped ≥ 0); each `user` message opens a turn, agent/tool messages attach to the open turn, pre-first-user messages form an opening agent-first turn. Unknown roles raise |
+| `turn.asr` | `user` message text + `time`/`endTime` timing | transcriber from `assistant.transcriber` when present, else `deepgram/nova-3` defaults |
+| `turn.llm` model/tokens | `assistant.model.{provider,model}` + `costBreakdown.{llmPromptTokens,llmCompletionTokens,llmCachedPromptTokens}` | call-level totals only — see "honest approximations" below |
+| `turn.llm.decision_kind` | **not emitted by Vapi — inferred + flagged** | rule below; D1 never fires on it (§5 boundary) |
+| `turn.llm.output_text` | `bot`/`assistant` message text | required; never copied from `tts.text` |
+| `turn.tts` | `bot`/`assistant` message text + timing | **text only, no char counts** → no tts/playback spans → D6/D7/D8 ABSENT |
+| `turn.tools[]` | `tool_calls` + `tool_call_result` messages joined by tool id | `kind` from documented name rules (override with `tool_kinds={name: kind}`); `effect` from the result (`error` → `rejected`; pending markers → `pending`; bare `result` → `committed` for mutation/handoff; reads always `none`; missing/ambiguous → `unknown`). Contradictory (both `result` and `error`) → `IngestError` |
+
+### Honest approximations (flagged in provenance, never silent)
+
+1. **`decision_kind` inference.** Rule: a turn triggering a mutation/handoff
+   tool → `tool_select`; the call's first LLM turn → `route`; otherwise
+   `compose`. `slot_fill` / `escalate_check` are never inferred. Every
+   adapted turn is flagged (`inferred_decision_turns` in per-call
+   `_provenance`), D1 is ABSENT for fully-inferred calls, residual D1
+   findings on inferred turns are dropped, and fully-inferred calls are
+   excluded from the recoverable-margin replay. An inferred label never
+   feeds a headline number.
+2. **Token distribution.** `costBreakdown` carries call-level totals only, so
+   they are split evenly across the call's LLM turns with the exact sum
+   preserved (per-turn attribution is approximate; even — not
+   text-proportional — so no fake token slope for D2 to misread).
+3. **TTS omission.** `costBreakdown.ttsCharacters` is call-level, never
+   per-message, so per-turn char counts would be invented either way: the
+   adapter omits them and D6/D7/D8 read ABSENT. Vapi's own cost split is
+   still visible in the export; Turnstile prices only what it measures.
+
+### What your export needs
+
+- `assistant.model.{provider,model}` must resolve in `pricing/rates.yaml`
+  (same rule as native logs: `openai/gpt-5-mini` works out of the box; a
+  `gpt-4o` assistant needs its rate row added — the error names the key).
+  Provider prefixes are stripped (`openai/gpt-4o` → `gpt-5`-style bare
+  `gpt-4o` under its own provider).
+- `phoneCallProvider` passes through: `twilio` works out of the box;
+  `vonage`/`telnyx`/`vapi` legs, or `outbound` direction, need their
+  `provider/pstn_<direction>` rate row (the error lists known keys).
+- Tools with names outside the documented rules need ground truth:
+  `from_vapi(call, tool_kinds={"my_tool": "mutation"})`.
+
+### Vapi sample
+
+`packages/ingest/sample/vapi-export.sample.json`: one hand-authored,
+schema-conformant **synthetic** billing-dispute export (NOT real customer
+traffic — labeled `sample` in-file, in the CLI headline, and in every
+artifact's provenance). Greeting + complaint + invoice lookup + authorized
+correction + close; resolves `RESOLVED` with D1/D6/D7/D8 honestly ABSENT.

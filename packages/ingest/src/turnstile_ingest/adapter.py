@@ -67,12 +67,13 @@ def parse_call(obj: dict[str, Any] | IngestCall) -> IngestCall:
         raise IngestError(f"invalid ingest call -- {_format_pydantic_error(exc)}") from exc
 
 
-def _require_rate_key(mapping: dict, key: str, field_path: str, what: str) -> None:
+def _require_rate_key(mapping: dict, key: str, field_path: str, what: str,
+                      hint: str = "") -> None:
     if key not in mapping:
         known = ", ".join(sorted(mapping))
         raise IngestError(
             f"{field_path}: {what} {key!r} is not in pricing/rates.yaml "
-            f"(known: {known})"
+            f"(known: {known})" + (f" -- {hint}" if hint else "")
         )
 
 
@@ -197,9 +198,12 @@ def _trace_dict(call: IngestCall, rates: RateTable) -> dict[str, Any]:
     telephony = None
     if call.telephony is not None:
         tel = call.telephony
+        tel_key = f"{tel.provider}/pstn_{tel.direction.value}"
         _require_rate_key(
-            rates.telephony, f"{tel.provider}/pstn_{tel.direction.value}",
+            rates.telephony, tel_key,
             "telephony", "telephony rate key",
+            hint=f"add a rate row for {tel_key!r} -- see the commented "
+                 "Vapi-leg template in pricing/rates.yaml",
         )
         call_ms = int((call.ended - call.started).total_seconds() * 1000)
         telephony = {

@@ -3,6 +3,13 @@ name = "turnstile-agent"
 version = "0.1.0"
 description = "Native barge-in harness: real Piper TTS through the G1 TraceRecorder, producing schema-v1.1 traces the built instrument can price and detect on."
 requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Pranav Koduru", email = "pranavkoduruc@gmail.com" }]
+urls = { Repository = "https://github.com/Pranavk098/turnstile", Demo = "https://turnstile-demo.onrender.com" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+]
 dependencies = [
     "turnstile-schema",
     "opentelemetry-api>=1.24",

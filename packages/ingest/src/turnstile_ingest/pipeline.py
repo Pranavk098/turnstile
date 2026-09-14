@@ -55,6 +55,11 @@ NO_TELEPHONY_REASON = (
     "no data for this input: the call carries no telephony leg, "
     "so silence cannot be priced"
 )
+INFERRED_DECISION_REASON = (
+    "no data for this input: decision_kind is inferred by the provider "
+    "adapter, not emitted by the agent -- D1 (over-model) cannot be measured "
+    "on inferred labels, so this class is excluded, never zeroed"
+)
 
 # The D1 reroute the dashboard's own build_data.py uses for the gated
 # recoverable-margin headline -- same variant, same §8.3 gate, so the ingest
@@ -62,13 +67,22 @@ NO_TELEPHONY_REASON = (
 OVER_MODEL_VARIANT = VariantSpec(model_routing={"route": "gpt-5-nano"})
 
 
-def describe_coverage(call: IngestCall) -> dict[int, dict[str, str]]:
+def describe_coverage(call: IngestCall,
+                      *,
+                      inferred_decision_turns: set[int] | None = None) -> dict[int, dict[str, str]]:
     """Per-detector data coverage for one validated call.
 
     Returns ``{class_id: {"status": "present"|"absent", "reason": ...}}``.
     Call-level and conservative: ANY tts turn missing either acoustic field
     marks 6/7/8 absent for the whole call (partial acoustic spans would give
     D7 half-pairs and D8 a holey union).
+
+    ``inferred_decision_turns`` names the turns whose ``decision_kind`` was
+    inferred by a provider adapter rather than emitted by the agent (PRD 02
+    §5). When it covers every LLM turn, D1 (over-model) is ABSENT: its key
+    input is not measured data. Partial inference leaves D1 PRESENT, and the
+    per-finding filter in ``_run_priced`` still drops D1 findings on the
+    inferred turns themselves.
     """
     tts_turns = [t.tts for t in call.turns if t.tts is not None]
     acoustic_complete = bool(tts_turns) and all(t.acoustic_complete() for t in tts_turns)
@@ -77,6 +91,9 @@ def describe_coverage(call: IngestCall) -> dict[int, dict[str, str]]:
     coverage: dict[int, dict[str, str]] = {}
     for class_id in ALWAYS_TELEMETRY_CLASSES:
         coverage[class_id] = {"status": "present", "reason": "real telemetry in this input"}
+    llm_turns = {i for i, t in enumerate(call.turns) if t.llm is not None}
+    if llm_turns and inferred_decision_turns is not None and llm_turns <= set(inferred_decision_turns):
+        coverage[1] = {"status": "absent", "reason": INFERRED_DECISION_REASON}
     acoustic_status = "present" if acoustic_complete else "absent"
     acoustic_reason = "tts/playback spans with G2 char counts" if acoustic_complete else NO_ACOUSTIC_REASON
     for class_id in (6, 7):
@@ -90,10 +107,21 @@ def describe_coverage(call: IngestCall) -> dict[int, dict[str, str]]:
     return coverage
 
 
+def _provider_record(provider: dict[str, dict[str, Any]] | None,
+                     call_id: str) -> dict[str, Any]:
+    """The provider-adapter record for one call id ({} when native)."""
+    if not provider:
+        return {}
+    record = provider.get(call_id)
+    return record if isinstance(record, dict) else {}
+
+
 def _run_priced(
     obj: dict[str, Any] | IngestCall,
     rates,
     baselines: Baselines,
+    *,
+    provider: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[IngestCall, PricedTrace, dict[str, Any], list[dict[str, Any]]]:
     """Validate + price + adjudicate + detect one call, applying the
     coverage envelope. Returns (call, priced, verdict-dump, finding-dumps)."""
@@ -101,9 +129,13 @@ def _run_priced(
     trace = load(call, rates=rates)
     priced = price_trace(trace, rates)
     verdict = adjudicate(priced)
-    coverage = describe_coverage(call)
+    record = _provider_record(provider, call.id)
+    inferred = set(record.get("inferred_decision_turns") or ())
+    coverage = describe_coverage(call, inferred_decision_turns=inferred or None)
     raw = detect(priced, verdict, baselines)
-    findings = [f for f in raw if coverage[f.class_id]["status"] == "present"]
+    findings = [f for f in raw
+                if coverage[f.class_id]["status"] == "present"
+                and not (f.class_id == 1 and f.turn_index in inferred)]
     return call, priced, verdict, coverage, findings, raw
 
 
@@ -111,17 +143,25 @@ def run_call(
     obj: dict[str, Any] | IngestCall,
     rates,
     baselines: Baselines,
+    *,
+    provider: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Price/adjudicate/detect one ingest call; return the JSON-ready report.
 
-    Raises ``IngestError`` on malformed input (from ``load``).
+    Raises ``IngestError`` on malformed input (from ``load``). ``provider``
+    optionally maps call id -> adapter record (``source``/``note``/
+    ``inferred_decision_turns``; see ``providers.vapi.provider_info``): the
+    record's source rides in ``report["source"]`` and its inferred turns gate
+    D1 (PRD 02 §5).
     """
-    call, priced, verdict, coverage, findings, raw = _run_priced(obj, rates, baselines)
+    call, priced, verdict, coverage, findings, raw = _run_priced(obj, rates, baselines, provider=provider)
     dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
+    record = _provider_record(provider, call.id)
     return {
         "call_id": call.id,
         "scenario": call.scenario,
         "end_reason": call.end_reason.value,
+        "source": record.get("source"),
         "verdict": verdict.model_dump(mode="json"),
         "conv_cost_usd": priced.conv_cost,
         "stage_costs_usd": dict(priced.stage_costs),
@@ -179,11 +219,36 @@ def _detail_file(
     dropped: list[int],
     coverage,
     sample: bool,
+    *,
+    source: str | None = None,
+    source_note: str | None = None,
+    inferred_decision_turns: list[int] | None = None,
 ) -> dict[str, Any]:
     """One call-<id>.json payload with EXACTLY the dashboard's detail keys
     (trace, span_costs, turn_costs, conv_cost, stage_costs, verdict, findings,
     _provenance). Findings here are plain Finding dumps (no call_id -- same
     as the golden per-call files); coverage lives in _provenance."""
+    note = (
+        "Per-call priced trace over an ingested log (turnstile_ingest). "
+        "SAMPLE -- not production data. " if sample else ""
+    ) + (
+        "LLM/tool layers measured from the log's own telemetry; "
+        "acoustic stages only where the log carries rate-resolvable "
+        "telemetry (see coverage)."
+    )
+    if source_note:
+        note += " " + source_note
+    provenance: dict[str, Any] = {
+        "ingest_call": call.id,
+        "sample": sample,
+        "note": note,
+        "coverage": {str(k): v for k, v in coverage.items()},
+        "excluded_absent_classes": list(dropped),
+    }
+    if source:
+        provenance["source"] = source
+    if inferred_decision_turns:
+        provenance["inferred_decision_turns"] = list(inferred_decision_turns)
     return {
         "trace": priced.trace.model_dump(mode="json"),
         "span_costs": dict(priced.span_costs),
@@ -193,19 +258,7 @@ def _detail_file(
         "verdict": verdict.model_dump(mode="json"),
         "findings": [_finding_dump(f) for f in findings],
         "top_waste_usd": max((f.waste_usd for f in findings), default=None),
-        "_provenance": {
-            "ingest_call": call.id,
-            "sample": sample,
-            "note": (
-                "Per-call priced trace over an ingested log (turnstile_ingest). "
-                "SAMPLE -- not production data. " if sample else ""
-            )
-            + "LLM/tool layers measured from the log's own telemetry; "
-              "acoustic stages only where the log carries rate-resolvable "
-              "telemetry (see coverage).",
-            "coverage": {str(k): v for k, v in coverage.items()},
-            "excluded_absent_classes": list(dropped),
-        },
+        "_provenance": provenance,
     }
 
 
@@ -232,6 +285,7 @@ def run_calls(
     *,
     label: str,
     sample: bool,
+    provider: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """Run the full pipeline over many calls.
 
@@ -243,8 +297,17 @@ def run_calls(
     the aggregate findings list. ``detail_files`` maps
     ``call-<id>.json`` -> the per-call payload with EXACTLY the dashboard's
     detail keys. The CLI writes both to the output directory.
+
+    ``provider`` optionally maps call id -> adapter record (``source``/
+    ``note``/``inferred_decision_turns``; see
+    ``providers.vapi.provider_info``). Records ride into per-call
+    ``_provenance`` and the report envelope, and inferred turns gate D1:
+    D1 findings on inferred turns are dropped, D1 is ABSENT for fully
+    inferred calls, and fully inferred calls are excluded from the
+    recoverable-margin replay -- an inferred label never feeds a headline.
     """
     priced_traces: list[PricedTrace] = []
+    margin_costs: list[float] = []
     rows: list[dict[str, Any]] = []
     details: dict[str, dict[str, Any]] = {}
     all_findings: list[dict[str, Any]] = []
@@ -253,12 +316,21 @@ def run_calls(
     resolved_cost = 0.0
     n_resolved = 0
     stage_totals: dict[str, float] = {}
+    n_margin_excluded = 0
 
     for obj in objs:
-        call, priced, verdict, coverage, findings, raw = _run_priced(obj, rates, baselines)
+        call, priced, verdict, coverage, findings, raw = _run_priced(
+            obj, rates, baselines, provider=provider)
+        record = _provider_record(provider, call.id)
+        inferred = sorted(set(record.get("inferred_decision_turns") or ()))
         dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
         filename = _detail_filename(call.id)
-        details[filename] = _detail_file(call, priced, verdict, findings, dropped, coverage, sample)
+        details[filename] = _detail_file(
+            call, priced, verdict, findings, dropped, coverage, sample,
+            source=record.get("source"),
+            source_note=record.get("note"),
+            inferred_decision_turns=inferred or None,
+        )
         rows.append({
             "id": call.id,
             "scenario_id": call.scenario,
@@ -276,7 +348,15 @@ def run_calls(
             if entry["status"] == "present":
                 key = str(class_id)
                 present_counts[key] = present_counts.get(key, 0) + 1
-        priced_traces.append(priced)
+        llm_turns = {i for i, t in enumerate(call.turns) if t.llm is not None}
+        if llm_turns and llm_turns <= set(inferred):
+            # Fully inferred decision_kind: the D1-reroute replay cannot
+            # measure over-model waste here, so this trace must not feed the
+            # recoverable-margin headline either (PRD 02 §5).
+            n_margin_excluded += 1
+        else:
+            priced_traces.append(priced)
+            margin_costs.append(priced.conv_cost)
         total_cost += priced.conv_cost
         for stage, cost in priced.stage_costs.items():
             stage_totals[stage] = stage_totals.get(stage, 0.0) + cost
@@ -292,6 +372,16 @@ def run_calls(
         "ABSENT per call ('no data for this input'), excluded from findings."
     )
     sample_note = "SAMPLE aggregate over ingested calls -- not a production fleet. " if sample else ""
+    sources = sorted({str(r.get("source")) for r in (_provider_record(provider, row["id"]) for row in rows)
+                      if isinstance(r.get("source"), str) and r.get("source")})
+    source_clause = ("source: " + "; ".join(sources) + ". ") if sources else ""
+    margin_note = ""
+    if n_margin_excluded:
+        margin_note = (
+            f"D1 recoverable margin computed over {n - n_margin_excluded}/{n} "
+            f"calls: {n_margin_excluded} provider-adapted call(s) with inferred "
+            "decision_kind are excluded (inferred labels never feed a headline)."
+        )
     fleet = {
         "label": label,
         "note": sample_note + "CPRC_naive/CPRC_loaded per PRD Sec.4.3. " + acoustic_note,
@@ -301,7 +391,7 @@ def run_calls(
         "resolved_cost_usd": resolved_cost,
         "cprc_loaded": total_cost / n_resolved if n_resolved else 0.0,
         "cprc_naive": resolved_cost / n_resolved if n_resolved else 0.0,
-        "recoverable_margin_pct": _recoverable_margin(priced_traces, total_cost),
+        "recoverable_margin_pct": _recoverable_margin(priced_traces, sum(margin_costs)),
         "stage_costs_usd": stage_totals,
         "_provenance": {
             "n": n,
@@ -311,6 +401,8 @@ def run_calls(
                 "layers measured from the log's own tokens and tool outcomes; "
                 "acoustic layer (ASR/TTS/telephony) priced only where the log "
                 "carries rate-resolvable telemetry. " + acoustic_note
+                + ((" " + source_clause) if sources and not sample else "")
+                + ((" " + margin_note) if margin_note else "")
             ),
         },
     }
@@ -323,16 +415,23 @@ def run_calls(
         "note": sample_note + "Ingested call logs via turnstile_ingest. " + acoustic_note,
         "provenance": (
             "turnstile_ingest report over "
-            + ("the bundled 7-call SAMPLE (not production data). " if sample else "ingested logs. ")
+            + ("the bundled 7-call SAMPLE (not production data). " if sample and not sources else "")
+            + (source_clause if sources else ("" if sample else "ingested logs. "))
             + "LLM/tool layers from the log's own telemetry; acoustic stages "
               "only where the log carries rate-resolvable telemetry; D6/D7/D8 "
               "reported ABSENT where it does not."
+            + ((" D1 reported ABSENT on provider-adapted calls (decision_kind "
+                "inferred, not agent-emitted).") if n_margin_excluded else "")
         ),
         "sample": sample,
         "fleet": fleet,
         "coverage_summary": {
             "n_calls": n,
             "calls_with_data_per_class": present_counts,
+            # Machine-readable form of the margin_note above: calls excluded
+            # from the recoverable-margin replay for inferred decision_kind.
+            # The CLI headline reads this (never recomputes it).
+            "margin_excluded": n_margin_excluded,
         },
         "calls": rows,
         "findings": all_findings,

@@ -28,6 +28,16 @@ tts:
 telephony:
   twilio/pstn_inbound:        # https://www.twilio.com/en-us/voice/pricing  (retrieved 2026-08-30)
     { unit: minute, rate: 0.0085 }
+  # --- Vapi-leg template (PRD 02 improvement): outbound or non-Twilio legs
+  # fail loudly until their key exists. To use one, uncomment its single row
+  # line below AND verify the rate against the source URL first -- the values
+  # are the inbound-Twilio shape as a placeholder, not quotes. A dated
+  # retrieval per row is required by the convention above before uncommenting.
+  #twilio/pstn_outbound: { unit: minute, rate: 0.0085 }  # https://www.twilio.com/en-us/voice/pricing (VERIFY rate before use)
+  #vonage/pstn_inbound: { unit: minute, rate: 0.0085 }  # https://www.vonage.com/communications-apis/voice/pricing/ (VERIFY rate before use)
+  #vonage/pstn_outbound: { unit: minute, rate: 0.0085 }  # https://www.vonage.com/communications-apis/voice/pricing/ (VERIFY rate before use)
+  #telnyx/pstn_inbound: { unit: minute, rate: 0.0085 }  # https://telnyx.com/pricing/voice (VERIFY rate before use)
+  #telnyx/pstn_outbound: { unit: minute, rate: 0.0085 }  # https://telnyx.com/pricing/voice (VERIFY rate before use)
 
 # Note: cache_read for OpenAI is 0.1 x input for the gpt-5 / gpt-5-mini /
 # gpt-5-nano tiers above (see the pricing source URL on each llm row). These

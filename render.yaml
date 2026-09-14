@@ -1,0 +1,15 @@
+# Render blueprint for the Turnstile demo service (PRD 01, P4).
+#
+# Free web service, Docker runtime, auto-deploy on push to the default
+# branch. RENDER_GIT_COMMIT is exposed by Render automatically and surfaces
+# on GET /health as `commit`. See docs/DEPLOY.md (host choice + limits).
+services:
+  - type: web
+    name: turnstile-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: UV_LINK_MODE
+        value: copy
