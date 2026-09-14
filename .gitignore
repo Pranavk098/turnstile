@@ -6,4 +6,9 @@ __pycache__/
 *.wav
 /corpus/
 experiments/*.json
+# Deterministic seed-0 barge-in report (n=150): a committed BUILD INPUT for the
+# dashboard, so CI/keyless builds are hermetic. build_data.py reads it verbatim
+# and still never hardcodes its numbers. Regenerate with:
+#   uv run --group piper python packages/experiments/run_bargein_harness.py --n 150 --seed 0
+!experiments/bargein_report.json
 experiments/*.jsonl
