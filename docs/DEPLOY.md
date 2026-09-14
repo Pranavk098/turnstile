@@ -50,6 +50,9 @@ deploy is not associated with a git SHA (manual deploy or missing
 Render dashboard → service → "Manual Deploy → Deploy latest commit" from
 the connected repo (or confirm the service tracks the repo branch with
 `autoDeploy: true`), then re-probe `/health` until `commit` shows the SHA.
+Observed 2026-09-14: pushing `wave0-foundation` (CI green) did NOT redeploy
+the service (`/health` still `unknown`, still warm) — the service tracks a
+different ref or uses manual deploys.
 
 ## Host choice + why + fallback (Track A Day-1 record, binding)
 
