@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 WORKDIR /app
 
 # Workspace metadata first (layer cache): dependency resolution reruns only
@@ -24,6 +24,7 @@ COPY packages/experiments/pyproject.toml packages/experiments/
 COPY packages/ingest/pyproject.toml packages/ingest/
 COPY packages/live/pyproject.toml packages/live/
 COPY packages/pricing/pyproject.toml packages/pricing/
+COPY packages/quality/pyproject.toml packages/quality/
 COPY packages/replay/pyproject.toml packages/replay/
 COPY packages/schema/pyproject.toml packages/schema/
 COPY packages/service/pyproject.toml packages/service/

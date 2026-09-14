@@ -6,6 +6,32 @@
 first deploy (Render assigns the exact hostname at service creation; keep
 this file as the single source of truth and link it from the README).
 
+**Status (2026-09-14, Track A Day-1): NOT YET LIVE — service not created.**
+Probed `https://turnstile-demo.onrender.com/health` → HTTP 404
+`text/plain "Not Found"` with `x-render-routing: no-server` (Render has no
+service at this hostname yet). Creating it needs one human dashboard pass
+(~10 min, $0) — see "First-time setup" below. Do NOT treat this URL as live
+until `/health` returns 200 + commit (honesty: no claim without a check).
+
+## Host choice + why + fallback (Track A Day-1 record, binding)
+
+- **Primary: Render free web service ($0).** Why: `render.yaml` blueprint
+  already exists (Docker runtime, `/health` check, `autoDeploy: true`);
+  the app already reads Render's `RENDER_GIT_COMMIT` for `/health.commit`;
+  single-origin static+API needs no extra config; no credit card, no paid
+  add-ons. Push-to-deploy matches the existing CI story.
+- **Fallback: Hugging Face Spaces, Docker SDK ($0).** Why: portable by
+  construction — the same `Dockerfile` boots there with `PORT=7860`, no
+  host-specific code (only the `RENDER_GIT_COMMIT` env read, which degrades
+  to `TURNSTILE_COMMIT` → git → `"unknown"`). Use if Render free terms
+  change or the namespace is unavailable. HF was NOT chosen primary
+  because this checkout has no HF token (`hf auth list` → "No access
+  tokens found", no `HF_TOKEN` in env) while the GitHub→Render path is
+  fully wired except the dashboard create step.
+- **Fly.io free ($0) is a second fallback** (same Dockerfile, `fly launch`
+  + `fly deploy`), not attempted: `flyctl` is not installed here and it
+  also needs an interactive login.
+
 Local equivalent (identical app, identical data):
 
 ```bash
@@ -78,10 +104,59 @@ read, which degrades to `TURNSTILE_COMMIT` → git → `"unknown"`).
 1. Push this repo to GitHub (CI must be green).
 2. Render → New → Web Service → select the repo → "Use `render.yaml`" —
    keep the free plan, confirm `Dockerfile` runtime and `/health` checks.
+   No env vars required: commit surfaces via `RENDER_GIT_COMMIT`
+   automatically; `PORT` is set by Render; `TURNSTILE_COMMIT` build-arg is
+   optional (defaults to `unknown`, overridden by `RENDER_GIT_COMMIT`).
 3. Open the assigned URL; verify: `/health` 200, fleet loads < 5 s warm,
    `#/call/07_barge_in_waste` shows the D7 finding, `#evaluate` posts the
    Barge-in demo preset and returns a D7 finding.
 4. Copy the exact hostname into "Live URL" above and the README demo link.
+
+## Track A Day-1 verification transcript (2026-09-14, commit `cb25051`)
+
+Local parity (PASS — uvicorn directly):
+
+```text
+curl -s localhost:8000/health
+{"ok":true,"commit":"cb25051"}
+curl -s localhost:8000/api/fleet | python -c "...print(...['label'])"
+Reference fleet (23 golden fixtures)
+GET / → 200, time_total=0.334s (localhost warm)
+```
+
+Deploy-config fixes applied (additive only — `app.py`, `packages/schema`,
+pricing, `/api/*` untouched). The pre-existing `Dockerfile` did not build;
+three defects, all in deploy config:
+
+1. `.dockerignore` excluded `packages/agent|corpus|experiments|live/` while
+   `Dockerfile` `COPY`s their manifests → build failed at
+   `COPY packages/live/pyproject.toml`. Fix: dropped those four exclusions
+   (the `uv` workspace needs every member manifest to resolve).
+2. `Dockerfile` was missing `COPY packages/quality/pyproject.toml` although
+   `turnstile-ingest` depends on `turnstile-quality`. Fix: added the line.
+3. `COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv` left the binary off
+   `PATH` → `RUN uv sync` failed with `uv: not found`. Fix: copy to
+   `/bin/uv`.
+
+Container build + parity (PASS — `docker build -t turnstile-demo .` green,
+`docker run -p 8000:8000`):
+
+```text
+GET /          → 200, time_total=0.011s, size=104997
+GET /health    → 200, time_total=0.006s  {"ok":true,"commit":"cb25051"}
+GET /api/fleet → 200, time_total=0.008s  label "Reference fleet (23 golden fixtures)"
+```
+
+$0 proof: `grep -ri 'openai|anthropic|api_key|apikey'
+packages/service/src` → no matches; no model client, key handling, or
+egress in the request path. Tests (with commit `cb25051` tree minus a
+concurrent track's uncommitted files): 1082 passed, 0 failed, 4 skipped.
+
+Live proof (BLOCKED — environmental, needs human): the public URL does not
+exist yet (`x-render-routing: no-server`, transcript above). Re-run the
+cold-open + warm-open timed curls of `/`, `/health`, `/api/fleet` after the
+"First-time setup" dashboard pass, then flip the Status line above to LIVE
+with the measured ms + commit SHA.
 
 ## Manual verify script (no browser needed)
 
