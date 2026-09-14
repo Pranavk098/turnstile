@@ -17,7 +17,7 @@ six matrix variants were burning tokens on identical calls). This guard makes
 it loud: any attempt to RUN a variant with a field no backend reads raises
 ``NotImplementedError`` at experiment start, before a cent is spent.
 
-Since Section A (docs/superpowers/GLM-OVERNIGHT-BATCH.md), remedy fields can
+Remedy fields can
 also be executed OFF the replay path, by deterministic re-pricing
 (``turnstile_experiments.repricing`` via ``transforms.REPRICING_TRANSFORMS``).
 So ``IMPLEMENTED_VARIANT_FIELDS`` now means "a deterministic execution path

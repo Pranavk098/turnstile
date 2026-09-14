@@ -1,5 +1,4 @@
-﻿"""Tests for the deterministic re-pricing path (Section A task 1:
-prefix_caching -> D2, docs/superpowers/GLM-OVERNIGHT-BATCH.md).
+﻿"""Tests for the deterministic re-pricing path (prefix_caching -> D2).
 
 The acceptance core: a test hand-computing the delta from rates.yaml on a
 small fixture-shaped trace; the honesty contract (conditional bucket, never

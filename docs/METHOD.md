@@ -66,27 +66,27 @@ corpus**, for two independent reasons:
    verdicts — regardless of what the model decides. Spending real credit to
    re-measure a pinned quantity buys nothing.
 
-Therefore, **through Wave-1, outcome-preservation was not a measured claim** — and
-Wave-2 has now **partially measured it on real calls** (preservation **0.985** over
+Therefore, **the original approach did not treat outcome-preservation as a measured
+claim** — and it is now **partially measured on real calls** (preservation **0.985** over
 non-divergent routing pivots; preservation-under-divergence still open — see the
-*Wave-2 update* below). The replay experiment on synthetic data *proves the mechanism*
+*update* below). The replay experiment on synthetic data *proves the mechanism*
 (pinned replay, deterministic re-pricing, §8.3 gating) but cannot *measure preservation*
-via the Wave-1 lexical gate; the Wave-2 kind-aware gate is what unlocked the real-call
+via the original lexical gate; the kind-aware gate is what unlocked the real-call
 measurement (a full number still requires real audio (G1) or a real-baseline build for
-the content-driven decisions — see LIMITATIONS.md, Wave-2).
+the content-driven decisions — see LIMITATIONS.md).
 
-**Under the Wave-1 lexical gate, divergence was an upper bound**, not a fork rate:
+**Under the original lexical gate, divergence was an upper bound**, not a fork rate:
 full-text `difflib` measured generator-vs-model *style* difference, not variant-induced
-decision change. The Wave-2 kind-aware gate changes this — on bounded decisions it
+decision change. The kind-aware gate changes this — on bounded decisions it
 compares parsed labels, so divergence becomes a real, measured fork rate (**7.8%** on
 real routing; see below). Still lead with the verdict, not the raw divergence count.
 
-### Wave-2 update: routing decision-identity and the first measured preservation number (real calls)
+### Update: routing decision-identity and the first measured preservation number (real calls)
 
-The Wave-1 gate compared full reply text (`difflib`), which nulled on real replies — a
+The original gate compared full reply text (`difflib`), which nulled on real replies — a
 sensible cheaper-model answer shares almost no lexical overlap with the corpus's
 synthetic baseline, so **217/217** trials were marked divergent (paid, n=250/seed 8) and
-the margin collapsed to a vacuous 0.00%. Wave-2 replaced it with a **kind-aware decision
+the margin collapsed to a vacuous 0.00%. It was replaced with a **kind-aware decision
 gate**: for bounded-vocabulary decisions (route, tool_select, escalate_check, compose),
 divergence is *label* inequality, not string distance.
 
@@ -115,7 +115,7 @@ Preservation **under a divergent decision** stays unobserved: the forks are excl
 not re-adjudicated, so we have not yet watched a verdict hold or fail when the cheaper
 model decides *differently*.
 
-**Wave-2+ update (enriched candidates, paid n=250/seed 8, ~$0.43).** We widened the corpus
+**Update — enriched candidates (paid n=250/seed 8, ~$0.43).** We widened the corpus
 route choice to all registered scenarios and ran the paid experiment to see whether a
 registry-grounded oracle could then decide the forks and yield a modeled number. It
 cannot, for an honest reason: given the wider choice the cheaper model replies in **natural
@@ -130,7 +130,7 @@ outcome (the live-agent path). Identity preservation on the non-divergent pivots
 reconfirmed ~0.98. (One caveat retired: routing is no longer the 2-way `[scenario_id,
 "other"]` choice noted above; it now offers every registered scenario.)
 
-**Wave-3 update — open-loop measurement (the live agent, ~$0.20).** We built the open-loop
+**Update — open-loop measurement (the live agent, ~$0.20).** We built the open-loop
 harness: the cheaper model drives every decision across a full conversation, is offered the
 registry-required tool each turn, and the real outcome is judged under two rules reported
 **side by side, never folded** — rule 1 registry-grounded (did it execute the required
@@ -150,7 +150,7 @@ not of problem-solving — polite non-action passes the former and fails the lat
 this touches the deterministic recoverable margin (0.57%), which is narrow rate-arbitrage on
 the *route* decision alone and never assumed the cheaper model executes the rest of the call.
 
-**Wave-3 correction — the 0/0 was mostly a harness artifact (function-calling, ~$0.06).**
+**Correction — the 0/0 was mostly a harness artifact (function-calling, ~$0.06).**
 The probe above elicited a *label*; a real agent uses **function-calling**. Re-run with the
 tools passed as real OpenAI function schemas (so the model can *invoke* them), the cheaper
 model **does act**: a first n=36 probe (9 divergent) read **3/7 = 42.9% registry** and
@@ -158,7 +158,7 @@ model **does act**: a first n=36 probe (9 divergent) read **3/7 = 42.9% registry
 tool four times (all RESOLVED), including a turn-0 `process_refund` with an empty spoken
 reply — acting without talking, recorded honestly as `""`.
 
-**Wave-3 scale — the number firms down, not up (n=72, 22 divergent, ~$0.13).** Adding 36
+**At scale — the number firms down, not up (n=72, 22 divergent, ~$0.13).** Adding 36
 divergence-bait probes and reporting Wilson CIs, open-loop preservation measures **3/18 =
 16.7% registry [5.8, 39.2]** and **1/22 = 4.5% judge [0.8, 21.8]**. This is *consistent* with
 the n=36 read — the small-sample CIs ([15, 75] / [2, 43]) overlap the scaled ones throughout —

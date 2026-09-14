@@ -1,4 +1,4 @@
-# INGEST — the format your logs need (W3-A)
+# INGEST — the format your logs need
 
 Point Turnstile at your calls: send each call as one JSON object in the shape
 below, and `turnstile_ingest` maps it to a schema-valid v1.1 `Trace` and runs
@@ -14,7 +14,7 @@ uv run python -m turnstile_ingest --in my-calls.json --out ./out
 Input is one call object, a `{"calls": [...]}` callset, or a bare list.
 Output is `<out>/data.json` (fleet + findings + per-call reports + detector
 coverage) plus a printed headline. `packages/ingest/data/data.json` is a
-committed regeneration over the sample, so W3-B can build against it today.
+committed regeneration over the sample, so the dashboard can build against it today.
 
 ## The object
 
@@ -110,7 +110,7 @@ Coverage is call-level and conservative: any `tts` turn missing either char
 count marks 6/7/8 absent for the whole call. D8 is additionally absent when
 the telephony leg is missing.
 
-## `data.json` shape (for W3-B)
+## `data.json` shape (for the dashboard)
 
 The CLI writes `<out>/data.json` plus one `call-<id>.json` per call, matching
 the dashboard manifest's `INGEST_CONTRACT` (its `calls.json` rows and

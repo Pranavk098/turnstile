@@ -3,7 +3,7 @@ BUILT instrument (``price_trace`` -> ``adjudicate`` -> ``detect``), unchanged,
 and report D7's dollar waste and share of TTS spend -- with a bootstrap CI and
 a sweep over the modeled barge-in rate.
 
-Provenance (non-negotiable, brief glm-barge-in-measured-number.md): the
+Provenance (non-negotiable): the
 reported dict embeds :data:`turnstile_agent.harness.PROVENANCE` verbatim --
 real Piper TTS generation-ahead behavior, measured; barge-in rate and
 position modeled and swept; N controlled harness calls, NOT production

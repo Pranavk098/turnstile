@@ -75,7 +75,7 @@ TELEPHONY_PROVIDER = "twilio"
 TOOL_KIND_LOOKUP = ToolKind.lookup
 TOOL_KIND_RETRIEVAL = ToolKind.retrieval
 
-# Route-candidate enrichment (Wave-3): the route choice offers every registered
+# Route-candidate enrichment: the route choice offers every registered
 # scenario id (distributions.SCENARIOS, declared order) plus "other", so a
 # fork can land on another REGISTERED scenario the fork oracle can decide
 # (2-way [scenario_id, "other"] left only "other": registry-undecidable).

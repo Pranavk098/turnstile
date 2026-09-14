@@ -1,6 +1,6 @@
 # Audio playback kill-check (Detector 7 gate)
 
-This spike answers the one critical Wave-0/1 risk: **can the local TTS/audio
+This spike answers the one critical early risk: **can the local TTS/audio
 pipeline report, under a barge-in, the three quantities Detector 7 needs — not
 two?** If not, Detector 7 (barge-in waste — the demo moment) is either
 unbuildable or overstated, and the audio layer must be re-planned before the

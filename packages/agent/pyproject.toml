@@ -1,7 +1,7 @@
 [project]
 name = "turnstile-agent"
 version = "0.1.0"
-description = "Native barge-in harness: real Piper TTS through the G1 TraceRecorder, producing schema-v1.1 traces the built instrument can price and detect on (docs/superpowers/briefs/glm-barge-in-measured-number.md)."
+description = "Native barge-in harness: real Piper TTS through the G1 TraceRecorder, producing schema-v1.1 traces the built instrument can price and detect on."
 requires-python = ">=3.11"
 dependencies = [
     "turnstile-schema",

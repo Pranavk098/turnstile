@@ -43,9 +43,8 @@ WSL2 itself runs, but the machine has no usable Linux user distro: the only
 installed distribution is Docker Desktop's locked-down utility VM, which has
 no working Python. Standing up a real distro (Ubuntu download + first-boot
 setup, possible reboot/virtualization prompts) is an attended, owner-level
-environment decision — not an overnight headless task. Phase 1 (text-mode
-agent → ingest, branch `opencode/live-p1-textmode`) does not need this
-environment and already landed green.
+environment decision — not an unattended task. Phase 1 (text-mode
+agent → ingest) does not need this environment and already landed green.
 
 ## What was tried (exact)
 

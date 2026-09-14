@@ -1,5 +1,4 @@
-"""Deterministic re-pricing experiments (Section A of
-docs/superpowers/GLM-OVERNIGHT-BATCH.md) -- the execution path for remedy
+"""Deterministic re-pricing experiments -- the execution path for remedy
 variants whose knobs the replay backend does not read.
 
 For each priced trace: apply the variant's deterministic transform

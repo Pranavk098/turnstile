@@ -1,7 +1,7 @@
 """Regenerate packages/dashboard/sample/*.json from the REAL Turnstile pipeline
 run over the 23 golden fixtures (fixtures/golden/*.json).
 
-Architecture (W3-B Item 1): this script writes ONLY data. ``index.html`` is
+Architecture: this script writes ONLY data. ``index.html`` is
 hand-authored and fetches that data over http; the build never regenerates,
 embeds, or otherwise touches HTML (an earlier revision rewrote index.html's
 embedded fallback blocks and mangled the panel containers -- that path is
@@ -18,7 +18,7 @@ fixtures. The LLM-cost layer is a real computation over real token counts
 (Tier 1). The ASR/TTS/telephony cost layer runs the identical pricing formula
 but over the fixture generator's MODELED acoustics, not a live audio pipeline
 (Tier 2 -- mechanism, not a measured magnitude). The replay/experiment panel
-uses the Wave-1 MockBackend (no live LLM call) -- it demonstrates the replay
+uses the MockBackend (no live LLM call) -- it demonstrates the replay
 MECHANISM, not a measured production outcome-preservation rate. Every JSON
 file this script writes carries an explicit provenance note saying so; do not
 strip those notes when regenerating.
@@ -72,7 +72,7 @@ PROVENANCE_NOTE = (
     "Fixture-scale output (n=23 golden fixtures). LLM-layer measured (real "
     "token counts x pricing/rates.yaml); acoustic layer (ASR/TTS/telephony) "
     "modeled by the fixture generator, not a live audio pipeline; replay via "
-    "the Wave-1 MockBackend (mechanism, not measured). See docs/METHOD.md and "
+    "the MockBackend (mechanism, not measured). See docs/METHOD.md and "
     "docs/LIMITATIONS.md for the tiers. Recoverable margin is a PER-DATASET "
     "figure (it depends on the fleet), always deterministic rate arbitrage and "
     "needing no live calls: THIS panel's number is over these 23 golden "
@@ -87,7 +87,7 @@ EXPERIMENT_PROVENANCE = (
     "of the mock (cheaper==same outcome by construction), not an observed "
     "production result. Outcome-preservation is NOT measurable on a synthetic "
     "corpus (canned inputs/outputs, pinned tools -> structural); it needs "
-    "authored utterances then real traffic (Wave-2). delta_cost is deterministic "
+    "authored utterances then real traffic. delta_cost is deterministic "
     "rate arbitrage, needing no live backend (docs/LIMITATIONS.md)."
 )
 
@@ -201,7 +201,7 @@ def build_fleet(rates, baselines, experiment_result: dict) -> dict:
     )
 
     return {
-        "label": "Wave-1 real fleet (23 golden fixtures)",
+        "label": "Reference fleet (23 golden fixtures)",
         "note": (
             "Real computed aggregate over the 23 golden fixtures -- not a "
             "production fleet sample. CPRC_naive/CPRC_loaded per PRD Sec.4.3."
@@ -347,7 +347,7 @@ CONDITIONAL_PROVENANCE = (
     "re-rates work, so preservation of the outcome is UNMEASURABLE on the "
     "synthetic corpus (H-1). These numbers are NEVER added to the gated "
     "recoverable margin (this fleet's proven number) and must not be presented "
-    "as measured or proven savings. Verified in Wave-2 or not at all."
+    "as measured or proven savings. Verified on real traffic or not at all."
 )
 
 
@@ -382,7 +382,7 @@ def build_conditional_savings(rates, corpus) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# 7. calls.json + call-<id>.json -- per-call data for ALL calls (W3-B Item 2)#
+# 7. calls.json + call-<id>.json -- per-call data for ALL calls#
 # --------------------------------------------------------------------------- #
 
 def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
@@ -437,10 +437,10 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
 
 
 # --------------------------------------------------------------------------- #
-# 8. manifest.json -- data source declaration + the W3-A Item 5 hook          #
+# 8. manifest.json -- data source declaration + the ingest hook          #
 # --------------------------------------------------------------------------- #
 
-# Where the turnstile_ingest report (W3-A Item 5) plugs in. The dashboard
+# Where the turnstile_ingest report plugs in. The dashboard
 # NEVER depends on it existing: manifest["ingest"]["report_path"] is null
 # until the ingest artifact is wired, and index.html renders the golden-fleet
 # data with an honest "ingest absent" note. Wired, build_ingest() below copies

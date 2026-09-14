@@ -31,7 +31,7 @@ uniform-null**; N controlled harness calls, **not production**.
 on `route` decisions to a cheaper model: **0.57% [0.49, 0.66]** recoverable,
 ~$126/yr at 1M calls, §8.3-gated, reproducible from the manifest. Exact
 arithmetic — small by construction (only `route` is replay-executable today). We
-do **not** quote a measured preservation rate: that needs real traffic (Wave-2),
+do **not** quote a measured preservation rate: that needs real traffic,
 and we won't fake it on synthetic audio. (See `docs/METHOD.md`, `docs/LIMITATIONS.md`.)
 
 **Tier 2 — instrumented, not measured.** The voice-stack cost decomposition

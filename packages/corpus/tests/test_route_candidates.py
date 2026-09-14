@@ -1,4 +1,4 @@
-"""Route-candidate enrichment (glm-corpus-enrich-route, TDD -- written FIRST, red).
+"""Route-candidate enrichment (TDD -- written FIRST, red).
 
 The fork oracle returns None on 2-way `[scenario_id, "other"]` route candidates
 (a fork can only be "other": registry-undecidable). The route branch must offer

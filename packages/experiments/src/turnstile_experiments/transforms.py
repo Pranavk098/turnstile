@@ -1,5 +1,4 @@
-"""Deterministic trace transforms for the Section-A re-pricing remedies
-(docs/superpowers/GLM-OVERNIGHT-BATCH.md, Section A).
+"""Deterministic trace transforms for the re-pricing remedies.
 
 Each remedy transforms the priced trace deterministically (fewer tokens /
 cheaper rate / dropped spans / truncated conversation); ``turnstile_experiments.

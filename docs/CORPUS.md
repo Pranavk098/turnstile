@@ -36,7 +36,7 @@ G1/G2 live.
 ## Real replay backend (Tier-1 numbers)
 
 - Implements the `DecisionBackend` protocol already defined in
-  `packages/replay/backend.py` (the seam exists; MockBackend is the Wave-1
+  `packages/replay/backend.py` (the seam exists; MockBackend is the mock
   stand-in). The real backend calls OpenAI to re-run the agent decision under
   the variant, so outcome-preservation and Δcost are observed, not assumed.
 - Uses the `gpt-5 → gpt-5-mini → gpt-5-nano` tier ladder already in

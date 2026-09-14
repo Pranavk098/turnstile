@@ -6,8 +6,7 @@ that is exactly the ``model_routing`` lever: ``turnstile_replay.replay``
 hands the variant to the backend, and BOTH backends (``MockBackend`` and the
 paid ``OpenAIBackend``) read ONLY ``variant.model_routing``.
 
-``REPRICING_VARIANTS`` (Section A of docs/superpowers/GLM-OVERNIGHT-BATCH.md)
-are remedies with a deterministic transform (``transforms.REPRICING_TRANSFORMS``),
+``REPRICING_VARIANTS`` are remedies with a deterministic transform (``transforms.REPRICING_TRANSFORMS``),
 executed by ``run_repricing_matrix``: no backend, no spend, per-trace
 delta = re-priced(transformed) - original. Their savings are CONDITIONAL --
 the transform reduces/re-rates work, so preservation of the outcome is
@@ -19,7 +18,7 @@ in the separate conditional bucket). They are deliberately NOT in
 would replay as the zero-delta no-op ``guard.assert_backend_executable``
 refuses.
 
-``HARNESS_VARIANTS`` (batch 2, T1) is the last remedy lever: ``tts_chunking``
+``HARNESS_VARIANTS`` is the last remedy lever: ``tts_chunking``
 -- D6/D7's proposed remedy -- now has a MEASURED execution path on the
 barge-in harness (``turnstile_agent`` synthesis granularity knob, driven by
 ``run_bargein_report``'s granularity sweep). Each granularity re-synthesizes

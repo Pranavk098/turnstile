@@ -404,77 +404,14 @@ turnstile/
     └── LIMITATIONS.md
 ```
 
-## 10. Parallel agent delegation
-
-### 10.1 The rule that makes this work
-
-**Fixture-driven parallelism.** Every downstream package develops against the 20 golden fixtures, never against another agent's live output. Detectors do not wait for the voice agent. Replay does not wait for detectors. The dashboard does not wait for anything.
-
-This is the single decision that turns a 5-day serial build into a 2-day parallel one. It only works if the schema is frozen and the fixtures exist *before* Wave 1 spawns.
-
-### 10.2 Hard constraints on every agent
-
-- Only the human edits `packages/schema/` and `fixtures/golden/`.
-- No agent edits another agent's package. Cross-package needs go through the human as an interface request.
-- Every PR must pass `make contract-test` (schema validation against fixtures).
-- Every package ships its own unit tests. An agent that reports "done" without a passing test suite is not done.
-- No agent invents a rate, threshold, or constant. Constants live in config with a dated source.
-
-### 10.3 Waves
-
-**Wave 0 — human only, ~2h.** Write `packages/schema/`. Author the 20 golden fixtures by hand. Write `rates.yaml`. Stand up CI with `contract-test`. Nothing else starts until this lands. This is the highest-leverage two hours in the project.
-
-**Wave 1 — 5 parallel agents.**
-
-| Agent | Package | Tool fit | Acceptance criteria |
-|-------|---------|----------|---------------------|
-| **A1** | `agent/` + `otel/` | Claude Code (integration-heavy, real APIs) | Runs a full call; emits schema-valid trace including `audio.playback` |
-| **A2** | `pricing/` | OpenCode (mechanical, well-specified) | Prices all 20 fixtures; unit tests cover every formula branch |
-| **A3** | `detectors/` classes 2,6,7,8,10 | OpenCode (deterministic rules) | Each fires on its fixture, silent on baseline; zero false positives on clean fixture |
-| **A4** | `verdict/` | Claude Code (judgment-heavy) | κ ≥ 0.75 vs. hand labels; calibration curve committed |
-| **A5** | `dashboard/` | Any | Renders findings.json + experiments.json; cost flame graph works on fixtures |
-
-**Wave 2 — 3 agents, spawned at integration checkpoint 1.**
-
-| Agent | Package | Tool fit | Depends on |
-|-------|---------|----------|------------|
-| **B1** | `replay/` | Claude Code (hardest module — give it the strongest tool) | schema + pricing + verdict |
-| **B2** | `caller/` + corpus generation | Claude Code | agent/ |
-| **B3** | `detectors/` classes 1,3,4,5,9 | Claude Code (need verdict + baselines) | verdict, corpus |
-
-**Wave 3 — 2 agents.** Experiment runner and statistics (`experiments/`), and documentation (`METHOD.md`, `LIMITATIONS.md`, README with all numbers).
-
-### 10.4 The real constraint
-
-It is not agent count. It is **your review bandwidth.** One person can meaningfully integrate about five parallel streams. Past that you are rubber-stamping code you have not read, and rubber-stamped code is where the demo dies at hour 40.
-
-Run five, not twelve. Merge at fixed checkpoints (H10, H18, H26, H34), not continuously. Between checkpoints, agents work; at checkpoints, you read.
-
-### 10.5 Agent brief template
-
-Every spawn gets exactly this, filled in. Vague briefs are the leading cause of parallel-agent garbage.
-
-```
-MISSION:      one sentence
-PACKAGE:      packages/<name>/  — you may edit nothing outside this
-CONTRACT:     paste the exact function signature from §5
-INPUTS:       fixtures/golden/*.json (schema v1.1, see packages/schema/)
-OUTPUT:       exact JSON shape, with a worked example
-ACCEPTANCE:   specific, runnable — "make test-<pkg> passes and
-              detector fires on fixture 07, silent on fixture 00"
-FORBIDDEN:    editing schema/, editing other packages, inventing
-              constants, adding dependencies without asking
-WHEN STUCK:   stop and report; do not work around the contract
-```
-
-## 11. Timeline
+## 10. Timeline
 
 | Block | Wall clock | Work |
 |-------|-----------|------|
 | W0 | H0–2 | Schema, fixtures, rates, CI. Human alone. |
 | W1 | H2–10 | Five agents in parallel. **Checkpoint 1 at H10.** |
 | W2 | H10–20 | Replay, caller, judgment detectors. Corpus generation runs in background. **Checkpoint 2 at H18.** |
-| — | H20–28 | **Sleep.** Non-negotiable. See §13. |
+| — | H20–28 | **Sleep.** Non-negotiable. See §12. |
 | W2b | H28–34 | Integrate. Run the experiment matrix — 6 variants × 250 traces. **Checkpoint 3 at H34.** |
 | W3 | H34–42 | Dashboard against real data. Documentation. Numbers memorized. |
 | — | H42–46 | Record the four-minute demo. Write LIMITATIONS.md. |
@@ -482,18 +419,18 @@ WHEN STUCK:   stop and report; do not work around the contract
 
 **Cut list, strictly in order:** dashboard polish → detectors 1/3/5 → open-loop replay → scenarios 4→2 → corpus 400→150. **Never cut pinned replay or verdict calibration.** Those two are the entire credibility of the project.
 
-## 12. Risk register
+## 11. Risk register
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
-| `audio.playback` not exposed by the voice framework | **Critical** — kills Detector 7 | Validate in H0–2, before Wave 1. If unavailable, instrument the audio sink directly or switch framework. Do not discover this at H30. |
+| `audio.playback` not exposed by the voice framework | **Critical** — kills Detector 7 | Validate early, before building on it. If unavailable, instrument the audio sink directly or switch framework. Do not discover this at H30. |
 | Replay divergence rate too high to claim anything | High | Pin tool responses by `args_hash`; report exclusion rate honestly; fall back to per-turn cost claims rather than whole-conversation ones |
 | Verdict judge poorly calibrated | High | 60 hand labels *first*; if κ < 0.7, simplify to deterministic tool-state checks only |
 | Synthetic traffic ≠ production traffic | Medium | State it first and plainly. Claim is "this method finds and quantifies these waste classes," never "your fleet wastes 41%" |
 | Rate table stale or wrong | Medium | Dated sources in config; expect to be challenged; know which rates you pulled and when |
-| Parallel agents produce incoherent code | Medium | Contract-first + fixtures + checkpoint merges + five-stream cap |
+| Uncoordinated changes produce incoherent code | Medium | Contract-first development against frozen fixtures; review at fixed checkpoints |
 
-## 13. Two honest notes
+## 12. Two honest notes
 
 **On 48 nonstop hours.** It produces roughly 30 hours of usable work and then a quality cliff. The schedule above bakes in an 8-hour sleep at H20 because the alternative is spending H40–46 debugging something you broke at H32 while exhausted. The demo is at stake, not your stamina.
 

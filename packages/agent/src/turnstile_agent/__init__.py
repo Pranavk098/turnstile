@@ -1,7 +1,6 @@
 """Turnstile's agent-side harness (packages/agent).
 
-The measured barge-in waste number (brief:
-docs/superpowers/briefs/glm-barge-in-measured-number.md): real Piper TTS
+The measured barge-in waste number: real Piper TTS
 generation-ahead behavior recorded through the G1 ``TraceRecorder`` into
 schema-v1.1 traces the built instrument prices and detects on, unchanged.
 

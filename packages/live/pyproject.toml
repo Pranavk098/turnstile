@@ -1,7 +1,7 @@
 [project]
 name = "turnstile-live"
 version = "0.0.0"
-description = "Live conversational agent, Phase 1: free text-mode loop (mock policy + mock tools) emitting ingest-format calls (docs/superpowers/briefs/glm-live-agent.md)."
+description = "Live conversational agent, Phase 1: free text-mode loop (mock policy + mock tools) emitting ingest-format calls."
 requires-python = ">=3.12"
 dependencies = ["turnstile-schema", "turnstile-ingest", "turnstile-corpus"]
 

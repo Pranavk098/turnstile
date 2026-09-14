@@ -66,6 +66,6 @@ Paid replay is gated hard. It spends nothing unless you set `TURNSTILE_ALLOW_PAI
 
 ## Status
 
-Waves 0 through 2 are done: the full pipeline, a hardened paid path, real-model measurement, real-format ingestion, and the dashboard. 833 tests pass.
+The full pipeline is built and green (942 tests): pricing, verdict, ten waste detectors, counterfactual replay, a hardened paid-measurement path, real-format call ingestion, a live conversational agent (real Whisper + Piper), and the dashboard. Barge-in waste and open-loop preservation-under-divergence are both measured at scale on real audio.
 
-Next up: measuring preservation when the model decides differently (this needs a live agent), and pointing Turnstile at real traffic at scale. Progress is tracked in [HANDOFF.md](HANDOFF.md).
+Next up: pointing Turnstile at real customer traffic. The deterministic margin, the voice-stack waste, and the preservation number all become "your number on your calls" once real data flows in.

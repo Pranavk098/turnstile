@@ -14,7 +14,7 @@ rate, which is dimensionally incoherent -- see turnstile-prd.md Sec.4.3):
 
 Never returns a bare point estimate -- see the return-shape docstring below.
 
-Section A (docs/superpowers/GLM-OVERNIGHT-BATCH.md) addition: re-pricing
+Re-pricing
 remedies (``repricing.RepricingResult``) are reported via the optional
 ``conditional=`` argument in a SEPARATE ``conditional_savings`` bucket.
 Their transforms reduce/re-rate work, so the saving is conditional on
