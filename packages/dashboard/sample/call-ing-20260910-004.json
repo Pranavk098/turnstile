@@ -266,6 +266,121 @@
     ],
     "turn_of_no_return": 2
   },
+  "quality": {
+    "dimensions": [
+      {
+        "id": "task_success",
+        "score": 0.0,
+        "label": "fail",
+        "tier": "measured",
+        "evidence": {
+          "terminal_tool": "cancel_subscription",
+          "terminal_kind": "mutation",
+          "terminal_effect": "committed",
+          "terminal_turn": 2,
+          "verdict_label": "MISROUTED",
+          "rule": "terminal required mutation/handoff committed iff resolved/escalated"
+        },
+        "method": "deterministic"
+      },
+      {
+        "id": "slot_completeness",
+        "score": 1.0,
+        "label": "pass",
+        "tier": "measured",
+        "evidence": {
+          "outstanding_solicitation": false,
+          "final_decision_kind": "compose",
+          "final_turn": 2,
+          "end_reason": "caller_hangup",
+          "clean_close": false,
+          "verdict_label": "MISROUTED",
+          "rule": "no slot_fill solicitation left hanging at caller hangup"
+        },
+        "method": "deterministic"
+      },
+      {
+        "id": "escalation_appropriateness",
+        "score": 1.0,
+        "label": "pass",
+        "tier": "measured",
+        "evidence": {
+          "handoff_turns": [],
+          "signal_turns": [],
+          "verdict_label": "MISROUTED",
+          "rule": "no escalation needed, none attempted"
+        },
+        "method": "deterministic"
+      },
+      {
+        "id": "barge_in_courtesy",
+        "score": 1.0,
+        "label": "pass",
+        "tier": "measured",
+        "evidence": {
+          "n_barge_turns": 0,
+          "yielded_or_uninterrupted_turns": [],
+          "talked_over_turns": [],
+          "unobservable_turns": [],
+          "rule": "yielded iff playback truncated_by barge_in"
+        },
+        "method": "deterministic"
+      },
+      {
+        "id": "non_repetition",
+        "score": 1.0,
+        "label": "pass",
+        "tier": "measured",
+        "evidence": {
+          "reprompt_episode": null,
+          "duplicate_tool_calls": [],
+          "rule": "no adjacent same-slot slot_fill repeat; no duplicate (tool, args)"
+        },
+        "method": "deterministic"
+      },
+      {
+        "id": "faithfulness",
+        "score": null,
+        "label": "pending",
+        "tier": "not_measured",
+        "evidence": {
+          "reason": "needs a calibrated model judge (>=60 hand labels, Cohen's kappa >= 0.75, ECE reported) behind TURNSTILE_ALLOW_PAID; none is registered",
+          "rule": "no score without calibration (PRD 04 \u00a73.2)"
+        },
+        "method": "judge_pending"
+      },
+      {
+        "id": "answer_relevance",
+        "score": null,
+        "label": "pending",
+        "tier": "not_measured",
+        "evidence": {
+          "reason": "needs a calibrated model judge (>=60 hand labels, Cohen's kappa >= 0.75, ECE reported) behind TURNSTILE_ALLOW_PAID; none is registered",
+          "rule": "no score without calibration (PRD 04 \u00a73.2)"
+        },
+        "method": "judge_pending"
+      }
+    ],
+    "overall": {
+      "label": "fail",
+      "tier": "measured"
+    },
+    "evidence": [
+      {
+        "scored_dimensions": 5,
+        "of_total": 7
+      },
+      {
+        "unmeasured_dimensions": []
+      },
+      {
+        "pending_dimensions": [
+          "answer_relevance",
+          "faithfulness"
+        ]
+      }
+    ]
+  },
   "findings": [
     {
       "class_id": 8,

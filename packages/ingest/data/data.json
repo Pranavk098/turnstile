@@ -13,12 +13,48 @@
     "resolved_cost_usd": 0.21501466333333333,
     "cprc_loaded": 0.009763689343434342,
     "cprc_naive": 0.0065155958585858586,
-    "recoverable_margin_pct": 2.5604454484415715,
+    "recoverable_margin_pct": 2.560445448441571,
     "stage_costs_usd": {
       "asr": 0.009228731666666667,
       "llm": 0.03185635,
       "tts": 0.10162500000000005,
       "telephony": 0.17949166666666674
+    },
+    "quality": {
+      "n_calls": 50,
+      "overall": {
+        "fail": 17,
+        "partial": 1,
+        "pass": 32
+      },
+      "dimensions": {
+        "answer_relevance": {
+          "pending": 50
+        },
+        "barge_in_courtesy": {
+          "fail": 11,
+          "pass": 13,
+          "unmeasured": 26
+        },
+        "escalation_appropriateness": {
+          "pass": 50
+        },
+        "faithfulness": {
+          "pending": 50
+        },
+        "non_repetition": {
+          "pass": 50
+        },
+        "slot_completeness": {
+          "fail": 5,
+          "pass": 45
+        },
+        "task_success": {
+          "fail": 7,
+          "partial": 1,
+          "pass": 42
+        }
+      }
     },
     "_provenance": {
       "n": 50,
@@ -39,7 +75,8 @@
       "6": 24,
       "7": 24,
       "8": 24
-    }
+    },
+    "margin_excluded": 0
   },
   "calls": [
     {
@@ -54,6 +91,10 @@
         "waste_usd": 0.0009001500000000001,
         "span_id": "turn3:silence",
         "turn_index": 3
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260910-000.json"
     },
@@ -70,6 +111,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-001.json"
     },
     {
@@ -84,6 +129,10 @@
         "waste_usd": 0.0015036,
         "span_id": "ing-20260910-002:t0:llm",
         "turn_index": 0
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260910-002.json"
     },
@@ -100,6 +149,10 @@
         "span_id": "ing-20260910-003:t0:llm",
         "turn_index": 0
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-003.json"
     },
     {
@@ -114,6 +167,10 @@
         "waste_usd": 0.0010256666666666667,
         "span_id": "turn1:silence",
         "turn_index": 1
+      },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
       },
       "detail": "call-ing-20260910-004.json"
     },
@@ -130,6 +187,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-005.json"
     },
     {
@@ -145,6 +206,10 @@
         "span_id": "ing-20260910-006:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-006.json"
     },
     {
@@ -155,6 +220,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-007.json"
     },
     {
@@ -169,6 +238,10 @@
         "waste_usd": 0.00301853666851058,
         "span_id": "ing-20260910-008:t2:llm",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260910-008.json"
     },
@@ -185,6 +258,10 @@
         "span_id": "turn2:silence",
         "turn_index": 2
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260910-009.json"
     },
     {
@@ -199,6 +276,10 @@
         "waste_usd": 0.0010116416666666667,
         "span_id": "turn2:silence",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
       },
       "detail": "call-ing-20260911-010.json"
     },
@@ -215,6 +296,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-011.json"
     },
     {
@@ -229,6 +314,10 @@
         "waste_usd": 0.0008314416666666667,
         "span_id": "turn2:silence",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260911-012.json"
     },
@@ -245,6 +334,10 @@
         "span_id": "turn2:silence",
         "turn_index": 2
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-013.json"
     },
     {
@@ -255,6 +348,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-014.json"
     },
     {
@@ -270,6 +367,10 @@
         "span_id": "ing-20260911-015:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-015.json"
     },
     {
@@ -280,6 +381,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 4,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-016.json"
     },
     {
@@ -290,6 +395,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 4,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-017.json"
     },
     {
@@ -305,6 +414,10 @@
         "span_id": "ing-20260911-018:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-018.json"
     },
     {
@@ -315,6 +428,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260911-019.json"
     },
     {
@@ -329,6 +446,10 @@
         "waste_usd": 0.000905675,
         "span_id": "turn2:silence",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260912-020.json"
     },
@@ -345,6 +466,10 @@
         "span_id": "turn3:silence",
         "turn_index": 3
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-021.json"
     },
     {
@@ -360,6 +485,10 @@
         "span_id": "ing-20260912-022:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-022.json"
     },
     {
@@ -370,6 +499,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-023.json"
     },
     {
@@ -380,6 +513,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-024.json"
     },
     {
@@ -394,6 +531,10 @@
         "waste_usd": 0.0009069500000000001,
         "span_id": "turn2:silence",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "partial",
+        "tier": "measured"
       },
       "detail": "call-ing-20260912-025.json"
     },
@@ -410,6 +551,10 @@
         "span_id": "ing-20260912-026:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-026.json"
     },
     {
@@ -424,6 +569,10 @@
         "waste_usd": 0.003763182264409099,
         "span_id": "ing-20260912-027:t2:llm",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260912-027.json"
     },
@@ -440,6 +589,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-028.json"
     },
     {
@@ -455,6 +608,10 @@
         "span_id": "ing-20260912-029:t2:llm",
         "turn_index": 2
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260912-029.json"
     },
     {
@@ -465,6 +622,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-030.json"
     },
     {
@@ -479,6 +640,10 @@
         "waste_usd": 0.0008910833333333334,
         "span_id": "turn2:silence",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
       },
       "detail": "call-ing-20260913-031.json"
     },
@@ -495,6 +660,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-032.json"
     },
     {
@@ -505,6 +674,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-033.json"
     },
     {
@@ -515,6 +688,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-034.json"
     },
     {
@@ -530,6 +707,10 @@
         "span_id": "turn2:silence",
         "turn_index": 2
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-035.json"
     },
     {
@@ -540,6 +721,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-036.json"
     },
     {
@@ -550,6 +735,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-037.json"
     },
     {
@@ -564,6 +753,10 @@
         "waste_usd": 0.0008126,
         "span_id": "turn3:silence",
         "turn_index": 3
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260913-038.json"
     },
@@ -580,6 +773,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260913-039.json"
     },
     {
@@ -594,6 +791,10 @@
         "waste_usd": 0.002041649143173024,
         "span_id": "ing-20260914-040:t2:llm",
         "turn_index": 2
+      },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
       },
       "detail": "call-ing-20260914-040.json"
     },
@@ -610,6 +811,10 @@
         "span_id": "ing-20260914-041:t0:llm",
         "turn_index": 0
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-041.json"
     },
     {
@@ -625,6 +830,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-042.json"
     },
     {
@@ -635,6 +844,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 4,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-043.json"
     },
     {
@@ -645,6 +858,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-044.json"
     },
     {
@@ -660,6 +877,10 @@
         "span_id": "turn2:silence",
         "turn_index": 2
       },
+      "quality": {
+        "label": "fail",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-045.json"
     },
     {
@@ -670,6 +891,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-046.json"
     },
     {
@@ -685,6 +910,10 @@
         "span_id": "turn1:silence",
         "turn_index": 1
       },
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-047.json"
     },
     {
@@ -695,6 +924,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 3,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-048.json"
     },
     {
@@ -705,6 +938,10 @@
       "end_reason": "caller_hangup",
       "n_turns": 4,
       "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
       "detail": "call-ing-20260914-049.json"
     }
   ],

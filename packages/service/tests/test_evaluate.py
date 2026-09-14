@@ -144,13 +144,30 @@ def test_evaluate_provenance_retained_on_findings():
     assert body["fleet"]["stage_costs_usd"]["tts"] > 0
 
 
+def test_evaluate_quality_beside_cost_to_the_wire():
+    """PRD 04 §4.3 over HTTP: per-call detail and fleet aggregate both carry
+    the quality block with tiers intact."""
+    res = client.post("/api/evaluate", json=_d7_variant())
+    body = res.json()
+    detail = body["details"][body["calls"][0]["detail"]]
+    quality = detail["quality"]
+    assert quality["overall"] == {"label": "pass", "tier": "measured"}
+    assert {d["id"] for d in quality["dimensions"]} >= {
+        "task_success", "faithfulness", "answer_relevance"}
+    tiers = {d["tier"] for d in quality["dimensions"]}
+    assert tiers <= {"measured", "instrumented", "not_measured"}
+    fleet_quality = body["fleet"]["quality"]
+    assert fleet_quality["n_calls"] == 1
+    assert fleet_quality["overall"] == {"pass": 1}
+
+
 def test_evaluate_details_carry_provenance_and_coverage():
     res = client.post("/api/evaluate", json=_d7_variant())
     body = res.json()
     row = body["calls"][0]
     detail = body["details"][row["detail"]]
     assert set(detail) == {"trace", "span_costs", "turn_costs", "conv_cost",
-                           "stage_costs", "verdict", "findings",
+                           "stage_costs", "verdict", "quality", "findings",
                            "top_waste_usd", "_provenance"}
     assert detail["_provenance"]["note"]
     assert detail["_provenance"]["coverage"]["7"]["status"] == "present"
@@ -201,3 +218,28 @@ def test_content_length_gate_edge_cases():
     assert _content_length_exceeds({}) is False
     assert _content_length_exceeds({"content-length": "not-a-number"}) is False
     assert _content_length_exceeds({"content-length": "-5"}) is False
+
+def test_evaluate_cache_hit_skips_engine_byte_identical(monkeypatch):
+    """P1 verify: a repeat POST of an identical call is served from cache --
+    byte-identical to the cold response, with no second engine run."""
+    import sys
+
+    import turnstile_ingest.pipeline as pipeline
+
+    app_module = sys.modules["turnstile_service.app"]
+    calls = {"count": 0}
+    real_run_calls = pipeline.run_calls
+
+    def _counting(*args, **kwargs):
+        calls["count"] += 1
+        return real_run_calls(*args, **kwargs)
+
+    monkeypatch.setattr(app_module, "run_calls", _counting)
+    call = _doc_example()
+    call["id"] = "call-cache-spy-001"  # unique: no earlier test may have cached it
+    first = client.post("/api/evaluate", json=call)
+    assert first.status_code == 200
+    second = client.post("/api/evaluate", json=call)
+    assert second.status_code == 200
+    assert calls["count"] == 1
+    assert second.content == first.content

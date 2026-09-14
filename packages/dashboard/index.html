@@ -603,7 +603,7 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
       </div>
       <div class="tscroll">
         <table id="calls-table">
-          <thead><tr><th>Call</th><th>Scenario</th><th>Cost</th><th>Verdict</th><th>Top waste</th></tr></thead>
+          <thead><tr><th>Call</th><th>Scenario</th><th>Cost</th><th>Verdict</th><th>Quality</th><th>Top waste</th></tr></thead>
           <tbody id="calls-body"></tbody>
         </table>
       </div>
@@ -638,6 +638,8 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
           <div class="t-title">Findings on this call</div>
           <div class="tscroll"><div id="hero-findings"></div></div>
           <div class="t-note" id="hero-coverage"></div>
+          <div class="t-title">Quality rubric</div>
+          <div class="tscroll"><div id="hero-quality"></div></div>
         </div>
       </details>
     </section>
@@ -666,6 +668,17 @@ footer .fine { margin-top: 20px; font: 400 11px/1.8 var(--mono); color: var(--fa
         <span class="t-note" id="eval-status" role="status" style="margin:0"></span>
       </div>
       <div id="eval-results" style="margin-top:18px"></div>
+      <div class="t-title">Compare: baseline vs cheaper-router sweep</div>
+      <p class="muted" style="max-width:640px">Replays the evaluated call(s) with
+      route decisions on the cheaper tier and reports the gated result beside
+      the baseline above — Δcost with CI, preservation with Wilson interval,
+      divergent exemplars, and the §8.3 gate verdict. Same MockBackend
+      mechanism as the fleet margin, queued as a job and polled.</p>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap">
+        <button class="src-btn" type="button" id="eval-sweep-run">Run sweep: route → gpt-5-nano</button>
+        <span class="t-note" id="sweep-status" role="status" style="margin:0"></span>
+      </div>
+      <div id="sweep-results" style="margin-top:18px"></div>
       <div class="t-note">Limits: 1&nbsp;MB body, 25 calls. Bad input fails loud —
       the engine's field path is shown verbatim, never a bare 500.</div>
     </section>
@@ -1360,11 +1373,15 @@ function renderCallsList(calls) {
       ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
         ' · <span class="num">' + fmtMoney(c.top_waste.waste_usd) + "</span>"
       : '<span class="zero-note">no waste detected</span>';
+    const qualityCell = c.quality
+      ? "<b>" + esc(c.quality.label) + "</b> " + qualityTierChip(c.quality.tier)
+      : '<span class="zero-note">not computed</span>';
     tr.innerHTML =
       '<td class="id"><a href="#/call/' + esc(c.id) + '">' + esc(c.id) + "</a></td>" +
       "<td>" + esc(c.scenario_id) + "</td>" +
       '<td class="num">' + fmtMoney(c.cost_usd) + "</td>" +
       "<td>" + verdictChip(c.verdict) + "</td>" +
+      "<td>" + qualityCell + "</td>" +
       "<td>" + top + "</td>";
     body.appendChild(tr);
   });
@@ -1441,6 +1458,50 @@ function getCall(id) {
   return callCache.get(id);
 }
 
+/* Quality rubric (PRD 04/05): one table from the call's `quality` block.
+ * Reuses the chip + muted-note vocabulary; committed reports that predate
+ * the quality block read as "not computed", never as zeros. Pending judge
+ * dimensions render as an explicit "calibration pending" badge, never a
+ * numeral. Called by BOTH drill-down paths (dataset + pasted eval). */
+const DIM_META = {
+  task_success: "Task success",
+  slot_completeness: "Slot completeness",
+  escalation_appropriateness: "Escalation appropriateness",
+  barge_in_courtesy: "Barge-in courtesy",
+  non_repetition: "Non-repetition",
+  faithfulness: "Faithfulness",
+  answer_relevance: "Answer relevance",
+};
+function qualityTierChip(tier) {
+  const cls = tier === "measured" ? "live" : "warn";
+  return '<span class="chip ' + cls + '"><span class="dot"></span>' + esc(tier) + "</span>";
+}
+function dimResultText(dim) {
+  if (dim.label === "pending") return "calibration pending";
+  return esc(dim.label);
+}
+function renderQualityRubric(call) {
+  const host = document.getElementById("hero-quality");
+  const quality = call && call.quality;
+  if (!quality) {
+    host.innerHTML = '<span class="zero-note">quality not computed for this archived ' +
+      "report — paste a call in the eval console below for a live rubric.</span>";
+    return;
+  }
+  const rows = quality.dimensions.map((d) =>
+    "<tr>" +
+    "<td>" + esc(DIM_META[d.id] || d.id) + "</td>" +
+    "<td>" + dimResultText(d) + "</td>" +
+    "<td>" + qualityTierChip(d.tier) + "</td>" +
+    '<td class="num">' + (d.score === null || d.score === undefined ? "—" : d.score.toFixed(1)) + "</td>" +
+    '<td class="mono muted">' + esc((d.evidence && (d.evidence.rule || d.evidence.reason)) || "·") + "</td>" +
+    "</tr>");
+  host.innerHTML = "<table><thead><tr><th>Dimension</th><th>Result</th><th>Tier</th>" +
+    "<th>Score</th><th>Why</th></tr></thead><tbody>" + rows.join("") + "</tbody></table>" +
+    '<div class="t-note">Overall: <b>' + esc(quality.overall.label) + "</b> (" +
+    esc(quality.overall.tier) + ") — pending judge dimensions never feed it.</div>";
+}
+
 /* Render the call the URL names (default: the hero fixture), and move
  * keyboard focus into the detail when the user followed a link here. */
 async function routeCall(calls, focus) {
@@ -1456,6 +1517,7 @@ async function routeCall(calls, focus) {
   const call = await getCall(id);
   renderFlame(call);
   renderCallMeta(call);
+  renderQualityRubric(call);
   document.querySelectorAll("#calls-body tr").forEach((tr) => {
     const a = tr.querySelector("a");
     if (a) {
@@ -1610,7 +1672,7 @@ function renderEvalReport(artifact) {
     "<span class='sub muted'>" + artifact.n + " call(s) · " + fleet.n_resolved +
     " resolved · recoverable margin " + fleet.recoverable_margin_pct.toFixed(2) + "%</span></div>";
   html += '<div class="tscroll"><table><thead><tr><th>Call</th><th>Scenario</th>' +
-    "<th>Cost</th><th>Verdict</th><th>Top waste</th></tr></thead><tbody>";
+    "<th>Cost</th><th>Verdict</th><th>Quality</th><th>Top waste</th></tr></thead><tbody>";
   for (const c of calls) {
     const top = c.top_waste
       ? "D" + c.top_waste.class_id + " " + esc(wasteName(c.top_waste.class_id)) +
@@ -1619,11 +1681,17 @@ function renderEvalReport(artifact) {
     const idCell = (lastEvalDetails && c.detail && lastEvalDetails[c.detail])
       ? '<a href="#hero" data-eval-detail="' + esc(c.detail) + '">' + esc(c.id) + "</a>"
       : esc(c.id);
+    const q = lastEvalDetails && c.detail && lastEvalDetails[c.detail] &&
+      lastEvalDetails[c.detail].quality;
+    const qualityCell = q
+      ? "<b>" + esc(q.overall.label) + "</b> " + qualityTierChip(q.overall.tier)
+      : '<span class="zero-note">—</span>';
     html += "<tr>" +
       '<td class="id mono">' + idCell + "</td>" +
       "<td>" + esc(c.scenario_id) + "</td>" +
       '<td class="num">' + fmtMoney(c.cost_usd) + "</td>" +
       "<td>" + verdictChip(c.verdict) + "</td>" +
+      "<td>" + qualityCell + "</td>" +
       "<td>" + top + "</td></tr>";
   }
   html += "</tbody></table></div>";
@@ -1673,6 +1741,7 @@ function showEvalCall(filename) {
   if (!detail) return;
   renderFlame(detail);
   renderCallMeta(detail);
+  renderQualityRubric(detail);
   document.getElementById("hero-verdict").innerHTML +=
     " <span class='faint mono' style='font-size:11px'>· evaluated just now — " +
     "not part of either dataset</span>";
@@ -1720,6 +1789,8 @@ async function runEval() {
     if (!res.ok) {
       renderEvalError(res.status, body.detail || res.statusText);
     } else {
+      lastEvalCalls = payload.calls || (Array.isArray(payload) ? payload : [payload]);
+      lastEvalArtifact = body;
       renderEvalReport(body);
       status.textContent = "Done — " + body.n + " call(s) evaluated by the live engine.";
     }
@@ -1729,6 +1800,103 @@ async function runEval() {
     btn.disabled = false;
     btn.classList.remove("running");
     if (!status.textContent.startsWith("Done")) status.textContent = "";
+  }
+}
+
+/* Compare/sweep (PRD 05): the evaluated calls replayed under the cheaper
+ * router as an async job, polled to a gated result beside the baseline.
+ * Queued/running/done/error each render explicitly (cold-start-proof);
+ * §8.3 labels stay verbatim from the API. No eval math lives here. */
+const EVAL_SWEEP_VARIANT = {model_routing: {route: "gpt-5-nano"}};
+let lastEvalCalls = null;
+let lastEvalArtifact = null;
+
+function renderSweepResult(result, baselineFleet) {
+  const host = document.getElementById("sweep-results");
+  const exp = result.experiment;
+  const ci = exp.delta_cost_ci95 || [0, 0];
+  const wilson = result.outcome_preservation_wilson_ci95 || [0, 0];
+  const diverged = exp.divergent_exemplars || [];
+  const gate = result.passes_gate
+    ? '<span class="chip save"><span class="dot"></span>passes §8.3 gate — proven savings</span>'
+    : '<span class="chip warn"><span class="dot"></span>gated out — mechanism demo, not proven savings</span>';
+  host.innerHTML =
+    '<div class="t-note">Baseline: <span class="num">' + fmtC(baselineFleet.total_cost_usd) +
+    "</span> over " + baselineFleet.n_conversations + " call(s), margin " +
+    baselineFleet.recoverable_margin_pct.toFixed(2) + "% · variant: <span class='mono'>" +
+    esc(prettyVariant(result.variant) || "·") + "</span></div>" +
+    '<div class="tscroll"><table><thead><tr><th>Sweep</th><th>Δcost mean</th>' +
+    "<th>Δcost CI95</th><th>Preservation</th><th>Preservation Wilson CI95</th>" +
+    "<th>Divergent</th></tr></thead><tbody><tr>" +
+    "<td>n = " + exp.n + "</td>" +
+    '<td class="num">' + fmtMoney(exp.delta_cost_mean) + "</td>" +
+    '<td class="num">[' + fmtMoney(ci[0]) + ", " + fmtMoney(ci[1]) + "]</td>" +
+    '<td class="num">' + fmtPct(exp.outcome_preservation_rate) + "</td>" +
+    '<td class="num">[' + fmtPct(wilson[0]) + ", " + fmtPct(wilson[1]) + "]</td>" +
+    '<td class="mono muted">' + esc(diverged.length ? diverged.join(", ") : "none") + "</td>" +
+    "</tr></tbody></table></div>" +
+    "<div>" + gate + "</div>" +
+    '<div class="prov-line"><b>provenance</b>: ' +
+    esc(norm((result.provenance && result.provenance.note) || "")) + "</div>";
+}
+
+function renderSweepError(status, detail) {
+  document.getElementById("sweep-results").innerHTML =
+    '<div class="eval-err">' + esc("Sweep " +
+      (status === null ? "needs the demo service running — start it and reload."
+                       : "rejected (HTTP " + status + "): " + detail)) + "</div>";
+}
+
+async function runSweep() {
+  const btn = document.getElementById("eval-sweep-run");
+  const status = document.getElementById("sweep-status");
+  const host = document.getElementById("sweep-results");
+  if (!lastEvalCalls || !lastEvalArtifact) {
+    status.textContent = "";
+    renderSweepError(422, "run an eval first — the sweep replays the evaluated calls.");
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = "Queued — waiting for a worker…";
+  host.innerHTML = "";
+  let jobId;
+  try {
+    const res = await fetch("/api/experiments", {
+      method: "POST",
+      /* Same split-literal convention as the eval POST (see above). */
+      headers: {"Content-Type": "application" + "/json"},
+      body: JSON.stringify({calls: lastEvalCalls, variant: EVAL_SWEEP_VARIANT}),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || !body.job_id) {
+      renderSweepError(res.status, body.detail || res.statusText);
+      return;
+    }
+    jobId = body.job_id;
+    for (;;) {
+      const poll = await fetch("/api/experiments/" + encodeURIComponent(jobId));
+      const job = await poll.json().catch(() => ({}));
+      if (!poll.ok) { renderSweepError(poll.status, job.detail || poll.statusText); return; }
+      if (job.status === "done") {
+        renderSweepResult(job.result, lastEvalArtifact.fleet);
+        status.textContent = "Done — sweep complete.";
+        return;
+      }
+      if (job.status === "error") {
+        renderSweepError(500, (job.error || "sweep failed") +
+          " — baseline above is unaffected.");
+        status.textContent = "";
+        return;
+      }
+      status.textContent =
+        job.status === "running" ? "Running sweep — replaying calls…" : "Queued — waiting for a worker…";
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  } catch (_) {
+    renderSweepError(null, "");
+    status.textContent = "";
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -1746,6 +1914,7 @@ function initEvalPanel() {
   docBtn.addEventListener("click", () => show("doc"));
   d7Btn.addEventListener("click", () => show("d7"));
   document.getElementById("eval-run").addEventListener("click", runEval);
+  document.getElementById("eval-sweep-run").addEventListener("click", runSweep);
   show("doc");
   /* Refresh the preset from the service when it is up (same bytes). */
   fetch("/api/example").then((r) => r.ok ? r.json() : null).then((example) => {

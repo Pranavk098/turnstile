@@ -32,6 +32,7 @@ from turnstile_schema import Baselines, VariantSpec, load_rates, load_trace
 from turnstile_pricing import price_trace
 from turnstile_verdict import adjudicate
 from turnstile_detectors import detect
+from turnstile_quality import evaluate_quality
 from turnstile_replay import experiment
 from turnstile_corpus.distributions import BARGE_IN_RATE
 from turnstile_experiments import (
@@ -398,6 +399,12 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
     for path in _golden_fixtures():
         call_id = path.stem
         priced, verdict, findings = _analyze(path, rates, baselines)
+        # Quality-beside-cost (PRD 04/05): the deterministic quality report
+        # from the SAME priced trace + verdict the cost/findings come from --
+        # additive, never recomputed in the browser, and it moves no existing
+        # number. The overall rides in the index row for the fleet table's
+        # Quality column; the full rubric rides in the detail for the drill-down.
+        quality = evaluate_quality(priced, verdict).model_dump(mode="json")
         top = max(findings, key=lambda f: f["waste_usd"], default=None)
         index.append(
             {
@@ -417,6 +424,7 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
                         "turn_index": top["turn_index"],
                     }
                 ),
+                "quality": quality["overall"],
                 "detail": f"call-{call_id}.json",
             }
         )
@@ -432,6 +440,7 @@ def build_calls(rates, baselines) -> tuple[list[dict], dict[str, dict]]:
         }
         data["verdict"] = verdict.model_dump(mode="json")
         data["findings"] = findings
+        data["quality"] = quality
         details[call_id] = data
     return index, details
 
@@ -460,9 +469,9 @@ INGEST_CONTRACT = {
     # filename-safe and match the dashboard route ([A-Za-z0-9_-]).
     "per_call_files": "sample/call-<id>.json + sample/calls.json rows, same keys as golden",
     "index_row_keys": ["id", "scenario_id", "cost_usd", "verdict", "end_reason",
-                       "n_turns", "top_waste", "detail"],
+                       "n_turns", "top_waste", "quality", "detail"],
     "detail_keys": ["trace", "span_costs", "turn_costs", "conv_cost",
-                    "stage_costs", "verdict", "findings", "_provenance"],
+                    "stage_costs", "verdict", "findings", "quality", "_provenance"],
     # Honesty rule (the typical real-log case): calls WITHOUT G2 acoustic
     # fields (chars_synthesized/chars_played) MUST carry no D6/D7/D8
     # findings -- honestly absent, never zero-filled. The dashboard maps

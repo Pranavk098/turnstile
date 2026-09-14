@@ -121,3 +121,46 @@ def test_eval_drill_down_reuses_the_existing_detail_renderer():
 def test_home_links_into_live_eval():
     home = (DASHBOARD_DIR / "home.html").read_text(encoding="utf-8")
     assert 'href="index.html#evaluate"' in home
+
+
+def test_console_quality_beside_cost_and_rubric():
+    """PRD 05: eval rows show quality beside cost (one renderer for the
+    rubric, shared by dataset + eval drill-downs); pending dims read as
+    pending, never as a numeral."""
+    html = _html()
+    assert 'id="hero-quality"' in html
+    assert "<th>Quality</th>" in html
+    assert "function renderQualityRubric(call)" in html
+    assert html.count("function renderQualityRubric(call)") == 1
+    # Both drill-down paths feed the same renderer (no fork).
+    assert "renderQualityRubric(call)" in html.split(
+        "async function routeCall")[1].split("function renderIngestNote")[0]
+    assert "renderQualityRubric(detail)" in html.split(
+        "function showEvalCall(filename)")[1].split("function renderEvalError")[0]
+    # Existing renderers still single-definition.
+    assert html.count("function renderFlame(pt)") == 1
+    assert html.count("function renderCallMeta(call)") == 1
+    # Pending is a badge, never a score or 0.
+    assert "calibration pending" in html
+    assert "not computed for this archived " in html
+
+
+def test_console_sweep_ui_and_states():
+    """PRD 05: sweep submit polls the jobs API and renders the gated result
+    beside baseline; every async state has an explicit rendering."""
+    html = _html()
+    assert 'id="eval-sweep-run"' in html
+    assert 'id="sweep-status"' in html
+    assert 'id="sweep-results"' in html
+    assert "EVAL_SWEEP_VARIANT" in html
+    assert 'route: "gpt-5-nano"' in html
+    assert "/api/experiments" in html
+    assert "function runSweep()" in html
+    assert "function renderSweepResult(result, baselineFleet)" in html
+    for state in ("Queued — waiting for a worker",
+                  "Running sweep — replaying calls",
+                  "passes §8.3 gate",
+                  "gated out"):
+        assert state in html, state
+    assert "outcome_preservation_wilson_ci95" in html
+    assert "run an eval first" in html

@@ -36,6 +36,7 @@ dev = [
     "turnstile-ingest",
     "turnstile-live",
     "turnstile-service",
+    "turnstile-quality",
 ]
 # Real synthesis engine for the barge-in harness (packages/agent) -- OPTIONAL:
 # plain `uv sync` does not install it; `uv sync --group piper` does. Every
@@ -61,6 +62,7 @@ turnstile-agent = { workspace = true }
 turnstile-ingest = { workspace = true }
 turnstile-live = { workspace = true }
 turnstile-service = { workspace = true }
+turnstile-quality = { workspace = true }
 
 [tool.pytest.ini_options]
 pythonpath = []

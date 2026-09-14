@@ -145,11 +145,11 @@ def test_run_calls_artifact_shape_matches_dashboard_contract():
     assert len(artifact["calls"]) == 2
     for row in artifact["calls"]:
         assert set(row) == {"id", "scenario_id", "cost_usd", "verdict",
-                            "end_reason", "n_turns", "top_waste", "detail"}
+                            "end_reason", "n_turns", "top_waste", "quality", "detail"}
         detail = details[row["detail"]]
         assert set(detail) == {"trace", "span_costs", "turn_costs", "conv_cost",
-                               "stage_costs", "verdict", "findings", "top_waste_usd",
-                               "_provenance"}
+                               "stage_costs", "verdict", "quality", "findings",
+                               "top_waste_usd", "_provenance"}
         assert detail["conv_cost"] == row["cost_usd"]
         assert detail["trace"]["conversation"]["conversation_id"] == row["id"]
     for finding in artifact["findings"]:
@@ -166,7 +166,7 @@ def test_committed_data_artifact_is_dashboard_readable():
     assert artifact["n"] == artifact["coverage_summary"]["n_calls"]
     for row in artifact["calls"]:
         assert set(row) == {"id", "scenario_id", "cost_usd", "verdict",
-                            "end_reason", "n_turns", "top_waste", "detail"}
+                            "end_reason", "n_turns", "top_waste", "quality", "detail"}
         detail_path = data_dir / row["detail"]
         assert detail_path.exists(), f"missing per-call file {row['detail']}"
         detail = json.loads(detail_path.read_text(encoding="utf-8"))
@@ -237,3 +237,40 @@ def test_recoverable_margin_uses_the_canonical_ci_upper_gate(monkeypatch):
     # Below-threshold preservation: no claim.
     _fake(monkeypatch, -0.001, (-0.002, -0.0005), preservation=0.9)
     assert pipeline._recoverable_margin([object()], 0.05) == 0.0
+
+def test_run_call_report_carries_quality_block_beside_cost():
+    """PRD 04 P3: per-call report gains `quality` next to verdict/cost/findings."""
+    report = run_call(_present_call(), RATES, BASELINES)
+    quality = report["quality"]
+    assert quality["overall"]["label"] in ("pass", "partial", "fail")
+    assert quality["overall"]["tier"] == "measured"
+    assert {d["id"] for d in quality["dimensions"]} == {
+        "task_success", "slot_completeness", "escalation_appropriateness",
+        "barge_in_courtesy", "non_repetition",
+        "faithfulness", "answer_relevance",
+    }
+    for dim in quality["dimensions"]:
+        assert dim["tier"] in ("measured", "instrumented", "not_measured")
+        assert dim["method"] in ("deterministic", "judge_pending")
+    # Pending judges never score.
+    pending = [d for d in quality["dimensions"] if d["method"] == "judge_pending"]
+    assert pending and all(d["score"] is None for d in pending)
+
+
+def test_run_calls_fleet_carries_quality_aggregate():
+    """PRD 04 P3: fleet report gains a quality roll-up; cost/verdict rows untouched."""
+    artifact, details = run_calls(
+        [_absent_call(), _present_call()], RATES, BASELINES,
+        label="test", sample=False,
+    )
+    fleet_quality = artifact["fleet"]["quality"]
+    assert fleet_quality["n_calls"] == 2
+    assert sum(fleet_quality["overall"].values()) == 2
+    assert set(fleet_quality["dimensions"]) == {
+        "task_success", "slot_completeness", "escalation_appropriateness",
+        "barge_in_courtesy", "non_repetition",
+        "faithfulness", "answer_relevance",
+    }
+    for row in artifact["calls"]:
+        detail = details[row["detail"]]
+        assert detail["quality"]["overall"]["label"] in ("pass", "partial", "fail")

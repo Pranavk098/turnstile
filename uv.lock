@@ -13,6 +13,7 @@ members = [
     "turnstile-ingest",
     "turnstile-live",
     "turnstile-pricing",
+    "turnstile-quality",
     "turnstile-replay",
     "turnstile-schema",
     "turnstile-service",
@@ -1591,6 +1592,7 @@ dev = [
     { name = "turnstile-ingest" },
     { name = "turnstile-live" },
     { name = "turnstile-pricing" },
+    { name = "turnstile-quality" },
     { name = "turnstile-replay" },
     { name = "turnstile-schema" },
     { name = "turnstile-service" },
@@ -1615,6 +1617,7 @@ dev = [
     { name = "turnstile-ingest", editable = "packages/ingest" },
     { name = "turnstile-live", editable = "packages/live" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
+    { name = "turnstile-quality", editable = "packages/quality" },
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "turnstile-service", editable = "packages/service" },
@@ -1714,6 +1717,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "turnstile-detectors" },
     { name = "turnstile-pricing" },
+    { name = "turnstile-quality" },
     { name = "turnstile-replay" },
     { name = "turnstile-schema" },
     { name = "turnstile-verdict" },
@@ -1725,6 +1729,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "turnstile-detectors", editable = "packages/detectors" },
     { name = "turnstile-pricing", editable = "packages/pricing" },
+    { name = "turnstile-quality", editable = "packages/quality" },
     { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "turnstile-verdict", editable = "packages/verdict" },
@@ -1757,6 +1762,21 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "turnstile-schema", editable = "packages/schema" }]
+
+[[package]]
+name = "turnstile-quality"
+version = "0.0.0"
+source = { editable = "packages/quality" }
+dependencies = [
+    { name = "turnstile-schema" },
+    { name = "turnstile-verdict" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "turnstile-schema", editable = "packages/schema" },
+    { name = "turnstile-verdict", editable = "packages/verdict" },
+]
 
 [[package]]
 name = "turnstile-replay"
@@ -1800,6 +1820,8 @@ dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "turnstile-ingest" },
+    { name = "turnstile-pricing" },
+    { name = "turnstile-replay" },
     { name = "turnstile-schema" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1809,6 +1831,8 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "turnstile-ingest", editable = "packages/ingest" },
+    { name = "turnstile-pricing", editable = "packages/pricing" },
+    { name = "turnstile-replay", editable = "packages/replay" },
     { name = "turnstile-schema", editable = "packages/schema" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]

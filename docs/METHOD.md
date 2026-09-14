@@ -229,6 +229,28 @@ while D7's billed waste keeps the full synthesized chars — exact D8 union, exa
 - **Corpus** is sampled from cited distributions and never tuned to make
   detectors fire (`docs/CORPUS.md`).
 
+## Quality beside cost: what the rubric measures (and what stays pending)
+
+Every per-call report carries a `quality` block next to `verdict`,
+`conv_cost_usd`, and `findings`, and the fleet carries the roll-up counts.
+Five dimensions are **measured** — deterministic rules over data the trace
+and verdict already carry (same evidence, so quality cannot contradict the
+rest of the tool): task success (terminal tool committed iff
+resolved/escalated), slot completeness (no solicitation left hanging at
+hangup), escalation appropriateness (handoff iff an escalation signal was
+present; promptness stays D9's waste finding), barge-in courtesy (yielded vs
+talked over on observable playback), and non-repetition (the D5/D10
+structural cores, agreement-tested against `detect()`).
+
+Two dimensions — faithfulness/grounding and answer relevance — genuinely
+need a model and ship as declared no-ops: `score=None`,
+`tier="not_measured"`, never in the beside-cost summary, until a calibration
+(≥60 hand labels, Cohen's κ ≥ 0.75, ECE reported) is registered behind the
+paid flag. An uncalibrated quality score would be decoration, and this repo
+does not ship decoration. Where acoustics are absent, barge-in courtesy
+reads `instrumented`/`unmeasured` (the acoustic-absence pattern), never a
+faked pass.
+
 ## Reproducibility
 
 Every result JSON carries a `manifest`: git SHA, `rates.yaml` SHA-256, seed, n,

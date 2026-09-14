@@ -36,6 +36,7 @@ from typing import Any
 from turnstile_schema import Baselines, PricedTrace, VariantSpec
 from turnstile_detectors import detect
 from turnstile_pricing import price_trace
+from turnstile_quality import evaluate_quality
 from turnstile_replay import experiment
 from turnstile_verdict import adjudicate
 from turnstile_ingest.adapter import IngestError, load, parse_call
@@ -123,8 +124,9 @@ def _run_priced(
     *,
     provider: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[IngestCall, PricedTrace, dict[str, Any], list[dict[str, Any]]]:
-    """Validate + price + adjudicate + detect one call, applying the
-    coverage envelope. Returns (call, priced, verdict-dump, finding-dumps)."""
+    """Validate + price + adjudicate + detect + quality-grade one call,
+    applying the coverage envelope. Returns (call, priced, verdict-dump,
+    finding-dumps)."""
     call = parse_call(obj)
     trace = load(call, rates=rates)
     priced = price_trace(trace, rates)
@@ -136,7 +138,8 @@ def _run_priced(
     findings = [f for f in raw
                 if coverage[f.class_id]["status"] == "present"
                 and not (f.class_id == 1 and f.turn_index in inferred)]
-    return call, priced, verdict, coverage, findings, raw
+    quality = evaluate_quality(priced, verdict).model_dump(mode="json")
+    return call, priced, verdict, coverage, findings, raw, quality
 
 
 def run_call(
@@ -154,7 +157,7 @@ def run_call(
     record's source rides in ``report["source"]`` and its inferred turns gate
     D1 (PRD 02 §5).
     """
-    call, priced, verdict, coverage, findings, raw = _run_priced(obj, rates, baselines, provider=provider)
+    call, priced, verdict, coverage, findings, raw, quality = _run_priced(obj, rates, baselines, provider=provider)
     dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
     record = _provider_record(provider, call.id)
     return {
@@ -163,6 +166,7 @@ def run_call(
         "end_reason": call.end_reason.value,
         "source": record.get("source"),
         "verdict": verdict.model_dump(mode="json"),
+        "quality": quality,
         "conv_cost_usd": priced.conv_cost,
         "stage_costs_usd": dict(priced.stage_costs),
         "coverage": {str(k): v for k, v in coverage.items()},
@@ -219,15 +223,16 @@ def _detail_file(
     dropped: list[int],
     coverage,
     sample: bool,
+    quality: dict[str, Any],
     *,
     source: str | None = None,
     source_note: str | None = None,
     inferred_decision_turns: list[int] | None = None,
 ) -> dict[str, Any]:
-    """One call-<id>.json payload with EXACTLY the dashboard's detail keys
-    (trace, span_costs, turn_costs, conv_cost, stage_costs, verdict, findings,
-    _provenance). Findings here are plain Finding dumps (no call_id -- same
-    as the golden per-call files); coverage lives in _provenance."""
+    """One call-<id>.json payload with the dashboard's detail keys
+    (trace, span_costs, turn_costs, conv_cost, stage_costs, verdict, quality,
+    findings, _provenance). Findings here are plain Finding dumps (no call_id
+    -- same as the golden per-call files); coverage lives in _provenance."""
     note = (
         "Per-call priced trace over an ingested log (turnstile_ingest). "
         "SAMPLE -- not production data. " if sample else ""
@@ -256,10 +261,23 @@ def _detail_file(
         "conv_cost": priced.conv_cost,
         "stage_costs": dict(priced.stage_costs),
         "verdict": verdict.model_dump(mode="json"),
+        "quality": quality,
         "findings": [_finding_dump(f) for f in findings],
         "top_waste_usd": max((f.waste_usd for f in findings), default=None),
         "_provenance": provenance,
     }
+
+
+def _accumulate_quality(quality: dict[str, Any],
+                        overall_counts: dict[str, int],
+                        dimension_counts: dict[str, dict[str, int]]) -> None:
+    """Fold one call's quality block into the fleet aggregate (counts only --
+    no re-scoring, no thresholds here)."""
+    overall_counts[quality["overall"]["label"]] = \
+        overall_counts.get(quality["overall"]["label"], 0) + 1
+    for dim in quality["dimensions"]:
+        bucket = dimension_counts.setdefault(dim["id"], {})
+        bucket[dim["label"]] = bucket.get(dim["label"], 0) + 1
 
 
 def _recoverable_margin(priced_traces: list[PricedTrace], total_cost: float) -> float:
@@ -317,20 +335,24 @@ def run_calls(
     n_resolved = 0
     stage_totals: dict[str, float] = {}
     n_margin_excluded = 0
+    quality_overall_counts: dict[str, int] = {}
+    quality_dimension_counts: dict[str, dict[str, int]] = {}
 
     for obj in objs:
-        call, priced, verdict, coverage, findings, raw = _run_priced(
+        call, priced, verdict, coverage, findings, raw, quality = _run_priced(
             obj, rates, baselines, provider=provider)
         record = _provider_record(provider, call.id)
         inferred = sorted(set(record.get("inferred_decision_turns") or ()))
         dropped = sorted({f.class_id for f in raw} - {f.class_id for f in findings})
         filename = _detail_filename(call.id)
         details[filename] = _detail_file(
-            call, priced, verdict, findings, dropped, coverage, sample,
+            call, priced, verdict, findings, dropped, coverage, sample, quality,
             source=record.get("source"),
             source_note=record.get("note"),
             inferred_decision_turns=inferred or None,
         )
+        _accumulate_quality(quality, quality_overall_counts,
+                            quality_dimension_counts)
         rows.append({
             "id": call.id,
             "scenario_id": call.scenario,
@@ -339,6 +361,7 @@ def run_calls(
             "end_reason": call.end_reason.value,
             "n_turns": len(call.turns),
             "top_waste": _top_waste(findings),
+            "quality": quality["overall"],
             "detail": filename,
         })
         all_findings.extend(
@@ -393,6 +416,15 @@ def run_calls(
         "cprc_naive": resolved_cost / n_resolved if n_resolved else 0.0,
         "recoverable_margin_pct": _recoverable_margin(priced_traces, sum(margin_costs)),
         "stage_costs_usd": stage_totals,
+        # Fleet quality roll-up beside cost: per-dimension label counts and
+        # overall counts. Pending judge dimensions are counted, never scored
+        # into a headline (see QualityOverall).
+        "quality": {
+            "n_calls": n,
+            "overall": dict(sorted(quality_overall_counts.items())),
+            "dimensions": {dim_id: dict(sorted(counts.items()))
+                           for dim_id, counts in sorted(quality_dimension_counts.items())},
+        },
         "_provenance": {
             "n": n,
             "sample": sample,

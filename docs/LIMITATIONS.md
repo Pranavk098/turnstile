@@ -66,6 +66,12 @@ would promote it the way it promoted D7.
 
 ## 6. Smaller known items
 
+- The **quality layer's model-graded dimensions** (faithfulness, answer
+  relevance) ship as calibration-pending no-ops alongside the five measured
+  rule-based dimensions — same discipline as the verdict's LLM-judge source:
+  no score without ≥60 hand labels, κ ≥ 0.75, and the paid flag. Pending
+  reads as pending, never as 0 or fail.
+
 - The **LLM-judge evidence source** (verdict source 5) stays a deliberate no-op
   pending 60 hand labels + Cohen's κ ≥ 0.75; the strict-judge figures reported today
   come from a separate probe, kept apart from the adjudicator's verdict.

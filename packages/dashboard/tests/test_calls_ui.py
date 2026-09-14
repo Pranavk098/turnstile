@@ -40,6 +40,26 @@ def test_shipped_calls_index_links_to_real_detail_files():
     assert hero["cost_usd"] > 0
 
 
+def test_committed_fleet_surfaces_quality_beside_cost():
+    """PRD 04/05 in the demo's first screen: every shipped golden row carries a
+    quality overall (label+tier), its detail carries the full rubric, and the
+    committed calls table renders a Quality column via the shared renderer."""
+    payload = _calls()
+    sample = build_data.DASHBOARD_DIR / "sample"
+    for row in payload["calls"]:
+        assert set(row["quality"]) == {"label", "tier"}, row.get("id")
+        detail = json.loads((sample / row["detail"]).read_text(encoding="utf-8"))
+        # Full rubric on the detail, consistent overall with the row.
+        assert "dimensions" in detail["quality"]
+        assert detail["quality"]["overall"] == row["quality"]
+        # Golden fixtures are fully measured: overall tier is never pending.
+        assert row["quality"]["tier"] == "measured"
+    html = _html()
+    assert "<th>Quality</th>" in html                      # committed table column
+    assert "c.quality" in html                             # row cell reads the row's quality
+    assert html.count("function renderQualityRubric(call)") == 1  # shared renderer, no fork
+
+
 def test_index_html_has_routed_call_list_and_detail():
     html = _html()
     # The list: id . scenario . cost . verdict . top waste.

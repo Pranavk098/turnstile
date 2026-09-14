@@ -398,7 +398,7 @@ def test_margin_excludes_fully_inferred_calls():
     assert "source: Vapi export" in artifact["provenance"]
     row = artifact["calls"][0]
     assert set(row) == {"id", "scenario_id", "cost_usd", "verdict",
-                        "end_reason", "n_turns", "top_waste", "detail"}
+                        "end_reason", "n_turns", "top_waste", "quality", "detail"}
     detail = details[row["detail"]]
     assert detail["_provenance"]["source"] == "Vapi export"
 

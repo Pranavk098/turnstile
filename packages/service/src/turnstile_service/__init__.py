@@ -1,4 +1,22 @@
 from turnstile_service.app import MAX_BODY_BYTES, MAX_CALLS, app, commit_sha, create_app
+from turnstile_service.cache import (
+    MAX_EVAL_CACHE_BYTES,
+    MAX_EVAL_CACHE_ENTRIES,
+    EvalCache,
+    eval_key,
+    request_key,
+)
+from turnstile_service.jobs import (
+    JOB_TTL_SECONDS,
+    MAX_ACTIVE_JOBS,
+    MAX_RUNNING_JOBS,
+    MAX_STORED_JOBS,
+    Job,
+    JobStore,
+    JobStoreFull,
+    passes_gate,
+    run_experiment_job,
+)
 from turnstile_service.data import (
     READ_ENDPOINTS,
     call_detail_path,
@@ -11,6 +29,20 @@ from turnstile_service.data import (
 __all__ = [
     "MAX_BODY_BYTES",
     "MAX_CALLS",
+    "MAX_EVAL_CACHE_BYTES",
+    "MAX_EVAL_CACHE_ENTRIES",
+    "MAX_RUNNING_JOBS",
+    "MAX_ACTIVE_JOBS",
+    "MAX_STORED_JOBS",
+    "JOB_TTL_SECONDS",
+    "EvalCache",
+    "Job",
+    "JobStore",
+    "JobStoreFull",
+    "passes_gate",
+    "run_experiment_job",
+    "eval_key",
+    "request_key",
     "READ_ENDPOINTS",
     "app",
     "call_detail_path",

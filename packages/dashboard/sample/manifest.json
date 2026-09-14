@@ -23,6 +23,7 @@
         "end_reason",
         "n_turns",
         "top_waste",
+        "quality",
         "detail"
       ],
       "detail_keys": [
@@ -33,6 +34,7 @@
         "stage_costs",
         "verdict",
         "findings",
+        "quality",
         "_provenance"
       ],
       "acoustic_rule": "no G2 fields -> no D6/D7/D8 findings (absent, not zero)"
