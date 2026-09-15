@@ -6,11 +6,16 @@
 first deploy (Render assigns the exact hostname at service creation; keep
 this file as the single source of truth and link it from the README).
 
-**Status (2026-09-14, Track A Day-1): LIVE — verified 2026-09-14 ~14:36 PDT.**
-`GET /health` → 200 `{"ok":true,"commit":"unknown"}` (commit traces below —
-Render served `unknown`; see note). Warm page + API all green; forced-cold
-first paint measured 22.4 s (over the 5 s budget — container boot, not
-content; see "Cold-start behavior" + remedy).
+**Status (2026-09-14): LIVE + SHA-traced.**
+`GET /health` → 200 `{"ok":true,"commit":"91e5b0d…"}` — the deployed commit now
+surfaces. (Root cause of the earlier `"unknown"`: the Docker `ARG
+TURNSTILE_COMMIT` defaulted to the literal `"unknown"`, which is truthy and
+short-circuited `commit_sha()` before its runtime `RENDER_GIT_COMMIT` fallback;
+fixed in commit `91e5b0d` by defaulting the ARG empty.) Verified live: warm `/`
+0.25–0.35 s; fleet + quality-beside-cost; D7 drill-down; per-IP rate limit
+(fast burst → 429, engine not run); gzip + cache headers; `/api/status`.
+Forced-cold first paint ~22 s (free-tier container boot, not content — over the
+5 s cold budget; mitigated by keep-warm, see below).
 
 Warm verification transcript (all HTTP 200, PDT 2026-09-14):
 
