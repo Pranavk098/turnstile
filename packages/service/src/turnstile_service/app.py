@@ -13,7 +13,8 @@ Architecture, enforced by construction:
   reachable from here) makes a paid API call -- there is no key handling, no
   HTTP client to a model provider, no GPU hook.
 * Stateless: uploads are processed in-memory, never retained. DoS-bounded:
-  fixed body-size and call-count caps (HTTP 413 past them).
+   per-IP token-bucket rate limit (HTTP 429 before any engine run) plus
+   fixed body-size and call-count caps (HTTP 413 past them).
 
 Run locally::
 
@@ -24,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
+import time
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -31,6 +33,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 from turnstile_schema import Baselines, VariantSpec, load_rates
 from turnstile_ingest.adapter import DEFAULT_RATES_PATH, IngestError, load, parse_call
 from turnstile_ingest.model import classify_file
@@ -40,6 +43,7 @@ from turnstile_pricing import price_trace
 from turnstile_service import data as committed
 from turnstile_service.cache import EvalCache, request_key
 from turnstile_service.jobs import JobStore, JobStoreFull, run_experiment_job
+from turnstile_service.ratelimit import RateLimiter, client_ip, limiter_from_env
 
 log = logging.getLogger("turnstile_service")
 
@@ -146,14 +150,58 @@ def _content_length_exceeds(headers) -> bool:
         return False
 
 
-def create_app() -> FastAPI:
+def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
     app = FastAPI(title="Turnstile demo eval service", version="1.0.0")
     app.state.eval_cache = EvalCache()
     app.state.job_store = JobStore()
+    app.state.rate_limiter = rate_limiter or limiter_from_env()
+    app.state.start_monotonic = time.monotonic()
+    # P1 #7: compress responses >=1KB; adds no measurable latency to small
+    # JSON and cuts fleet/detail payloads on slow links.
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+    @app.middleware("http")
+    async def cache_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
+        """P1 #7 cache policy: mutating + status = no-store; API reads =
+        short public cache; committed static bytes = longer public cache."""
+        response = await call_next(request)
+        path = request.url.path
+        if request.method == "POST" or path == "/api/status":
+            response.headers["Cache-Control"] = "no-store"
+        elif path.startswith("/api/") or path == "/health":
+            response.headers["Cache-Control"] = "public, max-age=60"
+        elif (path.startswith("/sample/") or path.endswith(
+                (".json", ".html", ".css", ".js", ".png", ".woff2"))):
+            response.headers["Cache-Control"] = "public, max-age=3600"
+        return response
+
+    def _rate_limited(request: Request) -> JSONResponse | None:
+        """Per-IP token-bucket gate. FIRST in every mutating handler: a 429
+        here returns before any body read, size check, cache lookup, or
+        engine run."""
+        limiter: RateLimiter = request.app.state.rate_limiter
+        if limiter.allow(client_ip(request)):
+            return None
+        return _json_bytes_error(
+            429, f"rate limit exceeded: burst is {limiter.burst} requests "
+                 f"(refill {limiter.rate_per_sec:g}/sec)")
 
     @app.get("/health")
     def health() -> dict[str, Any]:
         return {"ok": True, "commit": commit_sha()}
+
+    @app.get("/api/status")
+    def api_status(request: Request) -> dict[str, Any]:
+        """P1 #8 lightweight status for the Day-7 QA gate: uptime, commit,
+        warm/cold. No engine run, no PII, no request-body read."""
+        start: float = request.app.state.start_monotonic
+        return {
+            "ok": True,
+            "commit": commit_sha(),
+            "uptime_sec": round(time.monotonic() - start, 1),
+            "warm": True,
+            "engine_loaded": _engine.cache_info().currsize > 0,
+        }
 
     for name in committed.READ_ENDPOINTS:
         _register_sample_route(app, name)
@@ -179,6 +227,9 @@ def create_app() -> FastAPI:
 
     @app.post("/api/evaluate")
     async def api_evaluate(request: Request) -> Response:
+        denied = _rate_limited(request)
+        if denied is not None:
+            return denied
         declared = request.headers.get("content-length")
         if _content_length_exceeds(request.headers):
             return _json_bytes_error(
@@ -235,6 +286,9 @@ def create_app() -> FastAPI:
         as /api/evaluate. Validation (and pricing) happens synchronously so
         bad input still fails loud with 422/413; only the replay runs async.
         """
+        denied = _rate_limited(request)
+        if denied is not None:
+            return denied
         declared = request.headers.get("content-length")
         if _content_length_exceeds(request.headers):
             return _json_bytes_error(

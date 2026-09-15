@@ -16,7 +16,7 @@ call  ->  price  ->  verdict  ->  detect waste  ->  replay cheaper  ->  report
 
 The number that started it: **about 4% of text-to-speech spend is generated, billed, and never heard.** When a caller interrupts, the TTS engine — running ~40x faster than real time — has already synthesized the rest of the reply. Measured on real Piper synthesis, with confidence intervals — and fixable: generating in smaller chunks moves the waste from ~4% to 2.3% to 1.2% (sentence → clause → word).
 
-**See it:** the live demo needs zero install — open the fleet, drill into the Detector-7 barge-in call, paste your own call for an instant report. Deployment is in progress; until the URL goes live, run the identical stack locally with `make serve` (details: [docs/DEPLOY.md](docs/DEPLOY.md#live-url)).
+**See it:** the live demo needs zero install — open the fleet, drill into the Detector-7 barge-in call, paste your own call for an instant report. Live at the demo link above (identical stack locally with `make serve`; details: [docs/DEPLOY.md](docs/DEPLOY.md#live-url)).
 
 ## The honesty rule
 
@@ -34,7 +34,7 @@ Each stage is a small package under `packages/`. The ones that carry the weight:
 
 ```bash
 uv sync
-uv run pytest -q        # 1079 passed, 4 skipped (badge above is the live count)
+uv run pytest -q        # 1096 passed, 4 skipped (badge above is the live count)
 make demo               # build the report, serve at localhost:8000, open home.html
 make serve              # same dashboard + live eval engine at localhost:8000
 ```

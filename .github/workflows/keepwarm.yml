@@ -1,0 +1,37 @@
+name: keepwarm
+
+# Day-1 P1 #6 — free keep-warm: ping the live demo every ~10 min so the common
+# path stays warm (~0.26s) instead of a free-tier cold boot (~22s). $0: GitHub
+# Actions schedule + Render free tier. Does NOT deploy, test, or spend.
+#
+# This is a WARMER, not a monitor. It fires the request (which wakes a sleeping
+# Render service) and logs the result; it NEVER fails the job on a cold 503, a
+# slow boot, or an unset URL — a keep-warm that goes red every 10 min when the
+# service is asleep would be self-defeating and would spam the Actions tab.
+#
+# URL comes from the repo variable DEMO_URL (Settings -> Secrets and variables ->
+# Actions -> Variables). Set it to the EXACT Render hostname once the service is
+# live (it must match docs/DEPLOY.md "Live URL"). Until then it falls back to the
+# documented default and simply reports "unreachable" without failing.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ping /health and /api/status (non-fatal warmer)
+        env:
+          DEMO_URL: ${{ vars.DEMO_URL || 'https://turnstile-demo.onrender.com' }}
+        run: |
+          echo "warming ${DEMO_URL}"
+          for path in /health /api/status; do
+            # no -f: a 503/404 is still a real response that wakes Render, not a
+            # job failure. -m 60 tolerates a cold boot. || catches connect errors.
+            result=$(curl -sS -o /dev/null -m 60 \
+              -w "%{http_code} %{time_total}s" "${DEMO_URL}${path}" 2>/dev/null \
+              || echo "000 unreachable")
+            echo "${path} -> ${result}"
+          done

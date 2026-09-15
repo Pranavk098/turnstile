@@ -92,6 +92,7 @@ thin FastAPI shell over the existing deterministic engine:
 |---|---|---|
 | `GET /` , `/home.html`, `/sample/*.json` | `packages/dashboard/` (static) | First paint needs no compute |
 | `GET /health` | git SHA / `TURNSTILE_COMMIT` | `{"ok": true, "commit": …}` |
+| `GET /api/status` | uptime + commit + warm/cold (Day-1 P1 #8) | `{"ok":true,"commit":…,"uptime_sec":…,"warm":true,"engine_loaded":…}` — no engine run, `Cache-Control: no-store` |
 | `GET /api/fleet`, `/api/calls`, `/api/calls/{id}`, `/api/hero`, `/api/findings`, `/api/experiments`, `/api/conditional`, `/api/bargein`, `/api/manifest` | committed `packages/dashboard/sample/*.json`, byte-verbatim | Provenance intact |
 | `GET /api/ingest` | committed `packages/ingest/data/data.json`, byte-verbatim | Same shape `POST` returns |
 | `GET /api/example` | `docs/INGEST.md` "The object" (pinned by test) | Prefills the eval panel |
@@ -124,9 +125,10 @@ server with no backend. Only the eval panel needs the service.
    committed JSON instantly once the container answers.
 3. `POST /api/evaluate` shows a "Computing…" state by design; a cold POST
    reads as working, not broken.
-4. Optional keep-warm (still $0): ping `/health` every ~10 min from any free
-   scheduler (e.g. GitHub Actions `schedule` + curl). Not configured by
-   default — cold boot is honest and documented, not hidden.
+4. Keep-warm (still $0): `.github/workflows/keepwarm.yml` pings `/health` +
+   `/api/status` every ~10 min (plus `workflow_dispatch` for manual wake).
+   Cold boot stays honest and documented, not hidden — keep-warm only makes
+   the common path the warm one.
 
 ## Redeploy
 
@@ -220,4 +222,9 @@ demo" preset for a live D7 finding).
 `POST /api/evaluate` rejects bodies over 1 MB and callsets over 25 calls
 with HTTP 413, malformed input with HTTP 422 carrying the engine's field
 path (never a 500 for user input), and retains nothing. These caps are
-pinned by `packages/service/tests/test_evaluate.py`.
+pinned by `packages/service/tests/test_evaluate.py`. Per-IP token-bucket
+rate limiting (`packages/service/src/turnstile_service/ratelimit.py`, Day-1
+P0 #4) returns 429 before any engine run — pinned by
+`packages/service/tests/test_ratelimit.py`. Responses ≥1 KB are gzip-encoded
+and cache policy is `no-store` on POST/status, short public cache on API
+reads, longer on committed static bytes (Day-1 P1 #7).
