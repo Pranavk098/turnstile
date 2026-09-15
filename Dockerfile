@@ -35,8 +35,13 @@ COPY packages/ packages/
 COPY pricing/ pricing/
 COPY fixtures/sample/baselines.json fixtures/sample/baselines.json
 
-ARG TURNSTILE_COMMIT=unknown
-ENV TURNSTILE_COMMIT=${TURNSTILE_COMMIT}
+# Commit SHA for GET /health. Default EMPTY, not "unknown": a literal "unknown"
+# is truthy and short-circuits commit_sha() before it can read Render's runtime
+# RENDER_GIT_COMMIT. Empty lets the runtime env win; and if Render passes
+# RENDER_GIT_COMMIT as a build arg, we bake it at build time too.
+ARG RENDER_GIT_COMMIT=
+ARG TURNSTILE_COMMIT=
+ENV TURNSTILE_COMMIT=${TURNSTILE_COMMIT:-${RENDER_GIT_COMMIT}}
 
 RUN uv sync --frozen --no-dev --package turnstile-service
 ENV PATH="/app/.venv/bin:$PATH"
