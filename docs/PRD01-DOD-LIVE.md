@@ -89,6 +89,8 @@ untouched by this track.
       untracked tests) recounts to 1079 — the README-count guard failed, everything
       else green (links ✓, keyless-demo ✓, 1079 passed). Corrective commit reverts
       the count line to `1079`; this checklist records the red honestly.
+      Corrective tip verified green: run 34921098732 (test 1m37s ✓, links ✓,
+      keyless-demo ✓).
       Note: `/health.commit` returns `"unknown"` (manual deploy or
       missing `RENDER_GIT_COMMIT`); owner fix recorded in DEPLOY (Manual Deploy →
       Deploy latest commit from the connected repo).
