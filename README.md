@@ -2,7 +2,7 @@
 
 > A margin profiler for voice AI — the eval nobody runs: **cost**. It prices every turn, decides whether the call resolved, finds ten kinds of waste, and proves each fix by replaying the call on a cheaper path.
 
-[![Live demo — coming soon](https://img.shields.io/badge/demo-coming_soon-lightgrey)](docs/DEPLOY.md#live-url) [![tests](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml) [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://turnstile-demo.onrender.com) [![tests](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml) [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 ![The Turnstile dashboard: every number labeled by how much it is actually measured.](docs/hero.png)
 
@@ -34,7 +34,7 @@ Each stage is a small package under `packages/`. The ones that carry the weight:
 
 ```bash
 uv sync
-uv run pytest -q        # 1079 passed, 4 skipped (badge above is the live count)
+uv run pytest -q        # 1092 passed, 4 skipped (badge above is the live count)
 make demo               # build the report, serve at localhost:8000, open home.html
 make serve              # same dashboard + live eval engine at localhost:8000
 ```
