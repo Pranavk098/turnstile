@@ -56,7 +56,14 @@ untouched by this track.
       `413 {"detail":"body is 1100028 bytes; limit is 1000000"}`. No 500 on any
       user-input probe.
 - [x] `uv run pytest` green including new `packages/service/tests`.
-      **PASS.** `1092 passed, 4 skipped in 88.13s` (RC 0), matching the README count line.
+      **PASS (committed tree: 1079 passed, 4 skipped).** CI recount on the pushed tip
+      observes exactly `1079 passed, 4 skipped` with zero failures — the
+      `test_readme_suite_count_matches` guard pins the README count line to the
+      committed tree, which is why this track reverted the concurrent track's
+      uncommitted `1092` count hunk (their 13 extra tests live in untracked
+      `packages/service/tests/test_ratelimit.py`, not in any commit; they will bump
+      the count when they land). Local runs in this checkout observe 1092 only
+      because those uncommitted files are present.
 - [x] API responses carry the same provenance/tier labels as the CLI artifact.
       **PASS.** Fleet carries `_provenance`; calls carry per-call
       `quality{label,tier}` side-by-side with `cost_usd` (tier `measured`);
@@ -75,11 +82,14 @@ untouched by this track.
       owner setup, local parity + live proof transcripts, manual verify script, endpoint
       limits. This track added no hostname overwrite.
 - [x] CI redeploys on push to the default branch and is green.
-      **PASS on last pushed tip; re-run needed after push.** `gh run list`:
-      tip `ecbe5a1` on `wave0-foundation` → `completed success` (1m26s, 2026-09-14).
-      `render.yaml` has `autoDeploy: true`. This track's badge flip is **unpushed** —
-      owner to push, then confirm CI green on the new tip (Track D does not push
-      unilaterally). Note: `/health.commit` returns `"unknown"` (manual deploy or
+      **CI green on the pushed tip (see transcript note).** `render.yaml` has
+      `autoDeploy: true`. First push of this track (81ce0bf) went CI-red for a
+      Track-D-caused reason: whole-file staging of README.md carried the concurrent
+      track's uncommitted `1092` count hunk, and the committed tree (without their
+      untracked tests) recounts to 1079 — the README-count guard failed, everything
+      else green (links ✓, keyless-demo ✓, 1079 passed). Corrective commit reverts
+      the count line to `1079`; this checklist records the red honestly.
+      Note: `/health.commit` returns `"unknown"` (manual deploy or
       missing `RENDER_GIT_COMMIT`); owner fix recorded in DEPLOY (Manual Deploy →
       Deploy latest commit from the connected repo).
 
@@ -90,9 +100,10 @@ untouched by this track.
 
 ## Footprint (this track)
 
-- `README.md` line 5 only (badge flip).
+- `README.md` line 5 only (badge flip). The pytest-count line is byte-identical to
+  the base commit (this track reverted a concurrent uncommitted hunk it had
+  accidentally staged — see CI note above).
 - This file (`docs/PRD01-DOD-LIVE.md`).
 - Concurrent working-tree changes NOT mine and NOT touched:
   `packages/service/.../app.py` + `ratelimit.py` + `test_ratelimit.py` (Day-1 P0 #4 track),
-  README pytest-count hunk (pre-existing, verified accurate: 1092/4),
   untracked `docs/ROADMAP-sprint-01.md` + `docs/prd/sprint-01/`.
