@@ -1,0 +1,40 @@
+{
+  "methodology": {
+    "n": 250,
+    "seed": 0,
+    "repeat": 5,
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu_count": 20,
+    "timestamp": "2026-09-16T08:11:03.508514+00:00",
+    "git_sha": "e01205ce2a18fe7ddf6778fe487e8043fa965eab",
+    "backend": "MockBackend"
+  },
+  "mode": "matrix",
+  "results": {
+    "n_traces": 250,
+    "repeat": 5,
+    "wall_sec": {
+      "per_repeat": [
+        1.0699516000022413,
+        0.788331300005666,
+        1.1500306999951135,
+        1.17321800001082,
+        1.0716531000070972
+      ],
+      "mean": 1.0506369400041877,
+      "median": 1.0716531000070972,
+      "min": 0.788331300005666,
+      "max": 1.17321800001082
+    },
+    "per_variant": {
+      "model_routing_gpt5_nano": {
+        "delta_cost_mean": -0.0001258482251082251,
+        "n": 231
+      }
+    },
+    "variants": [
+      "model_routing_gpt5_nano"
+    ]
+  }
+}

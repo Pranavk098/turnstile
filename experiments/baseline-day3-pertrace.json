@@ -1,0 +1,28 @@
+{
+  "methodology": {
+    "n": 50,
+    "seed": 0,
+    "repeat": 5,
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu_count": 20,
+    "timestamp": "2026-09-16T08:11:15.109251+00:00",
+    "git_sha": "e01205ce2a18fe7ddf6778fe487e8043fa965eab",
+    "backend": "MockBackend"
+  },
+  "mode": "per-trace",
+  "results": {
+    "n_traces": 50,
+    "repeat": 5,
+    "n_samples": 250,
+    "per_trace_us": {
+      "median": 123.0000052601099,
+      "p95": 1253.000009455718,
+      "mean": 398.8420000532642,
+      "min": 40.30000127386302,
+      "max": 2338.600010261871
+    },
+    "total_us": 99710.50001331605,
+    "total_sec": 0.09971050001331605
+  }
+}
