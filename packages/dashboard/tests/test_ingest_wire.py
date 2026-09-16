@@ -56,8 +56,8 @@ def test_build_ingest_copies_artifact_and_details(tmp_path):
 
 def test_ingest_report_renders_end_to_end_shapes():
     report = _dashboard("ingest.json")
-    assert report["n"] == 50 and len(report["calls"]) == 50
-    assert report["fleet"]["n_conversations"] == 50
+    assert report["n"] == 51 and len(report["calls"]) == 51
+    assert report["fleet"]["n_conversations"] == 51
     for row in report["calls"]:
         assert set(row) == set(build_data.INGEST_CONTRACT["index_row_keys"])
         top = row["top_waste"]
@@ -88,10 +88,15 @@ def test_ingest_data_marks_6_7_8_absent_where_no_acoustic_data_present_where_the
     report = _dashboard("ingest.json")
     summary = report["coverage_summary"]
     n = summary["n_calls"]
-    assert n == 50
+    assert n == 51
     with_data = summary["calls_with_data_per_class"]
-    for cid in ("1", "2", "3", "4", "5", "9", "10"):
+    for cid in ("2", "3", "4", "5", "9", "10"):
         assert with_data.get(cid, 0) == n, cid
+    # D1 is honestly ABSENT on the provider-adapted call(s): inferred
+    # decision_kind never feeds measured waste (Day-2 P0 #4). The exclusion
+    # is disclosed, not silent: margin_excluded carries the count.
+    assert summary.get("margin_excluded", 0) == 1
+    assert with_data.get("1", 0) == n - 1
     for cid in ("6", "7", "8"):
         assert 0 < with_data.get(cid, 0) < n, (cid, with_data.get(cid))  # neither all-absent nor all-present
     n_absent = 0
@@ -99,7 +104,13 @@ def test_ingest_data_marks_6_7_8_absent_where_no_acoustic_data_present_where_the
         detail = _dashboard(row["detail"])
         coverage = detail["_provenance"]["coverage"]
         assert len(coverage) == 10
-        for cid in ("1", "2", "3", "4", "5", "9", "10"):
+        # D1 rides with the telemetry classes -- except on provider-adapted
+        # calls, where inferred decision_kind is honestly ABSENT (Day-2 P0 #4).
+        if detail["_provenance"].get("inferred_decision_turns"):
+            assert coverage["1"]["status"] == "absent"
+        else:
+            assert coverage["1"]["status"] == "present"
+        for cid in ("2", "3", "4", "5", "9", "10"):
             assert coverage[cid]["status"] == "present"
         # 6/7/8 share the one G2 gate: all three present, or all three absent, per call.
         s = coverage["6"]["status"]
@@ -140,7 +151,7 @@ def test_ingest_margin_stamped_with_its_dataset():
     report = _dashboard("ingest.json")
     margin = report["fleet"]["recoverable_margin_pct"]
     assert margin == pytest.approx(2.56, abs=0.02)
-    assert report["fleet"]["_provenance"]["n"] == 50
+    assert report["fleet"]["_provenance"]["n"] == 51
     # No provenance text cites a different dataset's number than displayed.
     blob = json.dumps(report)
     assert "1.32" not in blob and "0.57" not in blob
@@ -183,3 +194,25 @@ def test_dashboard_reads_manifest_and_switches_sources():
     sample = build_data.DASHBOARD_DIR / "sample"
     for row in report["calls"]:
         assert (sample / row["detail"]).exists()
+
+
+# --------------------------------------------------------------------------- #
+# Day-2 P0 #3 -- the Retell provider-adapted call is surfaced live with        #
+# source + tier provenance (real-shaped, labeled synthetic, never real).       #
+# --------------------------------------------------------------------------- #
+
+def test_ingest_report_surfaces_retell_call_with_provenance():
+    report = _dashboard("ingest.json")
+    assert "source: Retell export (synthetic schema-conformant example)" in report["provenance"]
+    rows = [r for r in report["calls"] if r["id"] == "synth-retell-billing-0001"]
+    assert len(rows) == 1
+    detail = _dashboard(rows[0]["detail"])
+    provenance = detail["_provenance"]
+    assert provenance["source"] == "Retell export (synthetic schema-conformant example)"
+    assert "openai/gpt-5-mini" in provenance["note"]  # priced identity disclosed
+    assert "sample" in provenance["note"].lower()  # never presented as production data
+    assert "inferred" in provenance["note"]  # decision_kind inference disclosed
+    assert provenance["coverage"]["1"]["status"] == "absent"  # inferred, never measured
+    for cid in ("6", "7", "8"):
+        assert provenance["coverage"][cid]["status"] == "absent"
+    assert not any(f["class_id"] in (1, 6, 7, 8) for f in detail["findings"])

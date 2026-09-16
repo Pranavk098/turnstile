@@ -4,6 +4,7 @@ Usage::
 
     uv run python -m turnstile_ingest [--in calls.json | --sample] [--out DIR]
     uv run python -m turnstile_ingest --provider vapi --in vapi-export.json [--out DIR]
+    uv run python -m turnstile_ingest --provider retell --in retell-export.json --llm-identity openai/gpt-5-mini [--out DIR]
 
 Reads one call object, a {"calls": [...]} file, or the bundled sample;
 runs price -> adjudicate -> detect with the honest acoustic-absence envelope;
@@ -17,6 +18,11 @@ or a ``calls``/``results``/``data`` wrapper) through
 ``providers.vapi.from_vapi_export``, then runs the SAME pipeline unchanged.
 Inferred ``decision_kind`` labels ride as provenance and never feed the D1
 headline (see ``providers.vapi`` and docs/INGEST.md).
+
+``--provider retell`` additionally takes ``--llm-identity SYSTEM/MODEL``
+(Retell names no model): a real export without it fails loudly naming
+``llm_identity``; the bundled Retell sample carries embedded ground truth
+and runs without the flag.
 """
 from __future__ import annotations
 
@@ -30,10 +36,12 @@ from turnstile_ingest.adapter import DEFAULT_RATES_PATH, IngestError
 from turnstile_ingest.model import classify_file
 from turnstile_ingest.pipeline import DEFAULT_BASELINES_PATH, run_calls
 from turnstile_ingest.providers import vapi as vapi_provider
+from turnstile_ingest.providers import retell as retell_provider
 
 _PACKAGE_DIR = Path(__file__).resolve().parents[2]
 SAMPLE_PATH = _PACKAGE_DIR / "sample" / "calls.json"
 VAPI_SAMPLE_PATH = _PACKAGE_DIR / "sample" / "vapi-export.sample.json"
+RETELL_SAMPLE_PATH = _PACKAGE_DIR / "sample" / "retell-export.sample.json"
 DEFAULT_OUT_DIR = _PACKAGE_DIR / "data"
 
 
@@ -60,8 +68,12 @@ def build_parser() -> argparse.ArgumentParser:
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--in", dest="input", type=Path, help="ingest JSON file")
     source.add_argument("--sample", action="store_true", help="run the bundled sample")
-    parser.add_argument("--provider", choices=("turnstile", "vapi"), default="turnstile",
-                        help="input format: native IngestCall JSON (default) or a Vapi call export")
+    parser.add_argument("--provider", choices=("turnstile", "vapi", "retell"), default="turnstile",
+                        help="input format: native IngestCall JSON (default), a Vapi call export, or a Retell call export")
+    parser.add_argument("--llm-identity", default=None, metavar="SYSTEM/MODEL",
+                        help="Retell only: backing LLM as SYSTEM/MODEL (e.g. openai/gpt-5-mini). "
+                             "Retell names no model, so a real export needs this; the bundled "
+                             "Retell sample carries embedded ground truth and runs without it")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_DIR, help="output directory")
     parser.add_argument("--rates", type=Path, default=DEFAULT_RATES_PATH)
     parser.add_argument("--baselines", type=Path, default=DEFAULT_BASELINES_PATH)
@@ -74,6 +86,8 @@ def main(argv: list[str] | None = None) -> int:
         args.sample = True
     if args.provider == "vapi":
         input_path = args.input if args.input is not None else VAPI_SAMPLE_PATH
+    elif args.provider == "retell":
+        input_path = args.input if args.input is not None else RETELL_SAMPLE_PATH
     else:
         input_path = args.input if args.input is not None else SAMPLE_PATH
     if not input_path.exists():
@@ -105,6 +119,42 @@ def main(argv: list[str] | None = None) -> int:
         label = (f"vapi export sample ({input_path.name})" if sample_flag
                  else f"vapi export {input_path.name}")
         sample = sample_flag
+    elif args.provider == "retell":
+        llm_identity: tuple[str, str] | None = None
+        if args.llm_identity is not None:
+            if "/" not in args.llm_identity:
+                raise SystemExit(
+                    f"--llm-identity {args.llm_identity!r}: expected SYSTEM/MODEL, "
+                    "e.g. --llm-identity openai/gpt-5-mini"
+                )
+            system, _, model = args.llm_identity.partition("/")
+            llm_identity = (system.strip(), model.strip().split("/")[-1].strip())
+            if not llm_identity[0] or not llm_identity[1]:
+                raise SystemExit(
+                    f"--llm-identity {args.llm_identity!r}: expected SYSTEM/MODEL, "
+                    "e.g. --llm-identity openai/gpt-5-mini"
+                )
+        try:
+            raw = json.loads(input_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"{input_path}: invalid JSON -- {exc}") from exc
+        sample_flag = bool(raw.get("sample", False)) if isinstance(raw, dict) else False
+        try:
+            adapted = retell_provider.from_retell_export(raw, llm_identity=llm_identity)
+        except IngestError as exc:
+            raise SystemExit(f"{input_path}: {exc}") from exc
+        raw_items = raw if isinstance(raw, list) else (
+            raw.get("calls", raw.get("results", raw.get("data", [raw])))
+            if isinstance(raw, dict) else [raw]
+        )
+        calls = list(adapted)
+        provider_records = {
+            call.id: retell_provider.provider_info(raw_obj, call, sample=sample_flag)
+            for raw_obj, call in zip(raw_items, adapted)
+        }
+        label = (f"retell export sample ({input_path.name})" if sample_flag
+                 else f"retell export {input_path.name}")
+        sample = sample_flag
     else:
         calls, sample = load_input_file(input_path)
         label = "ingested sample (7 calls)" if sample else f"ingested {input_path.name}"
@@ -131,6 +181,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"ingested {n} call(s) from {input_path} -> {out_path} + {len(details)} per-call files")
     if args.provider == "vapi":
         print("source: Vapi export" + (" (synthetic schema-conformant example)" if sample else "")
+              + "; decision_kind inferred on all adapted turns (D1 excluded from measured waste)")
+    elif args.provider == "retell":
+        print("source: Retell export" + (" (synthetic schema-conformant example)" if sample else "")
               + "; decision_kind inferred on all adapted turns (D1 excluded from measured waste)")
     print(f"total cost ${fleet['total_cost_usd']:.4f} over {n} calls, "
           f"{fleet['n_resolved']} resolved; "

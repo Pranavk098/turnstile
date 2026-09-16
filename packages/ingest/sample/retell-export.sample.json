@@ -1,0 +1,133 @@
+{
+  "sample": true,
+  "_note": "SYNTHETIC schema-conformant example -- NOT real customer traffic. Hand-authored to Retell's published Get Call schema (V2PhoneCallResponse: https://docs.retellai.com/api-references/get-call). Run it with: uv run python -m turnstile_ingest --provider retell --in packages/ingest/sample/retell-export.sample.json --out <dir>",
+  "call_id": "synth-retell-billing-0001",
+  "agent_id": "agent-synthetic-billing-01",
+  "agent_name": "Billing Assistant",
+  "agent_version": 3,
+  "agent_model": {"system": "openai", "model": "gpt-5-mini"},
+  "call_type": "phone_call",
+  "from_number": "+12137771234",
+  "to_number": "+12137771235",
+  "direction": "inbound",
+  "call_status": "ended",
+  "start_timestamp": 1789210011000,
+  "end_timestamp": 1789210041000,
+  "duration_ms": 30000,
+  "disconnection_reason": "user_hangup",
+  "transcript": "Agent: Hi, thanks for calling Acme support. How can I help? User: Hi, I was charged twice for July. Can you fix that? Agent: I found the duplicate charge from July. I'll apply a correction now. User: Yes, please fix it. Agent: Done -- I've refunded the duplicate $79 charge. Anything else? User: No, that's all. Thanks, bye! Agent: You're welcome. Goodbye!",
+  "transcript_object": [
+    {"role": "agent", "content": "Hi, thanks for calling Acme support. How can I help?", "words": [
+      {"word": "Hi,", "start": 0.0, "end": 0.25}, {"word": "thanks", "start": 0.25, "end": 0.6},
+      {"word": "for", "start": 0.6, "end": 0.8}, {"word": "calling", "start": 0.8, "end": 1.15},
+      {"word": "Acme", "start": 1.15, "end": 1.45}, {"word": "support.", "start": 1.45, "end": 1.8},
+      {"word": "How", "start": 1.85, "end": 2.0}, {"word": "can", "start": 2.0, "end": 2.1},
+      {"word": "I", "start": 2.1, "end": 2.15}, {"word": "help?", "start": 2.15, "end": 2.4}
+    ]},
+    {"role": "user", "content": "Hi, I was charged twice for July. Can you fix that?", "words": [
+      {"word": "Hi,", "start": 2.6, "end": 2.8}, {"word": "I", "start": 2.8, "end": 2.9},
+      {"word": "was", "start": 2.9, "end": 3.1}, {"word": "charged", "start": 3.1, "end": 3.5},
+      {"word": "twice", "start": 3.5, "end": 3.8}, {"word": "for", "start": 3.8, "end": 4.0},
+      {"word": "July.", "start": 4.0, "end": 4.3}, {"word": "Can", "start": 4.35, "end": 4.5},
+      {"word": "you", "start": 4.5, "end": 4.65}, {"word": "fix", "start": 4.65, "end": 4.9},
+      {"word": "that?", "start": 4.9, "end": 5.2}
+    ]},
+    {"role": "agent", "content": "I found the duplicate charge from July. I'll apply a correction now.", "words": [
+      {"word": "I", "start": 7.4, "end": 7.5}, {"word": "found", "start": 7.5, "end": 7.8},
+      {"word": "the", "start": 7.8, "end": 7.95}, {"word": "duplicate", "start": 7.95, "end": 8.35},
+      {"word": "charge", "start": 8.35, "end": 8.7}, {"word": "from", "start": 8.7, "end": 8.9},
+      {"word": "July.", "start": 8.9, "end": 9.2}, {"word": "I'll", "start": 9.25, "end": 9.45},
+      {"word": "apply", "start": 9.45, "end": 9.75}, {"word": "a", "start": 9.75, "end": 9.85},
+      {"word": "correction", "start": 9.85, "end": 10.25}, {"word": "now.", "start": 10.25, "end": 10.6}
+    ]},
+    {"role": "user", "content": "Yes, please fix it.", "words": [
+      {"word": "Yes,", "start": 11.2, "end": 11.5}, {"word": "please", "start": 11.5, "end": 11.9},
+      {"word": "fix", "start": 11.9, "end": 12.2}, {"word": "it.", "start": 12.2, "end": 12.5}
+    ]},
+    {"role": "agent", "content": "Done -- I've refunded the duplicate $79 charge. Anything else?", "words": [
+      {"word": "Done", "start": 14.8, "end": 15.1}, {"word": "--", "start": 15.1, "end": 15.2},
+      {"word": "I've", "start": 15.2, "end": 15.45}, {"word": "refunded", "start": 15.45, "end": 15.9},
+      {"word": "the", "start": 15.9, "end": 16.05}, {"word": "duplicate", "start": 16.05, "end": 16.4},
+      {"word": "$79", "start": 16.4, "end": 16.7}, {"word": "charge.", "start": 16.7, "end": 17.0},
+      {"word": "Anything", "start": 17.05, "end": 17.3}, {"word": "else?", "start": 17.3, "end": 17.6}
+    ]},
+    {"role": "user", "content": "No, that's all. Thanks, bye!", "words": [
+      {"word": "No,", "start": 17.8, "end": 18.0}, {"word": "that's", "start": 18.0, "end": 18.3},
+      {"word": "all.", "start": 18.3, "end": 18.6}, {"word": "Thanks,", "start": 18.65, "end": 19.0},
+      {"word": "bye!", "start": 19.0, "end": 19.4}
+    ]},
+    {"role": "agent", "content": "You're welcome. Goodbye!", "words": [
+      {"word": "You're", "start": 19.8, "end": 20.1}, {"word": "welcome.", "start": 20.1, "end": 20.5},
+      {"word": "Goodbye!", "start": 20.55, "end": 21.1}
+    ]}
+  ],
+  "transcript_with_tool_calls": [
+    {"role": "agent", "content": "Hi, thanks for calling Acme support. How can I help?", "words": [
+      {"word": "Hi,", "start": 0.0, "end": 0.25}, {"word": "thanks", "start": 0.25, "end": 0.6},
+      {"word": "for", "start": 0.6, "end": 0.8}, {"word": "calling", "start": 0.8, "end": 1.15},
+      {"word": "Acme", "start": 1.15, "end": 1.45}, {"word": "support.", "start": 1.45, "end": 1.8},
+      {"word": "How", "start": 1.85, "end": 2.0}, {"word": "can", "start": 2.0, "end": 2.1},
+      {"word": "I", "start": 2.1, "end": 2.15}, {"word": "help?", "start": 2.15, "end": 2.4}
+    ]},
+    {"role": "user", "content": "Hi, I was charged twice for July. Can you fix that?", "words": [
+      {"word": "Hi,", "start": 2.6, "end": 2.8}, {"word": "I", "start": 2.8, "end": 2.9},
+      {"word": "was", "start": 2.9, "end": 3.1}, {"word": "charged", "start": 3.1, "end": 3.5},
+      {"word": "twice", "start": 3.5, "end": 3.8}, {"word": "for", "start": 3.8, "end": 4.0},
+      {"word": "July.", "start": 4.0, "end": 4.3}, {"word": "Can", "start": 4.35, "end": 4.5},
+      {"word": "you", "start": 4.5, "end": 4.65}, {"word": "fix", "start": 4.65, "end": 4.9},
+      {"word": "that?", "start": 4.9, "end": 5.2}
+    ]},
+    {"role": "tool_call_invocation", "tool_call_id": "toolu_01lookup001",
+     "name": "lookup_invoices", "arguments": "{\"customer_id\": \"C-10293\"}"},
+    {"role": "tool_call_result", "tool_call_id": "toolu_01lookup001",
+     "content": "{\"invoices\": [{\"id\": \"INV-8821\", \"amount\": 79.0, \"status\": \"paid\"}, {\"id\": \"INV-8822\", \"amount\": 79.0, \"status\": \"duplicate\"}]}",
+     "successful": true},
+    {"role": "agent", "content": "I found the duplicate charge from July. I'll apply a correction now.", "words": [
+      {"word": "I", "start": 7.4, "end": 7.5}, {"word": "found", "start": 7.5, "end": 7.8},
+      {"word": "the", "start": 7.8, "end": 7.95}, {"word": "duplicate", "start": 7.95, "end": 8.35},
+      {"word": "charge", "start": 8.35, "end": 8.7}, {"word": "from", "start": 8.7, "end": 8.9},
+      {"word": "July.", "start": 8.9, "end": 9.2}, {"word": "I'll", "start": 9.25, "end": 9.45},
+      {"word": "apply", "start": 9.45, "end": 9.75}, {"word": "a", "start": 9.75, "end": 9.85},
+      {"word": "correction", "start": 9.85, "end": 10.25}, {"word": "now.", "start": 10.25, "end": 10.6}
+    ]},
+    {"role": "user", "content": "Yes, please fix it.", "words": [
+      {"word": "Yes,", "start": 11.2, "end": 11.5}, {"word": "please", "start": 11.5, "end": 11.9},
+      {"word": "fix", "start": 11.9, "end": 12.2}, {"word": "it.", "start": 12.2, "end": 12.5}
+    ]},
+    {"role": "tool_call_invocation", "tool_call_id": "toolu_01adjust002",
+     "name": "adjust_billing", "arguments": "{\"customer_id\": \"C-10293\", \"invoice_id\": \"INV-8822\"}"},
+    {"role": "tool_call_result", "tool_call_id": "toolu_01adjust002",
+     "content": "{\"status\": \"refunded\", \"amount\": 79.0, \"invoice_id\": \"INV-8822\"}",
+     "successful": true},
+    {"role": "agent", "content": "Done -- I've refunded the duplicate $79 charge. Anything else?", "words": [
+      {"word": "Done", "start": 14.8, "end": 15.1}, {"word": "--", "start": 15.1, "end": 15.2},
+      {"word": "I've", "start": 15.2, "end": 15.45}, {"word": "refunded", "start": 15.45, "end": 15.9},
+      {"word": "the", "start": 15.9, "end": 16.05}, {"word": "duplicate", "start": 16.05, "end": 16.4},
+      {"word": "$79", "start": 16.4, "end": 16.7}, {"word": "charge.", "start": 16.7, "end": 17.0},
+      {"word": "Anything", "start": 17.05, "end": 17.3}, {"word": "else?", "start": 17.3, "end": 17.6}
+    ]},
+    {"role": "user", "content": "No, that's all. Thanks, bye!", "words": [
+      {"word": "No,", "start": 17.8, "end": 18.0}, {"word": "that's", "start": 18.0, "end": 18.3},
+      {"word": "all.", "start": 18.3, "end": 18.6}, {"word": "Thanks,", "start": 18.65, "end": 19.0},
+      {"word": "bye!", "start": 19.0, "end": 19.4}
+    ]},
+    {"role": "agent", "content": "You're welcome. Goodbye!", "words": [
+      {"word": "You're", "start": 19.8, "end": 20.1}, {"word": "welcome.", "start": 20.1, "end": 20.5},
+      {"word": "Goodbye!", "start": 20.55, "end": 21.1}
+    ]}
+  ],
+  "llm_token_usage": {
+    "values": [1050, 980, 1020, 1000],
+    "average": 1012.5,
+    "num_requests": 4
+  },
+  "call_cost": {
+    "product_costs": [
+      {"product": "retell_llm", "unit_price": 0.8, "cost": 24},
+      {"product": "elevenlabs_tts", "unit_price": 1.0, "cost": 30}
+    ],
+    "total_duration_seconds": 30,
+    "total_duration_unit_price": 1.8,
+    "combined_cost": 54
+  }
+}

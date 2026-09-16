@@ -244,3 +244,132 @@ schema-conformant **synthetic** billing-dispute export (NOT real customer
 traffic — labeled `sample` in-file, in the CLI headline, and in every
 artifact's provenance). Greeting + complaint + invoice lookup + authorized
 correction + close; resolves `RESOLVED` with D1/D6/D7/D8 honestly ABSENT.
+
+## Retell provider exports
+
+A real Retell Get Call export runs end-to-end with no re-instrumentation: the
+adapter (`packages/ingest/src/turnstile_ingest/providers/retell.py`) maps one
+Retell call object to the `IngestCall` format above, then the **existing**
+pipeline runs unchanged (price → adjudicate → detect → report).
+
+```bash
+uv run python -m turnstile_ingest --provider retell --in retell-export.json --llm-identity openai/gpt-5-mini --out ./out
+# --provider {turnstile,vapi,retell}; default "turnstile" (the native format above).
+# With no --in, --provider retell runs the bundled Retell sample.
+# --llm-identity SYSTEM/MODEL is required for real exports (Retell names no
+# model); the bundled sample carries embedded ground truth and runs without it.
+```
+
+Input is one Retell call object, a bare list, or a list-wrapper (`{"calls"}`,
+`{"results"}`, or `{"data"}`). Output is the standard `<out>/data.json` +
+per-call files; the report envelope carries `source: Retell export ...` in
+its provenance, and each per-call `_provenance` records the provider, the
+export/spec revision, and which fields were inferred vs. read directly.
+
+### Mapping table
+
+Retell field names verified Sep 2026 against the published Get Call schema
+(`https://docs.retellai.com/api-references/get-call`, OpenAPI
+`x-retell-spec-revision: 2026-09-14-b240eb0`), the disconnection-reason
+catalog (`https://docs.retellai.com/reliability/debug-call-disconnect`), and
+the latency/token notes
+(`https://docs.retellai.com/reliability/check-actual-latency`):
+
+| `IngestCall` | Retell source | Notes |
+|---|---|---|
+| `id` | `call_id` | alphanumeric ids pass the dashboard's `[A-Za-z0-9_-]+` route |
+| `scenario` | `agent_name` | slugified (`Billing Assistant` → `billing_assistant`); absent → `"unknown"` (D4 then stays silent, as for any unbaselined id) |
+| `agent_version` | `agent_id` + `agent_version` (**int**) | as `retell/<agent_id>.v<version>` (e.g. `retell/agent-abc.v3`); missing/empty `agent_id` or non-int version → `IngestError` |
+| `started` / `ended` | `start_timestamp` / `end_timestamp` | **epoch ms ints**; both required |
+| `end_reason` | `disconnection_reason` | explicit table: `user_hangup` → `caller_hangup`; `agent_hangup` → `agent_hangup`; `call_transfer` / `transfer_bridged` → `escalated`; `inactivity` / `max_duration_reached` → `timeout`; every other documented code (voicemail/IVR landings, dial/SIP failures, payment/concurrency blocks, all `error_*`, `registered_call_timeout`, `transfer_cancelled`, `manual_stopped`, `call_take_over`, …) → `error`. Anything else → `IngestError` naming the value. `call_status != "ended"` → `IngestError` (only ended calls are ingestible) |
+| `telephony` | `call_type` + `direction` + `duration_ms` | `phone_call` → leg with the caller-supplied provider (see below), `direction` straight through, `billable_seconds` = round(`duration_ms`/1000). `web_call` carries no phone leg → omitted (D8 ABSENT). Unknown `call_type`, missing/invalid `direction`, or missing `duration_ms` on a phone call → `IngestError`. `from_number` / `to_number` / `transfer_destination` are addressing/bookkeeping, not mapped |
+| `turns[]` | `transcript_with_tool_calls` (else `transcript_object`) | preferred timeline wins when non-empty; each `user` / `transfer_target` utterance opens a turn, agent/tool entries attach to the open turn, pre-first-user entries form an opening agent-first turn. `transfer_target` speech rides caller-side as ASR (it is not the agent's — never an LLM decision). Unknown entry roles raise |
+| `turn.asr` | `user` / `transfer_target` utterance content + word timing | transcriber always the ingest default `deepgram/nova-3` (Retell names none) |
+| `turn.llm` model/tokens | **caller-supplied `llm_identity=(system, model)`** (else the export's embedded `agent_model` fixture key) + `llm_token_usage.values[]` | Retell names no model — see "honest approximations" below |
+| `turn.llm.decision_kind` | **not emitted by Retell — inferred + flagged** | same rule as Vapi (mutation/handoff-triggering turn → `tool_select`; first LLM turn → `route`; else `compose`; never `slot_fill`/`escalate_check`); D1 never fires on it (honesty boundary) |
+| `turn.llm.output_text` | `agent` utterance content | required; never copied from `tts.text` |
+| `turn.tts` | `agent` utterance content + word timing | **text only, no char counts** (Retell emits none) → no tts/playback spans → D6/D7/D8 ABSENT |
+| `turn.tools[]` | `tool_call_invocation` + `tool_call_result` entries joined by `tool_call_id` | `kind` from documented name rules (override with `tool_kinds={name: kind}`); `effect` from `successful`/`content` (`successful: false` or explicit `error` payload → `rejected`; pending markers → `pending`; bare success result → `committed` for mutation/handoff; reads always `none`; missing/ambiguous → `unknown`). Content carrying both `result` and `error` → `IngestError`. `dtmf` / `sms` / `injected` entries are not spoken turns (skipped); `node_transition` is flow bookkeeping (informational, never a turn) |
+| — | `call_cost`, `latency`, `call_analysis`, `recording_url`, `public_log_url`, `transcript` | never mapped: billing summary / latency stats / post-call analysis / media URLs / flat text are not pricing inputs (using them as token sources would fabricate telemetry) |
+
+### Honest approximations (flagged in provenance, never silent)
+
+1. **`llm_identity` (no invented model).** The Get Call schema carries no
+   model field, so the adapter takes the backing model as caller-supplied
+   ground truth: `from_retell(call, llm_identity=("openai", "gpt-5-mini"))`
+   (any `pricing/rates.yaml`-resolvable model), falling back to a top-level
+   `agent_model: {"system", "model"}` key hand-authored into the export
+   itself (synthetic fixtures only). A call with agent turns and neither
+   raises `IngestError` naming `llm_identity` — the exact analog
+   of the Vapi adapter's `assistant.model` requirement. The provenance note
+   records the priced identity and its channel.
+2. **Token distribution without a prompt/completion split.**
+   `llm_token_usage` carries combined per-request counts only, so the call
+   total (sum of `values`) is split evenly across the call's LLM turns as
+   `input_tokens` with `output_tokens` 0 — exact sum preserved in `input`,
+   per-turn attribution approximate (even, not text-proportional, so no fake
+   token slope for D2 to misread). Output cost is thereby *unmeasured*, not
+   zero; LLM cost reads as a lower bound and the provenance note says so.
+   Absent `llm_token_usage` (custom LLM / realtime API / no LLM call) with
+   agent turns present → `IngestError`, never invented tokens.
+3. **`decision_kind` inference.** Same rule as Vapi: a turn triggering a
+   mutation/handoff tool → `tool_select`; the call's first LLM turn →
+   `route`; otherwise `compose`. `slot_fill` / `escalate_check` are never
+   inferred. Every adapted LLM turn is flagged (`inferred_decision_turns`
+   in per-call `_provenance`), D1 is ABSENT for fully-inferred calls,
+   residual D1 findings on inferred turns are dropped, and fully-inferred
+   calls are excluded from the recoverable-margin replay. An inferred label
+   never feeds a headline number.
+4. **Word-timing approximation.** Word `start`/`end` are relative audio
+   seconds Retell documents as "not guaranteed to be accurate"; the utterance
+   window runs first-word-start → last-word-end. An utterance without usable
+   word timings is placed by evenly dividing the call duration in document
+   order, and the provenance note names the count.
+5. **Telephony default.** Retell names no PSTN provider, so `phone_call`
+   legs bill through the explicit `telephony_provider` parameter (default
+   `"twilio"`). The default is an assumption, stated in the module docstring,
+   the provenance note, and here: the `<provider>/pstn_<direction>` rate key
+   must exist in `pricing/rates.yaml` (a miss fails at load naming the key —
+   `twilio/pstn_inbound` works out of the box; anything else needs its row
+   verified and added, same as the Vapi-leg template).
+6. **TTS omission.** No per-turn char counts exist to read, so per-turn char
+   counts would be invented either way: the adapter omits them and D6/D7/D8
+   read ABSENT. Retell's own `call_cost` split is still visible in the
+   export; Turnstile prices only what it measures.
+
+### What your export needs
+
+- `call_status: "ended"` — only ended calls are ingestible (anything else
+  raises naming `call_status`).
+- `transcript_with_tool_calls` or `transcript_object` non-empty — else
+  raises naming both paths. Prefer exports with word timings; without them
+  placement is approximate (flagged, never silent).
+- `llm_identity` for the backing model (see #1 above) resolving in
+  `pricing/rates.yaml` (e.g. `("openai", "gpt-5-mini")` works out of the
+  box): pass `--llm-identity openai/gpt-5-mini` on the CLI, which wins; else
+  a top-level `agent_model: {"system": ..., "model": ...}` key in the export
+  itself counts as hand-authored ground truth (how the bundled sample runs
+  flag-free). A real export with neither fails loudly naming `llm_identity`
+  (no silent default exists to fall back to).
+- `llm_token_usage.values` non-empty when the call has agent turns (absent
+  with custom LLM / realtime API → the adapter raises rather than invent
+  tokens).
+- Phone calls bill through `telephony_provider` (default `"twilio"`): a
+  non-Twilio leg needs its `<provider>/pstn_<direction>` rate row (the load
+  error names the key).
+- Tools with names outside the documented rules need ground truth:
+  `from_retell(call, tool_kinds={"my_tool": "mutation"})`.
+
+### Retell sample
+
+`packages/ingest/sample/retell-export.sample.json` (Track B): one
+hand-authored, schema-conformant **synthetic** billing-dispute export (NOT
+real customer traffic — labeled `sample` in-file, in the CLI headline, and
+in every artifact's provenance). Greeting + complaint + invoice lookup +
+authorized correction + close over `transcript_with_tool_calls` (flat
+role-discriminated entries) with a matching word-timed `transcript_object`;
+`llm_token_usage` totals 4050 combined tokens; resolves `RESOLVED` with
+D1/D6/D7/D8 honestly ABSENT. It carries embedded `agent_model:
+{"system": "openai", "model": "gpt-5-mini"}` ground truth (a real export
+never has this key — the schema has no such field), so it prices without
+`--llm-identity`; a real export needs the flag.

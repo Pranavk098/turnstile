@@ -1,82 +1,82 @@
 {
-  "label": "ingested sample (7 calls)",
-  "n": 50,
+  "label": "ingested sample (50 native + 1 Retell provider-adapted)",
+  "n": 51,
   "note": "SAMPLE aggregate over ingested calls -- not a production fleet. Ingested call logs via turnstile_ingest. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
-  "provenance": "turnstile_ingest report over the bundled 7-call SAMPLE (not production data). LLM/tool layers from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry; D6/D7/D8 reported ABSENT where it does not.",
+  "provenance": "turnstile_ingest report over source: Retell export (synthetic schema-conformant example). LLM/tool layers from the log's own telemetry; acoustic stages only where the log carries rate-resolvable telemetry; D6/D7/D8 reported ABSENT where it does not. D1 reported ABSENT on provider-adapted calls (decision_kind inferred, not agent-emitted).",
   "sample": true,
   "fleet": {
-    "label": "ingested sample (7 calls)",
+    "label": "ingested sample (50 native + 1 Retell provider-adapted)",
     "note": "SAMPLE aggregate over ingested calls -- not a production fleet. CPRC_naive/CPRC_loaded per PRD Sec.4.3. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings.",
-    "n_conversations": 50,
-    "n_resolved": 33,
-    "total_cost_usd": 0.3222017483333333,
-    "resolved_cost_usd": 0.21501466333333333,
-    "cprc_loaded": 0.009763689343434342,
-    "cprc_naive": 0.0065155958585858586,
+    "n_conversations": 51,
+    "n_resolved": 34,
+    "total_cost_usd": 0.32785841499999996,
+    "resolved_cost_usd": 0.22067133,
+    "cprc_loaded": 0.009642894558823528,
+    "cprc_naive": 0.0064903332352941176,
     "recoverable_margin_pct": 2.560445448441571,
     "stage_costs_usd": {
-      "asr": 0.009228731666666667,
-      "llm": 0.03185635,
+      "asr": 0.009622898333333333,
+      "llm": 0.03286885,
       "tts": 0.10162500000000005,
-      "telephony": 0.17949166666666674
+      "telephony": 0.18374166666666675
     },
     "quality": {
-      "n_calls": 50,
+      "n_calls": 51,
       "overall": {
         "fail": 17,
         "partial": 1,
-        "pass": 32
+        "pass": 33
       },
       "dimensions": {
         "answer_relevance": {
-          "pending": 50
+          "pending": 51
         },
         "barge_in_courtesy": {
           "fail": 11,
           "pass": 13,
-          "unmeasured": 26
+          "unmeasured": 27
         },
         "escalation_appropriateness": {
-          "pass": 50
+          "pass": 51
         },
         "faithfulness": {
-          "pending": 50
+          "pending": 51
         },
         "non_repetition": {
-          "pass": 50
+          "pass": 51
         },
         "slot_completeness": {
           "fail": 5,
-          "pass": 45
+          "pass": 46
         },
         "task_success": {
           "fail": 7,
           "partial": 1,
-          "pass": 42
+          "pass": 43
         }
       }
     },
     "_provenance": {
-      "n": 50,
+      "n": 51,
       "sample": true,
-      "note": "Ingested (non-synthetic) call logs via turnstile_ingest. LLM/tool layers measured from the log's own tokens and tool outcomes; acoustic layer (ASR/TTS/telephony) priced only where the log carries rate-resolvable telemetry. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings."
+      "note": "Ingested (non-synthetic) call logs via turnstile_ingest. LLM/tool layers measured from the log's own tokens and tool outcomes; acoustic layer (ASR/TTS/telephony) priced only where the log carries rate-resolvable telemetry. Calls without G2 acoustic fields (tts.chars_synthesized/chars_played) carry no TTS/playback spans: their TTS cost is unmeasured (0 in stage_costs, NOT zero waste) and detector classes 6/7/8 are reported ABSENT per call ('no data for this input'), excluded from findings. D1 recoverable margin computed over 50/51 calls: 1 provider-adapted call(s) with inferred decision_kind are excluded (inferred labels never feed a headline)."
     }
   },
   "coverage_summary": {
-    "n_calls": 50,
+    "n_calls": 51,
     "calls_with_data_per_class": {
       "1": 50,
-      "2": 50,
-      "3": 50,
-      "4": 50,
-      "5": 50,
-      "9": 50,
-      "10": 50,
+      "2": 51,
+      "3": 51,
+      "4": 51,
+      "5": 51,
+      "9": 51,
+      "10": 51,
       "6": 24,
       "7": 24,
       "8": 24
     },
-    "margin_excluded": 0
+    "margin_excluded": 1
   },
   "calls": [
     {
@@ -943,6 +943,20 @@
         "tier": "measured"
       },
       "detail": "call-ing-20260914-049.json"
+    },
+    {
+      "id": "synth-retell-billing-0001",
+      "scenario_id": "billing_assistant",
+      "cost_usd": 0.0056566666666666675,
+      "verdict": "RESOLVED",
+      "end_reason": "caller_hangup",
+      "n_turns": 4,
+      "top_waste": null,
+      "quality": {
+        "label": "pass",
+        "tier": "measured"
+      },
+      "detail": "call-synth-retell-billing-0001.json"
     }
   ],
   "findings": [

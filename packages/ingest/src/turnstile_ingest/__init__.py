@@ -7,11 +7,14 @@ from turnstile_ingest.providers.vapi import (
     inferred_decision_turns,
     provider_info,
 )
+from turnstile_ingest.providers.retell import from_retell, from_retell_export
 
 __all__ = [
     "IngestCall",
     "IngestError",
     "describe_coverage",
+    "from_retell",
+    "from_retell_export",
     "from_vapi",
     "from_vapi_export",
     "inferred_decision_turns",

@@ -233,3 +233,46 @@ P0 #4) returns 429 before any engine run — pinned by
 `packages/service/tests/test_ratelimit.py`. Responses ≥1 KB are gzip-encoded
 and cache policy is `no-store` on POST/status, short public cache on API
 reads, longer on committed static bytes (Day-1 P1 #7).
+
+## Day-2 appendix — real-shaped provider data surfaced (P0 #3)
+
+**Dataset:** no genuine provider export was available (environmental blocker —
+needs the owner's Vapi/Retell account; recorded in Track C's decision note,
+never fabricated). Surfaced instead: the mixed committed artifact
+**50-call native SAMPLE fleet (frozen, byte-identical regen asserted by
+`build_day2_fleet.py`) + 1 Retell provider-adapted call**
+(`synth-retell-billing-0001`, synthetic billing dispute, RESOLVED).
+
+**Recipe (deterministic, committed):**
+`packages/ingest/sample/build_day2_fleet.py` — regenerates `sample/calls.json`
+(seeded; aborts unless byte-identical), adapts the Retell sample (embedded
+`agent_model` ground truth), runs the unchanged `run_calls` with the provider
+record, writes `packages/ingest/data/` (n=51). Published via the existing
+`build_data.build_ingest()`; `manifest.json` hook and all golden files
+byte-identical (only `sample/ingest.json` + the new detail file change).
+
+**Honesty properties (all pinned by tests):** per-call `_provenance.source`
+reads `Retell export (synthetic schema-conformant example)` verbatim; D1
+ABSENT on the inferred call (excluded from the margin replay,
+`margin_excluded: 1`); native-leg margin unchanged at 2.56%; D6/D7/D8 ABSENT
+with reason. New pin:
+`packages/dashboard/tests/test_ingest_wire.py::test_ingest_report_surfaces_retell_call_with_provenance`.
+
+**Local-service verification (2026-09-15, pre-push):**
+
+```text
+GET /health            → 200 {"ok":true,"commit":"a479c3d…"}
+GET /api/ingest        → 200, n=51, provenance carries
+                         "source: Retell export (synthetic schema-conformant example)",
+                         retell row present
+GET /                  → 200 warm first paint ~0.28 s (< 5 s budget)
+POST /api/evaluate (native example) → 200 warm ~0.21 s (< 300 ms budget),
+                         RESOLVED + quality pass/measured beside cost
+POST /api/evaluate (raw Retell export) → 422 loud with IngestCall field paths
+                         (provider exports are NOT an evaluate input shape;
+                         upload UX is the P2 #7 follow-up — never a 500)
+```
+
+**Still pending (needs push):** commit + push (Render auto-deploys), then the
+live-URL DOM read (source line + tier + `synthetic` on the ingest view) and
+the live cold-paint note. Full suite green locally: 1177 passed, 4 skipped.
