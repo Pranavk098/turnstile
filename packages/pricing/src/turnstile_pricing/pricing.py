@@ -85,23 +85,42 @@ def _cost_telephony(leg: TelephonyLeg, rate) -> float:
 
 def price_trace(trace: Trace, rates: RateTable) -> PricedTrace:
     """Price every span of ``trace`` against ``rates`` (PRD Sec.4.2/4.3)."""
+    # Hoisted loop-invariants (behavior-preserving): the rate-table dicts and
+    # the key/cost helpers never change mid-trace, so binding them to locals
+    # once avoids a global + attribute lookup per span. Loop order, key
+    # construction, and float operation order are untouched -- every span
+    # computes the identical key and the identical formula in the identical
+    # sequence.
+    rates_asr = rates.asr
+    rates_llm = rates.llm
+    rates_tts = rates.tts
+    rates_telephony = rates.telephony
+    asr_key = _asr_key
+    llm_key = _llm_key
+    tts_key = _tts_key
+    telephony_key = _telephony_key
+    cost_asr = _cost_asr
+    cost_llm = _cost_llm
+    cost_tts = _cost_tts
+    cost_telephony = _cost_telephony
+    turns = trace.turns
     span_costs: dict[str, float] = {}
     stage_costs = {"asr": 0.0, "llm": 0.0, "tts": 0.0, "telephony": 0.0}
-    turn_costs = [0.0] * len(trace.turns)
+    turn_costs = [0.0] * len(turns)
 
-    for i, turn in enumerate(trace.turns):
+    for i, turn in enumerate(turns):
         for span in turn.asr:
-            cost = _cost_asr(span, rates.asr[_asr_key(span)])
+            cost = cost_asr(span, rates_asr[asr_key(span)])
             span_costs[span.span_id] = cost
             stage_costs["asr"] += cost
             turn_costs[i] += cost
         for span in turn.llm:
-            cost = _cost_llm(span, rates.llm[_llm_key(span)])
+            cost = cost_llm(span, rates_llm[llm_key(span)])
             span_costs[span.span_id] = cost
             stage_costs["llm"] += cost
             turn_costs[i] += cost
         for span in turn.tts:
-            cost = _cost_tts(span, rates.tts[_tts_key(span)])
+            cost = cost_tts(span, rates_tts[tts_key(span)])
             span_costs[span.span_id] = cost
             stage_costs["tts"] += cost
             turn_costs[i] += cost
@@ -114,19 +133,19 @@ def price_trace(trace: Trace, rates: RateTable) -> PricedTrace:
     unattributed_telephony = 0.0
     if trace.telephony is not None:
         leg = trace.telephony
-        tel_cost = _cost_telephony(leg, rates.telephony[_telephony_key(leg)])
+        tel_cost = cost_telephony(leg, rates_telephony[telephony_key(leg)])
         stage_costs["telephony"] = tel_cost
-        if trace.turns:
-            total_wall_ms = sum(t.wall_end_ms - t.wall_start_ms for t in trace.turns)
+        if turns:
+            total_wall_ms = sum(t.wall_end_ms - t.wall_start_ms for t in turns)
             if total_wall_ms > 0:
-                for i, turn in enumerate(trace.turns):
+                for i, turn in enumerate(turns):
                     wall_ms = turn.wall_end_ms - turn.wall_start_ms
                     turn_costs[i] += tel_cost * (wall_ms / total_wall_ms)
             else:
                 # Every turn has zero wall duration -- pro-rata is undefined,
                 # so split the telephony cost evenly across the turns.
-                share = tel_cost / len(trace.turns)
-                for i in range(len(trace.turns)):
+                share = tel_cost / len(turns)
+                for i in range(len(turns)):
                     turn_costs[i] += share
         else:
             unattributed_telephony = tel_cost

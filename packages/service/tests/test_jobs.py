@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 from turnstile_replay import MockBackend, experiment, get_backend
 from turnstile_schema import ExperimentResult, VariantSpec
 from turnstile_service.app import MAX_CALLS, _engine, _price_calls, app
-from turnstile_service.jobs import JobStore, JobStoreFull, passes_gate
+from turnstile_service.jobs import JobStore, JobStoreFull, passes_gate, run_experiment_job
 
 # NOTE: background tasks only outlive their request on ONE portal loop, so
 # these tests must share a context-managed client per test (a bare
@@ -226,3 +226,56 @@ def test_job_refuses_non_mock_backend(live_client, monkeypatch):
     assert final["status"] == "error"
     assert "MockBackend" in final["error"]
     assert isinstance(get_backend(), MockBackend)  # global untouched
+
+
+def test_run_experiment_job_parallel_matches_sequential():
+    """Day-3 Track C: run_experiment_job(max_workers=4) MUST equal the
+    default sequential result byte-for-byte (ordered assembly by corpus
+    index, single aggregate_experiment reduce). A jitter backend scrambles
+    completion order to prove assembly is order-independent."""
+    import hashlib
+    import time
+
+    from turnstile_replay import reset_backend, set_backend
+
+    calls = []
+    for i in range(8):
+        dup = copy.deepcopy(_doc_example())
+        dup["id"] = f"job-par-{i}"
+        calls.append(dup)
+    rates, _ = _engine()
+    priced = _price_calls(calls, rates)
+    variant = VariantSpec.model_validate(_route_variant())
+
+    def _jitter(context, original_span, variant):
+        slot = int(hashlib.sha256(
+            context.conversation_id.encode("utf-8")).hexdigest(), 16) % 5
+        time.sleep(0.002 * (slot + 1))
+        return MockBackend()(context, original_span, variant)
+
+    class _JitterBackend(MockBackend):
+        """MockBackend with a trace-dependent sleep: still a MockBackend for
+        the job's $0 guard, but completion order scrambles under the pool."""
+
+        def __call__(self, context, original_span, variant):
+            _jitter(context, original_span, variant)
+            return super().__call__(context, original_span, variant)
+
+    set_backend(_JitterBackend())
+    try:
+        sequential = run_experiment_job(priced, variant)  # default: workers=1
+        parallel = run_experiment_job(priced, variant, max_workers=4)
+    finally:
+        reset_backend()
+
+    assert parallel["n_calls"] == sequential["n_calls"] == 8
+    # Map width is observability, not an aggregate: if the payload reports
+    # it, it MUST equal the requested width on each side; everything else --
+    # trials, Wilson CI, gate verdict -- MUST be byte-identical.
+    seq_w = sequential.pop("workers", None)
+    par_w = parallel.pop("workers", None)
+    if seq_w is not None or par_w is not None:
+        assert (seq_w, par_w) == (1, 4)
+    seq_json = json.dumps(sequential, sort_keys=True, separators=(",", ":"))
+    par_json = json.dumps(parallel, sort_keys=True, separators=(",", ":"))
+    assert par_json == seq_json  # byte-identical: trials, Wilson CI, gate

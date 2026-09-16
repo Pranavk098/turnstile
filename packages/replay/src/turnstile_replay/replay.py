@@ -208,14 +208,36 @@ def replay_with_real_usage_cost(
         )
 
     backend = get_backend()
+    # Hoisted per-trace lookups (behavior-preserving): the original loop did
+    # a linear `next(...)` scan for the current turn plus a full
+    # `tuple(t for t in conv.turns if ...)` filter for `turns_before` on
+    # EVERY replaced span -- O(spans x turns). The hoisted forms below hold
+    # the exact same objects in the exact same order:
+    #   * `turns_by_index` keeps the FIRST turn per turn_index, matching
+    #     `next(t for t in conv.turns if t.turn_index == turn_idx)`.
+    #   * each `turns_before` tuple is built once per unique turn_idx with
+    #     the identical filter expression and order, then reused across
+    #     spans that share a turn.
+    # Conversation ids are loop-invariant and hoisted alongside.
+    conv_turns = conv.turns
+    conversation_id = conv.conversation.conversation_id
+    scenario_id = conv.conversation.scenario_id
+    turns_by_index: dict[int, Turn] = {}
+    for _t in conv_turns:
+        turns_by_index.setdefault(_t.turn_index, _t)
+    turns_before_cache: dict[int, tuple[Turn, ...]] = {}
     replaced: dict[str, ReplayedDecision] = {}
     for turn_idx, span in targets:
-        current_turn = next(t for t in conv.turns if t.turn_index == turn_idx)
+        current_turn = turns_by_index[turn_idx]
+        turns_before = turns_before_cache.get(turn_idx)
+        if turns_before is None:
+            turns_before = tuple(t for t in conv_turns if t.turn_index < turn_idx)
+            turns_before_cache[turn_idx] = turns_before
         context = ReplayContext(
-            conversation_id=conv.conversation.conversation_id,
-            scenario_id=conv.conversation.scenario_id,
+            conversation_id=conversation_id,
+            scenario_id=scenario_id,
             turn_index=turn_idx,
-            turns_before=tuple(t for t in conv.turns if t.turn_index < turn_idx),
+            turns_before=turns_before,
             current_turn_asr=tuple(current_turn.asr),
         )
         replaced[span.span_id] = backend(context, span, variant)

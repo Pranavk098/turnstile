@@ -105,14 +105,29 @@ def _load_embedder():
     return SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 
+# Negative cache for the inert case: `lru_cache` above only caches a
+# SUCCESSFUL load (exceptions are never cached), so without this flag every
+# retrieval span re-attempted the optional import + model load -- repeated
+# filesystem probing (profiled as ~50% of the detect hot loop when the extra
+# is absent). The flag caches only the FAILURE signal: once the half has
+# proven inert it stays inert for the process (model availability never
+# changes mid-run). Outputs are unchanged -- `_embed_similarity` still
+# returns None in exactly the same cases, just without re-probing.
+_EMBEDDER_INERT = False
+
+
 def _embed_similarity(text_a: str, text_b: str) -> float | None:
     """Cosine similarity of the two texts under the local embedding model,
     or ``None`` when the cosine half is inert (extra absent / model not
     cached offline). Never raises, never touches the network here: the model
     load either succeeds locally or the half degrades off."""
+    global _EMBEDDER_INERT
+    if _EMBEDDER_INERT:
+        return None
     try:
         model = _load_embedder()
     except Exception:
+        _EMBEDDER_INERT = True
         return None
     vecs = model.encode([text_a, text_b], normalize_embeddings=True)
     a, b = vecs[0], vecs[1]

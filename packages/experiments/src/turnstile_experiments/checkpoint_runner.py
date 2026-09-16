@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import os
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from turnstile_schema import ExperimentResult, PricedTrace, Trial, VariantSpec
@@ -181,6 +181,69 @@ class CheckpointStore:
         "reasoning_tokens", "output_tokens"}``), or ``None``."""
         return self._truncated.get(key)
 
+    def _stage_locked(self, key: str, trial: Trial,
+                      delta_cost_real_usage: float | None = None,
+                      *,
+                      forked_label: str | None = None,
+                      forked_text: str | None = None,
+                      finish_reason: str | None = None,
+                      truncated: bool = False,
+                      truncated_reasoning_tokens: int | None = None,
+                      truncated_output_tokens: int | None = None) -> dict:
+        """Update the in-memory dicts and build the JSONL record for one
+        trial. Caller MUST hold ``self._lock``. Shared by ``put`` and
+        ``put_batch`` so a batched record is byte-identical to a single-put
+        record."""
+        self._done[key] = trial
+        if delta_cost_real_usage is not None:
+            self._real_usage[key] = delta_cost_real_usage
+        if forked_label is not None:
+            self._forks[key] = {
+                "forked_label": forked_label,
+                "forked_text": forked_text,
+                "finish_reason": finish_reason,
+            }
+        if truncated:
+            self._truncated[key] = {
+                "finish_reason": finish_reason or "length",
+                "reasoning_tokens": truncated_reasoning_tokens,
+                "output_tokens": truncated_output_tokens,
+            }
+        rec: dict = {"key": key, "trial": trial.model_dump()}
+        if delta_cost_real_usage is not None:
+            rec["delta_cost_real_usage"] = delta_cost_real_usage
+        if forked_label is not None:
+            rec["forked_label"] = forked_label
+            rec["forked_text"] = forked_text
+            rec["finish_reason"] = finish_reason
+        if truncated:
+            rec["truncated"] = True
+            # When a truncated trial also carries a fork label (should not
+            # happen -- truncation takes precedence over divergence), the
+            # fork block above already stored finish_reason; ensure the
+            # truncation block still records it.
+            rec["finish_reason"] = finish_reason or "length"
+            rec["truncated_reasoning_tokens"] = truncated_reasoning_tokens
+            rec["truncated_output_tokens"] = truncated_output_tokens
+        elif finish_reason is not None and forked_label is None and trial.status == "divergent":
+            # Divergent trial whose backend returned no label detail but
+            # did return a finish reason (defensive; new writers always
+            # send the label): persist the reason so the exemplar block
+            # still records it.
+            rec["finish_reason"] = finish_reason
+        return rec
+
+    def _flush_locked(self, recs: list[dict]) -> None:
+        """Append already-staged records with ONE flush+fsync. Caller MUST
+        hold ``self._lock``. Group commit: one fsync covers the whole batch
+        instead of one per trial."""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a", encoding="utf-8") as f:
+            for rec in recs:
+                f.write(json.dumps(rec) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+
     def put(self, key: str, trial: Trial,
             delta_cost_real_usage: float | None = None,
             *,
@@ -191,48 +254,42 @@ class CheckpointStore:
             truncated_reasoning_tokens: int | None = None,
             truncated_output_tokens: int | None = None) -> None:
         with self._lock:
-            self._done[key] = trial
-            if delta_cost_real_usage is not None:
-                self._real_usage[key] = delta_cost_real_usage
-            if forked_label is not None:
-                self._forks[key] = {
-                    "forked_label": forked_label,
-                    "forked_text": forked_text,
-                    "finish_reason": finish_reason,
-                }
-            if truncated:
-                self._truncated[key] = {
-                    "finish_reason": finish_reason or "length",
-                    "reasoning_tokens": truncated_reasoning_tokens,
-                    "output_tokens": truncated_output_tokens,
-                }
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            rec: dict = {"key": key, "trial": trial.model_dump()}
-            if delta_cost_real_usage is not None:
-                rec["delta_cost_real_usage"] = delta_cost_real_usage
-            if forked_label is not None:
-                rec["forked_label"] = forked_label
-                rec["forked_text"] = forked_text
-                rec["finish_reason"] = finish_reason
-            if truncated:
-                rec["truncated"] = True
-                # When a truncated trial also carries a fork label (should not
-                # happen -- truncation takes precedence over divergence), the
-                # fork block above already stored finish_reason; ensure the
-                # truncation block still records it.
-                rec["finish_reason"] = finish_reason or "length"
-                rec["truncated_reasoning_tokens"] = truncated_reasoning_tokens
-                rec["truncated_output_tokens"] = truncated_output_tokens
-            elif finish_reason is not None and forked_label is None and trial.status == "divergent":
-                # Divergent trial whose backend returned no label detail but
-                # did return a finish reason (defensive; new writers always
-                # send the label): persist the reason so the exemplar block
-                # still records it.
-                rec["finish_reason"] = finish_reason
-            with self.path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(rec) + "\n")
-                f.flush()
-                os.fsync(f.fileno())
+            rec = self._stage_locked(
+                key, trial, delta_cost_real_usage,
+                forked_label=forked_label, forked_text=forked_text,
+                finish_reason=finish_reason, truncated=truncated,
+                truncated_reasoning_tokens=truncated_reasoning_tokens,
+                truncated_output_tokens=truncated_output_tokens)
+            self._flush_locked([rec])
+
+    def put_batch(self, items: list[tuple[str, object]]) -> None:
+        """Group-commit ``[(key, outcome)]`` (Day-3 Track C): stage every
+        trial's record, then append + flush + fsync ONCE for the whole batch.
+
+        Each record is byte-identical to what ``put`` would have written for
+        the same outcome (same ``_stage_locked`` path); only the fsync
+        frequency changes. The sequential path keeps per-trial ``put`` (a
+        crash loses nothing already produced); the parallel path commits one
+        worker chunk at a time (a crash loses at most the in-flight chunks,
+        which resume recomputes -- keys are unique per trace, so resume
+        still skips exactly the persisted trials and never double-counts).
+        Torn-tail tolerance is unchanged: a partial batch write still ends
+        in at most one torn line, which ``_load`` skips."""
+        with self._lock:
+            recs = [self._stage_locked(
+                key,
+                outcome.trial,  # type: ignore[attr-defined]
+                getattr(outcome, "delta_cost_real_usage", None),
+                forked_label=getattr(outcome, "forked_label", None),
+                forked_text=getattr(outcome, "forked_text", None),
+                finish_reason=getattr(outcome, "finish_reason", None),
+                truncated=bool(getattr(outcome, "truncated", False)),
+                truncated_reasoning_tokens=getattr(
+                    outcome, "truncated_reasoning_tokens", None),
+                truncated_output_tokens=getattr(
+                    outcome, "truncated_output_tokens", None),
+            ) for key, outcome in items]
+            self._flush_locked(recs)
 
     def __len__(self) -> int:
         with self._lock:
@@ -251,15 +308,24 @@ def run_experiment_checkpointed(
     Fresh trials are computed via ``replay_with_real_usage_cost`` so the
     non-gated companion figure is checkpointed alongside the trial (CR-B).
 
-    Change B (audit 06 Sec.3/§6): ``max_workers > 1`` runs the map step
-    (per-trace ``replay``) on a ``ThreadPoolExecutor`` over the
+    Change B (audit 06 Sec.3/§6, Day-3 Track C): ``max_workers > 1`` runs the
+    map step (per-trace ``replay``) on a ``ThreadPoolExecutor`` over the
     NOT-yet-checkpointed traces only -- completed keys skip exactly as the
-    sequential loop does, so a resumed run never re-spends. The shared
-    backend is safe across workers (the OpenAI client is thread-safe;
-    ``replay`` reads globals + builds local state; ``CheckpointStore.put``
-    is lock-guarded). DETERMINISM: results are assembled in corpus order
-    regardless of completion order, so aggregates are byte-identical to the
-    sequential path."""
+    sequential loop does, so a resumed run never re-spends. The pending
+    traces are split into at most ``max_workers`` CONTIGUOUS chunks (one task
+    per worker, not one task per trace, so pool overhead stays flat as the
+    corpus grows); each worker replays its chunk sequentially and the main
+    thread group-commits each chunk's outcomes (``put_batch``: one fsync per
+    chunk instead of one per trial -- the profiled hot path) in chunk order.
+    The shared backend is safe across workers (the OpenAI client is
+    thread-safe; ``replay`` reads globals + builds local state;
+    ``CheckpointStore`` stays lock-guarded). DETERMINISM: chunks cover
+    contiguous corpus ranges and are committed in corpus order, so the trial
+    list, the checkpoint RECORDS, and the aggregates are byte-identical to
+    the sequential path (the sequential path itself is untouched: per-trial
+    ``put`` with per-trial fsync). Variants stay sequential (see
+    ``run_matrix_checkpointed_detailed``). Resume semantics are unchanged: a
+    crash loses at most the in-flight chunks, which resume recomputes."""
     assert_variant_executable(variant_name, variant)
     assert_backend_executable(variant_name, variant)
 
@@ -280,19 +346,26 @@ def run_experiment_checkpointed(
         trials[i] = outcome.trial
 
     if max_workers > 1 and pending:
-        pending_pts = dict(pending)  # corpus index -> trace
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(
-                    replay_with_real_usage_cost,
-                    pt, variant, _earliest_applicable_turn(pt, variant),
-                ): i
-                for i, pt in pending
-            }
-            # Completion order is irrelevant: each future fills its own
-            # corpus-indexed slot, so assembly is deterministic.
-            for future in as_completed(futures):
-                _record(futures[future], pending_pts[futures[future]], future.result())
+        n_chunks = min(max_workers, len(pending))
+        chunk_size = (len(pending) + n_chunks - 1) // n_chunks
+        chunks = [pending[k * chunk_size:(k + 1) * chunk_size]
+                  for k in range(n_chunks)]
+
+        def _run_chunk(chunk: list[tuple[int, PricedTrace]]) -> list:
+            return [
+                (i, replay_with_real_usage_cost(
+                    pt, variant, _earliest_applicable_turn(pt, variant)))
+                for i, pt in chunk
+            ]
+
+        # executor.map yields chunk results IN chunk (corpus) order, so the
+        # commit below is deterministic regardless of completion order: each
+        # outcome fills its own corpus-indexed slot.
+        with ThreadPoolExecutor(max_workers=n_chunks) as executor:
+            for chunk, outcomes in zip(chunks, executor.map(_run_chunk, chunks)):
+                store.put_batch([(keys[i], outcome) for i, outcome in outcomes])
+                for i, outcome in outcomes:
+                    trials[i] = outcome.trial
     else:
         for i, pt in pending:
             outcome = replay_with_real_usage_cost(

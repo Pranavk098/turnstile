@@ -29,6 +29,7 @@ import asyncio
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -79,14 +80,33 @@ class Job:
     created_monotonic: float = field(default_factory=time.monotonic)
     result: dict | None = None
     error: str | None = None
+    # Day-3 observability (additive): lifecycle timestamps + worker count.
+    started_monotonic: float | None = None
+    finished_monotonic: float | None = None
+    workers: int = 1
 
     def public(self) -> dict:
         """The GET body: status always, result/error when terminal."""
+        now = time.monotonic()
+        if self.started_monotonic is None:
+            queue_ms = (now - self.created_monotonic) * 1000.0
+            run_ms = 0.0
+        elif self.finished_monotonic is None:
+            queue_ms = (self.started_monotonic - self.created_monotonic) * 1000.0
+            run_ms = (now - self.started_monotonic) * 1000.0
+        else:
+            queue_ms = (self.started_monotonic - self.created_monotonic) * 1000.0
+            run_ms = (self.finished_monotonic - self.started_monotonic) * 1000.0
         body: dict[str, Any] = {
             "job_id": self.job_id,
             "status": self.status,
             "variant": self.variant,
             "n_calls": self.n_calls,
+            "timings": {
+                "queue_ms": queue_ms,
+                "run_ms": run_ms,
+            },
+            "workers": self.workers,
         }
         if self.result is not None:
             body["result"] = self.result
@@ -155,7 +175,8 @@ class JobStore:
         result payload) on the loop. Raises ``JobStoreFull`` past caps --
         ``run`` is never invoked then."""
         job = Job(job_id=uuid.uuid4().hex, status="queued", variant=variant,
-                  n_calls=n_calls, rates_sha=rates_sha, baselines_sha=baselines_sha)
+                  n_calls=n_calls, rates_sha=rates_sha, baselines_sha=baselines_sha,
+                  workers=self._max_running)
         with self._lock:
             self._evict_locked(time.monotonic())
             if self._active_locked() >= self._max_active:
@@ -172,15 +193,18 @@ class JobStore:
             with self._lock:
                 if job.status == "queued":
                     job.status = "running"
+                    job.started_monotonic = time.monotonic()
             try:
                 result = await asyncio.to_thread(run)
             except Exception as exc:  # noqa: BLE001 -- job errors are data
                 with self._lock:
                     job.status = "error"
+                    job.finished_monotonic = time.monotonic()
                     job.error = f"{type(exc).__name__}: {exc}"
             else:
                 with self._lock:
                     job.status = "done"
+                    job.finished_monotonic = time.monotonic()
                     job.result = result
 
 
@@ -196,24 +220,63 @@ def _log_task_crash(task: asyncio.Task) -> None:
             "job task crashed", exc_info=exc)
 
 
-def run_experiment_job(priced_traces: list, variant) -> dict:
+def _map_trials_ordered(priced_traces: list, variant, max_workers: int = 1) -> list:
+    """``map_trials`` with an optional thread-pool map (Day-3 Track C).
+
+    ``max_workers <= 1`` is the sequential path, unchanged. Above that, each
+    single-trace ``map_trials([pt], variant)`` shard -- the exact per-trace
+    replay semantics ``experiment()`` composes, so zero drift -- runs on a
+    ``ThreadPoolExecutor``; futures are mapped to their corpus index and
+    assembled back in input order regardless of completion order, so the
+    trial list (and the single ``aggregate_experiment`` reduce over it) is
+    byte-identical to the sequential path. MockBackend is stateless, so the
+    shared backend is safe across workers.
+    """
+    if max_workers <= 1 or len(priced_traces) <= 1:
+        return map_trials(priced_traces, variant)
+    ordered: list = [None] * len(priced_traces)  # type: ignore[list-item]
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(map_trials, [pt], variant): i
+            for i, pt in enumerate(priced_traces)
+        }
+        # Completion order is irrelevant: each future fills its own
+        # corpus-indexed slot, so assembly is deterministic.
+        for future in as_completed(futures):
+            ordered[futures[future]] = future.result()[0]
+    return ordered
+
+
+def run_experiment_job(priced_traces: list, variant, max_workers: int = 1) -> dict:
     """The worker body: gated variant sweep over pre-priced traces.
 
     Same functions the CLI path composes (``map_trials`` +
     ``aggregate_experiment``), plus exact Wilson counts from the trials and
     the §8.3 gate verdict. Refuses paid backends before touching anything.
+
+    ``max_workers`` (Day-3 Track C): thread workers for the per-trace map;
+    default 1 preserves the sequential API. Above 1 the map runs on a
+    ``ThreadPoolExecutor`` with ordered assembly by corpus index, then a
+    single ``aggregate_experiment`` reduce -- byte-for-byte equal to the
+    sequential result.
     """
     if not isinstance(get_backend(), MockBackend):
         raise RuntimeError(
             "refusing experiment: process backend is "
             f"{type(get_backend()).__name__}, not MockBackend ($0 only)"
         )
-    trials = map_trials(priced_traces, variant)
+    trials = _map_trials_ordered(priced_traces, variant, max_workers)
     result = aggregate_experiment(trials)
     non_excluded = [t for t in trials if t.status != "excluded"]
     counted = [t for t in non_excluded if t.outcome_preserved is not None]
     successes = sum(1 for t in counted if t.outcome_preserved)
     wilson_lo, wilson_hi = wilson_interval(successes, len(counted))
+    # Day-3 Track D contract (shared with Track C's gate): this payload stays
+    # width-invariant -- no map-width or measured-timing fields -- so the
+    # parallel==serial byte-identical-aggregates gate holds over the whole
+    # dict. Per-job observability (queue/run timings + worker count) lives at
+    # the Job.public() envelope ("timings"/"workers"), which is where the
+    # endpoint/poll reader consumes it.
     return {
         "experiment": result.model_dump(mode="json"),
         "passes_gate": passes_gate(result),

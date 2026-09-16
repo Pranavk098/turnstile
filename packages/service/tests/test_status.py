@@ -76,3 +76,78 @@ def test_gzip_shrinks_fleet():
     assert gz.json() == plain.json()
     # httpx auto-decodes; assert the wire would compress: raw JSON > 1KB floor.
     assert len(plain.content) > 1024
+
+
+def test_boot_warms_committed_snapshot_without_engine():
+    """Day-3 P1 #7: app boot (lifespan) preloads the committed fleet bytes
+    read-only; read endpoints serve snapshot bytes identical to disk; cold
+    first paint stays within the <5s budget; warming never runs the engine."""
+    import sys
+    import time
+    from turnstile_service import data as committed
+
+    app_module = sys.modules["turnstile_service.app"]
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("warm boot must not touch the engine")
+
+    orig_run, orig_price = app_module.run_calls, app_module._price_calls
+    app_module.run_calls, app_module._price_calls = _boom, _boom
+    try:
+        with _client() as client:
+            assert committed._WARM is not None
+            assert len(committed._WARM) == len(committed.READ_ENDPOINTS) + 2
+            start = time.perf_counter()
+            fleet = client.get("/api/fleet")
+            first_paint_ms = (time.perf_counter() - start) * 1000.0
+            assert fleet.status_code == 200
+            assert first_paint_ms < 5000.0
+            assert fleet.content == committed.read_sample(
+                committed.READ_ENDPOINTS["fleet"])
+            assert client.get("/api/status").status_code == 200
+    finally:
+        app_module.run_calls, app_module._price_calls = orig_run, orig_price
+
+
+def test_reads_fall_back_to_disk_without_lifespan(monkeypatch):
+    """Without a lifespan run (bare app), readers serve disk bytes exactly."""
+    from turnstile_service import data as committed
+
+    monkeypatch.setattr(committed, "_WARM", None)
+    assert committed.read_sample(
+        committed.READ_ENDPOINTS["fleet"]) == (
+        committed.SAMPLE_DIR / committed.READ_ENDPOINTS["fleet"]).read_bytes()
+    assert committed.read_ingest_artifact() == \
+        committed.INGEST_ARTIFACT.read_bytes()
+    assert committed.read_example_call() == \
+        committed.EXAMPLE_CALL_PATH.read_bytes()
+
+
+def test_status_exposes_cache_and_timings_additive():
+    """Day-3 Track D: /api/status carries cache hit-rate + median/p95
+    alongside the Day-1 fields (never renamed/removed). Fresh app: zero
+    traffic reads as hit_rate 0.0 with numeric timings."""
+    client = _client()
+    res = client.get("/api/status")
+    assert res.status_code == 200
+    body = res.json()
+    # Day-1 contract intact.
+    assert body["ok"] is True
+    assert "commit" in body and isinstance(body["commit"], str)
+    assert "uptime_sec" in body and body["uptime_sec"] >= 0
+    assert body["warm"] is True
+    assert "engine_loaded" in body
+    # Day-3 additive fields.
+    cache = body["cache"]
+    for key in ("entries", "byte_size", "hits", "misses", "hit_rate"):
+        assert key in cache, key
+    assert cache["entries"] == 0
+    assert cache["byte_size"] == 0
+    assert cache["hits"] == 0 and cache["misses"] == 0
+    assert cache["hit_rate"] == 0.0
+    timings = body["timings_ms"]
+    assert "evaluate_median" in timings and "evaluate_p95" in timings
+    assert isinstance(timings["evaluate_median"], (int, float))
+    assert isinstance(timings["evaluate_p95"], (int, float))
+    assert timings["evaluate_median"] >= 0 and timings["evaluate_p95"] >= 0
+    assert res.headers.get("cache-control") == "no-store"

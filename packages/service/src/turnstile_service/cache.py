@@ -22,8 +22,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import statistics
 import threading
-from collections import OrderedDict
+import time
+from collections import OrderedDict, deque
 from typing import Any
 
 #: Bounds: a public $0 endpoint must not become a memory sink. Bodies are
@@ -67,14 +69,32 @@ class EvalCache:
         self._entries: OrderedDict[str, bytes] = OrderedDict()
         self._bytes = 0
         self._lock = threading.Lock()
+        # Day-3 observability (additive): hit/miss + timing counters.
+        # Behavior of get/put/len/byte_size is unchanged.
+        self._hits = 0
+        self._misses = 0
+        self._puts = 0
+        self._evictions = 0
+        self._total_hit_ns = 0
+        self._total_miss_ns = 0
+        self._latencies_ms: deque[float] = deque(maxlen=512)
 
     def get(self, key: str) -> bytes | None:
         """Cached response bytes, or None. Hits refresh recency."""
+        start_ns = time.perf_counter_ns()
         with self._lock:
             body = self._entries.get(key)
             if body is None:
+                elapsed_ns = time.perf_counter_ns() - start_ns
+                self._misses += 1
+                self._total_miss_ns += elapsed_ns
+                self._latencies_ms.append(elapsed_ns / 1e6)
                 return None
             self._entries.move_to_end(key)
+            elapsed_ns = time.perf_counter_ns() - start_ns
+            self._hits += 1
+            self._total_hit_ns += elapsed_ns
+            self._latencies_ms.append(elapsed_ns / 1e6)
             return body
 
     def put(self, key: str, body: bytes) -> bool:
@@ -88,9 +108,13 @@ class EvalCache:
                 self._bytes -= len(old)
             self._entries[key] = body
             self._bytes += len(body)
+            evicted = 0
             while len(self._entries) > self._max_entries or self._bytes > self._max_bytes:
-                _, evicted = self._entries.popitem(last=False)
-                self._bytes -= len(evicted)
+                _, evicted_body = self._entries.popitem(last=False)
+                self._bytes -= len(evicted_body)
+                evicted += 1
+            self._puts += 1
+            self._evictions += evicted
             return True
 
     def __len__(self) -> int:
@@ -102,3 +126,43 @@ class EvalCache:
         """Current cached bytes (tests + capacity introspection)."""
         with self._lock:
             return self._bytes
+
+    def stats(self) -> dict[str, Any]:
+        """Day-3 observability snapshot: counters + hit-rate + median/p95
+        over the bounded recent hit+miss latencies. Pure read; never runs
+        the engine and never touches cached bytes."""
+        with self._lock:
+            hits = self._hits
+            misses = self._misses
+            puts = self._puts
+            evictions = self._evictions
+            entries = len(self._entries)
+            byte_size = self._bytes
+            latencies = list(self._latencies_ms)
+        total = hits + misses
+        hit_rate = (hits / total) if total else 0.0
+        if not latencies:
+            median_ms = 0.0
+            p95_ms = 0.0
+        elif len(latencies) == 1:
+            median_ms = float(latencies[0])
+            p95_ms = float(latencies[0])
+        else:
+            median_ms = float(statistics.median(latencies))
+            try:
+                p95_ms = float(statistics.quantiles(latencies, n=100)[94])
+            except statistics.StatisticsError:
+                ordered = sorted(latencies)
+                idx = min(len(ordered) - 1, max(0, int(len(ordered) * 0.95)))
+                p95_ms = float(ordered[idx])
+        return {
+            "entries": entries,
+            "byte_size": byte_size,
+            "hits": hits,
+            "misses": misses,
+            "puts": puts,
+            "evictions": evictions,
+            "hit_rate": hit_rate,
+            "median_ms": median_ms,
+            "p95_ms": p95_ms,
+        }

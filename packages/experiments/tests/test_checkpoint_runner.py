@@ -288,3 +288,55 @@ def test_resume_skips_checkpointed_traces_even_concurrently(tmp_path):
     for name in expected:
         assert result[name].model_dump() == expected[name].model_dump()
     reset_backend()
+
+
+# --------------------------------------------------------------------------- #
+# Day-3 Track C: parallel (workers=4) vs serial (workers=1) on a small corpus #
+# with a jitter backend MUST produce identical aggregates (chunked shards +   #
+# group-commit puts change fsync frequency only, never record bytes).         #
+# --------------------------------------------------------------------------- #
+
+def test_parallel_workers4_matches_serial_with_jitter_backend(tmp_path):
+    import hashlib
+    import time
+
+    reset_backend()
+    # 6 traces x two route decisions each; the backend sleeps a trace-dependent
+    # amount so chunk completion order differs from corpus order under the pool.
+    corpus = [
+        priced(
+            turn(0, llm_spans=[llm("l0", decision_kind=DecisionKind.route),
+                               llm("l1", decision_kind=DecisionKind.route)]),
+            turn(1, llm_spans=[llm("l2", decision_kind=DecisionKind.route)]),
+            conversation_id=f"j{i}",
+        )
+        for i in range(6)
+    ]
+
+    def _jitter_backend(context, original_span, variant):
+        time.sleep(0.01 * (int(context.conversation_id[1:]) % 3 + 1))
+        return MockBackend()(context, original_span, variant)
+
+    def _hash(matrix) -> str:
+        canonical = json.dumps(
+            {name: matrix[name].model_dump(mode="json") for name in sorted(matrix)},
+            sort_keys=True, separators=(",", ":"),
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    serial = run_matrix_checkpointed(
+        corpus, VARIANTS, tmp_path / "w1.jsonl", backend=_jitter_backend, max_workers=1)
+    parallel, _ = run_matrix_checkpointed_detailed(
+        corpus, VARIANTS, tmp_path / "w4.jsonl", backend=_jitter_backend, max_workers=4)
+
+    assert set(parallel) == set(serial) == set(VARIANTS)
+    for name in VARIANTS:
+        assert parallel[name].model_dump() == serial[name].model_dump()
+    assert _hash(parallel) == _hash(serial)
+
+    # The checkpoint RECORDS match too (same set of records; group commit
+    # writes them chunk by chunk in corpus order).
+    serial_recs = sorted((tmp_path / "w1.jsonl").read_text(encoding="utf-8").splitlines())
+    parallel_recs = sorted((tmp_path / "w4.jsonl").read_text(encoding="utf-8").splitlines())
+    assert parallel_recs == serial_recs
+    reset_backend()

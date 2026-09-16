@@ -24,8 +24,12 @@ from __future__ import annotations
 
 import json
 import logging
+import statistics
 import subprocess
+import threading
 import time
+from collections import deque
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -150,12 +154,46 @@ def _content_length_exceeds(headers) -> bool:
         return False
 
 
+def _median_p95_ms(values: list[float]) -> tuple[float, float]:
+    """Median/p95 over wall-ms samples with stdlib only. Empty -> 0.0s
+    (no data yet); single sample -> that value for both."""
+    if not values:
+        return 0.0, 0.0
+    if len(values) == 1:
+        return float(values[0]), float(values[0])
+    median = float(statistics.median(values))
+    try:
+        p95 = float(statistics.quantiles(values, n=100)[94])
+    except statistics.StatisticsError:
+        ordered = sorted(values)
+        idx = min(len(ordered) - 1, max(0, int(len(ordered) * 0.95)))
+        p95 = float(ordered[idx])
+    return median, p95
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    """Day-3 P1 #7: preload the committed fleet bytes once at boot
+    (read-only snapshot; no engine run — the status path never touches the
+    engine either way). Read endpoints serve the snapshot when present and
+    fall back to disk reads otherwise, so app construction without lifespan
+    (tests, import) behaves exactly as before."""
+    committed.warm()
+    yield
+
+
 def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
-    app = FastAPI(title="Turnstile demo eval service", version="1.0.0")
+    app = FastAPI(title="Turnstile demo eval service", version="1.0.0",
+                  lifespan=_lifespan)
     app.state.eval_cache = EvalCache()
     app.state.job_store = JobStore()
     app.state.rate_limiter = rate_limiter or limiter_from_env()
     app.state.start_monotonic = time.monotonic()
+    # Day-3 observability: bounded wall-ms samples of /api/evaluate handler
+    # time (hit + miss). deque.append is atomic under the GIL; the lock
+    # makes read-copy vs append deterministic for status snapshots.
+    app.state.eval_latencies: deque[float] = deque(maxlen=512)
+    app.state.eval_latencies_lock = threading.Lock()
     # P1 #7: compress responses >=1KB; adds no measurable latency to small
     # JSON and cuts fleet/detail payloads on slow links.
     app.add_middleware(GZipMiddleware, minimum_size=1024)
@@ -195,12 +233,33 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         """P1 #8 lightweight status for the Day-7 QA gate: uptime, commit,
         warm/cold. No engine run, no PII, no request-body read."""
         start: float = request.app.state.start_monotonic
+        cache_stats = request.app.state.eval_cache.stats()
+        with request.app.state.eval_latencies_lock:
+            eval_samples = list(request.app.state.eval_latencies)
+        if eval_samples:
+            eval_median, eval_p95 = _median_p95_ms(eval_samples)
+        else:
+            # No evaluate traffic yet: fall back to cache-lookup timings so
+            # median/p95 are still numbers without ever running the engine.
+            eval_median, eval_p95 = (
+                cache_stats["median_ms"], cache_stats["p95_ms"])
         return {
             "ok": True,
             "commit": commit_sha(),
             "uptime_sec": round(time.monotonic() - start, 1),
             "warm": True,
             "engine_loaded": _engine.cache_info().currsize > 0,
+            "cache": {
+                "entries": cache_stats["entries"],
+                "byte_size": cache_stats["byte_size"],
+                "hits": cache_stats["hits"],
+                "misses": cache_stats["misses"],
+                "hit_rate": cache_stats["hit_rate"],
+            },
+            "timings_ms": {
+                "evaluate_median": eval_median,
+                "evaluate_p95": eval_p95,
+            },
         }
 
     for name in committed.READ_ENDPOINTS:
@@ -230,6 +289,21 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         denied = _rate_limited(request)
         if denied is not None:
             return denied
+        # Day-3: full-handler wall clock (body read + parse + key + cache or
+        # engine + serialize), so timings_ms.evaluate_* is the whole serve
+        # cost, not just the cache-lookup slice. Errors (429/413/422/500)
+        # return before/around it and record nothing.
+        t0 = time.perf_counter()
+
+        def _record_eval_ms() -> None:
+            """One wall-ms sample of handler time (hit or miss)."""
+            dt_ms = (time.perf_counter() - t0) * 1000.0
+            try:
+                with request.app.state.eval_latencies_lock:
+                    request.app.state.eval_latencies.append(dt_ms)
+            except Exception:  # noqa: BLE001 -- observability never breaks eval
+                pass
+
         declared = request.headers.get("content-length")
         if _content_length_exceeds(request.headers):
             return _json_bytes_error(
@@ -258,6 +332,7 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         cache_key = request_key(calls, *_content_shas())
         cached = request.app.state.eval_cache.get(cache_key)
         if cached is not None:
+            _record_eval_ms()
             return Response(content=cached, media_type="application/json")
         try:
             artifact, details = run_calls(
@@ -276,6 +351,7 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         # front-end can drill down with the existing detail renderer.
         body = _json_response_bytes({**artifact, "details": details})
         request.app.state.eval_cache.put(cache_key, body)
+        _record_eval_ms()
         return Response(content=body, media_type="application/json")
 
     @app.post("/api/experiments", status_code=202)

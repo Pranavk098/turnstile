@@ -36,18 +36,46 @@ READ_ENDPOINTS = {
 }
 
 
+#: Day-3 P1 #7 warm snapshot: committed bytes preloaded once at app boot
+#: (read-only; snapshot-or-disk getters below serve whichever is present).
+#: Per-call detail files stay on-demand disk reads (per-ID drill-downs).
+_WARM: dict[str, bytes] | None = None
+
+
+def warm() -> int:
+    """Preload the committed fleet bytes into memory (idempotent). Pure
+    disk→memory copy: no pricing, no detect, no replay, no engine. Returns
+    the entry count so boot/tests can observe it."""
+    global _WARM
+    snapshot = {name: (SAMPLE_DIR / name).read_bytes()
+                for name in READ_ENDPOINTS.values()}
+    snapshot["ingest:data.json"] = INGEST_ARTIFACT.read_bytes()
+    snapshot["example:call"] = EXAMPLE_CALL_PATH.read_bytes()
+    _WARM = snapshot
+    return len(snapshot)
+
+
 def read_sample(name: str) -> bytes:
     """Raw bytes of a committed ``sample/`` file (served verbatim)."""
+    warm_snapshot = _WARM
+    if warm_snapshot is not None and name in warm_snapshot:
+        return warm_snapshot[name]
     return (SAMPLE_DIR / name).read_bytes()
 
 
 def read_ingest_artifact() -> bytes:
     """Raw bytes of the ingest CLI's committed ``data.json`` (verbatim)."""
+    warm_snapshot = _WARM
+    if warm_snapshot is not None and "ingest:data.json" in warm_snapshot:
+        return warm_snapshot["ingest:data.json"]
     return INGEST_ARTIFACT.read_bytes()
 
 
 def read_example_call() -> bytes:
     """Raw bytes of the ``docs/INGEST.md`` example call (verbatim)."""
+    warm_snapshot = _WARM
+    if warm_snapshot is not None and "example:call" in warm_snapshot:
+        return warm_snapshot["example:call"]
     return EXAMPLE_CALL_PATH.read_bytes()
 
 
