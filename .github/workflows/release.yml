@@ -26,10 +26,14 @@ jobs:
       # "task-oriented"), so the gate matches real secret SHAPES instead: a
       # `sk-`/`ghp_` prefix followed by a 20+ char token run, a `pypi-` token,
       # or a PEM private-key header. Verified zero hits on the Day-5 tip.
+      # --exclude=self: the pattern text lives in this step, so an unexcluded
+      # scan self-matches and can never pass (proven by fork dry-run
+      # pranavk-4/turnstile run 35398030685). Skipped: per-file exclusion,
+      # add when a dedicated scanner (e.g. gitleaks) replaces this grep.
       - name: scan for committed secrets
         run: |
           ! grep -rniE "sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|pypi-[A-Za-z0-9_-]{10,}|BEGIN .*PRIVATE KEY" \
-            --exclude-dir=.git --exclude-dir=.venv .
+            --exclude-dir=.git --exclude-dir=.venv --exclude=release.yml .
 
   build:
     needs: [test, secret-scan]
