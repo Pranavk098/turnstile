@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
-      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - run: uv run --frozen python -m pytest -q
 
   secret-scan:
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
-      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |
           for pkg in schema pricing verdict detectors replay ingest quality; do
@@ -68,7 +68,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
-      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |
           for pkg in schema pricing verdict detectors replay ingest quality; do
@@ -91,7 +91,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
-      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |
           for pkg in schema pricing verdict detectors replay ingest quality; do

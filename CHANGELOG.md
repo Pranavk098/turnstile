@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inert when unset), and `GET /metrics` extending Day-3 counters
   (Day-5 Part C) (unreleased, pending H).
 - CI Node-20 deprecation fix: `actions/checkout@v4` → `@v5`,
-  `astral-sh/setup-uv@v5` → `@v6`, all pinned to commit SHAs; `release`
-  workflow (TestPyPI on dispatch, PyPI on tag) with secret scan; weekly
-  link-health job (Day-5 Part D) (unreleased, pending H).
+  `astral-sh/setup-uv@v5` → `@v10.1.0` (spec's `@v6` still targets node20 —
+  proven by a runner warning on the fork dry-run — so current major taken),
+  all pinned to commit SHAs; `release` workflow (TestPyPI on dispatch, PyPI
+  on tag) with secret scan; weekly link-health job (Day-5 Part D)
+  (unreleased, pending H).
 
 ## [0.1.0]
 
