@@ -1,0 +1,99 @@
+name: release
+
+# Day-5 Part D. Manual `workflow_dispatch` (TestPyPI) + `v*` tags (real PyPI).
+# Secrets come from CI secrets only, never committed (charter $0).
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - run: uv run --frozen python -m pytest -q
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      # Exit 1 = no hits (grep finds nothing); any hit fails the job BEFORE publish.
+      # NOTE (Part D, 2026-09-18): the naive `sk-` substring from the work-split
+      # false-positives on this tree (37 `sk-test-fake` fixtures + prose like
+      # "task-oriented"), so the gate matches real secret SHAPES instead: a
+      # `sk-`/`ghp_` prefix followed by a 20+ char token run, a `pypi-` token,
+      # or a PEM private-key header. Verified zero hits on the Day-5 tip.
+      - name: scan for committed secrets
+        run: |
+          ! grep -rniE "sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{20,}|pypi-[A-Za-z0-9_-]{10,}|BEGIN .*PRIVATE KEY" \
+            --exclude-dir=.git --exclude-dir=.venv .
+
+  build:
+    needs: [test, secret-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - name: build the 7 library distributions
+        run: |
+          for pkg in schema pricing verdict detectors replay ingest quality; do
+            uv build --package "turnstile-$pkg"
+          done
+      # TODO(A): run scripts/smoke_clean_venv.sh against dist/ here once Part A
+      # merges (gate: smoke exit 0 or no release). Until then, a green `uv build`
+      # above is the release gate.
+      - name: smoke test built artifacts
+        run: |
+          if [ -x scripts/smoke_clean_venv.sh ]; then
+            sh scripts/smoke_clean_venv.sh dist
+          else
+            echo "smoke harness not yet merged (Part A); build gate only"
+          fi
+
+  publish-test:
+    # TODO(B): extend needs with Part B's security job IDs (audit, bandit, codeql)
+    # once security.yml/codeql.yml merge; Part H wires it finally.
+    needs: [build]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: test-pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - name: build the 7 library distributions
+        run: |
+          for pkg in schema pricing verdict detectors replay ingest quality; do
+            uv build --package "turnstile-$pkg"
+          done
+      - name: publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@v1.9.0 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+
+  publish:
+    # TODO(B): extend needs with Part B's security job IDs (audit, bandit, codeql)
+    # once security.yml/codeql.yml merge; Part H wires it finally.
+    needs: [build]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - name: build the 7 library distributions
+        run: |
+          for pkg in schema pricing verdict detectors replay ingest quality; do
+            uv build --package "turnstile-$pkg"
+          done
+      - name: publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.9.0 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

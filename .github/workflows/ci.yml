@@ -8,8 +8,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
       - run: uv run --frozen python -m pytest -q
 
   # Proves `make demo`'s build works from a clean clone with only `uv`:
@@ -18,8 +18,8 @@ jobs:
   keyless-demo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
       - name: prove no secrets are available
         run: |
           test -z "${OPENAI_API_KEY:-}" || (echo "OPENAI_API_KEY must not be set" && exit 1)
@@ -34,6 +34,6 @@ jobs:
   links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
       - run: uv run --frozen python scripts/check_links.py

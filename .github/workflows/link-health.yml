@@ -1,0 +1,22 @@
+name: link-health
+
+# Day-5 Part D (P1 #8, done cheap now). Weekly reuse of the script ci.yml:links
+# already runs. Non-blocking BY DESIGN: continue-on-error true so a flaky
+# external link never fails CI (check_links.py only fails on broken LOCAL links;
+# externals are reported, never failed). Failure handling = just log: no
+# issue-filing step, to avoid issue spam and extra permissions — escalate in
+# Part H/Day-6 if the log shows real rot.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v6 # d0d8abe699bfb85fec6de9f7adb5ae17292296ff (checked 2026-09-18)
+      - run: uv run --frozen python scripts/check_links.py
