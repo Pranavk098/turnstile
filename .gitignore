@@ -12,3 +12,4 @@ experiments/*.json
 #   uv run --group piper python packages/experiments/run_bargein_harness.py --n 150 --seed 0
 !experiments/bargein_report.json
 experiments/*.jsonl
+.env
