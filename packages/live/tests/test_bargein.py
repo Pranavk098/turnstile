@@ -160,3 +160,29 @@ def test_aggregate_sweep_groups_by_level():
     for cell in table.values():
         assert {"n_calls", "n_barged", "d7_share", "d7_share_ci95",
                 "d7_waste_usd", "tts_spend_usd"} <= set(cell)
+
+
+# --------------------------------------------------------------------------- #
+# Day-4 Part C: ingest-originated barged calls read barge_in_courtesy as      #
+# measured/pass (the adapter derives truncated_by="barge_in" on cut turns).   #
+# --------------------------------------------------------------------------- #
+
+def test_barged_call_scores_barge_in_courtesy_measured_pass(tmp_path):
+    """run_bargein_call (p_barge=1.0, fakes, seeded) -> adapter.load ->
+    price/adjudicate -> evaluate_quality: every barged turn was cut (= the
+    agent yielded), so barge_in_courtesy reads measured/pass."""
+    from turnstile_quality import evaluate_quality
+
+    stt, tts, llm = _engines()
+    caller = ImpatientCaller(p_barge=1.0, pos_lo=0.5, pos_hi=0.5, seed=3)
+    call, _notes = run_bargein_call(
+        call_id="barge-courtesy-001", scenario="billing_dispute",
+        caller_texts=list(SCRIPT), caller=caller,
+        stt=stt, tts=tts, llm=llm, audio_dir=tmp_path / "audio",
+    )
+    priced = price_trace(load(call, RATES), RATES)
+    verdict = adjudicate(priced)
+    report = evaluate_quality(priced, verdict)
+    dim = report.by_id("barge_in_courtesy")
+    assert dim.tier == "measured"
+    assert dim.label == "pass"
