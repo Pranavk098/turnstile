@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
 
+# Least-privilege default token: CI only needs to read the repo. A job that
+# needs more must grant it explicitly at the job level.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

@@ -18,6 +18,10 @@ on:
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
+# Warmer only fires an outbound curl; it needs no repo access.
+permissions:
+  contents: read
+
 jobs:
   ping:
     runs-on: ubuntu-latest

@@ -1,0 +1,10 @@
+# Code owners for turnstile.
+#
+# With branch protection on `main` (require a pull request + code-owner review),
+# this guarantees every change to main is reviewed by the owner before merge —
+# no contributor or automated agent can self-merge a blunder.
+#
+# Broaden later by assigning specific paths to additional reviewers, e.g.:
+#   /packages/ingest/   @some-collaborator
+
+*       @Pranavk098
