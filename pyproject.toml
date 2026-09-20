@@ -24,7 +24,7 @@ members = ["packages/*"]
 # deps, e.g. agent's opentelemetry, replay's numpy). Without this, a plain
 # `uv sync` drops non-root-reachable member deps and agent/replay fail to import.
 dev = [
-    "pytest>=8.0",
+    "pytest>=9.1.1",
     "turnstile-schema",
     "turnstile-pricing",
     "turnstile-verdict",
