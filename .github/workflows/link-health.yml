@@ -12,6 +12,10 @@ on:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:
 
+# Read-only: checkout + run the link checker. No issue-filing, no writes.
+permissions:
+  contents: read
+
 jobs:
   links:
     runs-on: ubuntu-latest

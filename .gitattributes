@@ -1,0 +1,15 @@
+# Normalize line endings so Windows and Linux (CI) agree on repo content.
+# Files are stored with LF in git; Windows checkouts still work.
+* text=auto eol=lf
+
+# Explicitly LF for scripts that run in CI / containers.
+*.py  text eol=lf
+*.sh  text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Treat lockfiles/binaries sensibly in diffs.
+uv.lock linguist-generated=true
+*.png binary
+*.jpg binary
+*.wav binary

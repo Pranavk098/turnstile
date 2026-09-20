@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Keep pinned GitHub Actions current (SHAs/tags in .github/workflows/*).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Python deps managed by uv (pyproject.toml + uv.lock).
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      python:
+        patterns: ["*"]
