@@ -1,0 +1,40 @@
+name: security
+
+# Day-5 Part B — supply-chain CI: pip-audit + bandit with a real threshold gate.
+# A finding at/above threshold FAILS the job, which blocks release.yml via
+# `needs:` (job-ID contract with Part D: `audit` / `bandit` / `codeql`).
+# $0: no secrets in this file (grep-proof in the PR transcript); scanners run
+# from ephemeral installs, nothing vendored, no new runtime dependency.
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Weekly: Mondays 06:00 UTC (codeql.yml runs 06:30 to stagger load).
+    - cron: "0 6 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      # SHAs checked 2026-09-18: checkout@v5, setup-uv@v6.
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: astral-sh/setup-uv@v6 # d0cc045d04ccac9d8b7881df0226f9e82c39688e
+      # --with injects the scanner ephemerally: no pip-audit in any
+      # dependencies list, nothing committed. Fails on ANY known vuln,
+      # which subsumes the required high+ release gate (deny-by-default;
+      # relax only via per-finding ignore with justification + review date).
+      - run: uv run --with pip-audit --frozen -- pip-audit
+
+  bandit:
+    runs-on: ubuntu-latest
+    steps:
+      # SHAs checked 2026-09-18: checkout@v5, setup-uv@v6.
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: astral-sh/setup-uv@v6 # d0cc045d04ccac9d8b7881df0226f9e82c39688e
+      # Scope `packages` (not a shell glob) so the scan behaves identically
+      # on every runner OS. Threshold MUST stay explicit: bare `-l` exits 1
+      # even on lows-only trees (verified 2026-09-18, bandit 1.9.4), so
+      # --severity-level medium is the gate, i.e. medium+ FAILS the job.
+      # Rules live in scripts/security/bandit.yaml, never inline here.
+      - run: uvx bandit@1.9.4 -r packages --severity-level medium -c scripts/security/bandit.yaml

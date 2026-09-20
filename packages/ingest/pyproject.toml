@@ -7,10 +7,15 @@ license = "Apache-2.0"
 authors = [{ name = "Pranav Koduru", email = "pranavkoduruc@gmail.com" }]
 urls = { Repository = "https://github.com/Pranavk098/turnstile", Demo = "https://turnstile-demo.onrender.com" }
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["turnstile-schema", "turnstile-pricing", "turnstile-verdict", "turnstile-detectors", "turnstile-replay", "turnstile-quality", "pydantic>=2.6", "pyyaml>=6.0"]
+dependencies = ["turnstile-schema>=0.0.0", "turnstile-pricing>=0.0.0", "turnstile-verdict>=0.0.0", "turnstile-detectors>=0.0.0", "turnstile-replay>=0.0.0", "turnstile-quality>=0.0.0", "pydantic>=2.6", "pyyaml>=6.0"]
+
+[project.scripts]
+turnstile-ingest-smoke = "turnstile_ingest._smoke:main"
 
 [build-system]
 requires = ["hatchling"]

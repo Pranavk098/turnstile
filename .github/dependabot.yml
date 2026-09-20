@@ -1,19 +1,17 @@
+# Day-5 Part B — keeps Part D's bumped actions (and pip pins) fresh.
+# Both ecosystems weekly (Mondays); open-PR limit 5 each so a noisy upstream
+# week cannot flood the repo -- a human raises the cap, never the bot.
 version: 2
 updates:
-  # Keep pinned GitHub Actions current (SHAs/tags in .github/workflows/*).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    groups:
-      actions:
-        patterns: ["*"]
-
-  # Python deps managed by uv (pyproject.toml + uv.lock).
-  - package-ecosystem: "uv"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      python:
-        patterns: ["*"]
+      day: "monday"
+    open-pull-requests-limit: 5

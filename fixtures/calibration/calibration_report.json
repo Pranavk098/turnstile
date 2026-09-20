@@ -1,0 +1,24 @@
+{
+  "binning_rule": "equal-width ECE with n_bins bins over [0, 1]: bin index for confidence c is min(int(c * n_bins), n_bins - 1), so bin i covers [i/n_bins, (i+1)/n_bins) except the last bin which includes c == 1.0; ECE = sum_b (|B_b| / N) * |acc(B_b) - conf(B_b)| where acc is the fraction of correct items and conf the mean confidence in bin b; empty bins contribute 0.",
+  "dimensions": {
+    "answer_relevance": {
+      "confusion_matrix": null,
+      "ece": null,
+      "kappa": null,
+      "n_labels": 0,
+      "passes_gate": false,
+      "shortfall": "insufficient human-checked rows for 'answer_relevance': n_labels=0 < 60 required; gate stays closed (no padding, no imputation)."
+    },
+    "faithfulness": {
+      "confusion_matrix": null,
+      "ece": null,
+      "kappa": null,
+      "n_labels": 0,
+      "passes_gate": false,
+      "shortfall": "insufficient human-checked rows for 'faithfulness': n_labels=0 < 60 required; gate stays closed (no padding, no imputation)."
+    }
+  },
+  "generated_at": "2026-09-18T21:24:46.402311+00:00",
+  "labels_sha256": "c58e7ca6e8b40c97965d17293cd1ca939e571adcca1f566fe4c198d7b4c820bf",
+  "tool_version": "0.0.0"
+}

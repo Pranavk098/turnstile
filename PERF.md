@@ -147,15 +147,17 @@ no-store`) keeps every Day-1 field (`ok`, `commit`, `uptime_sec`, `warm`,
 ```json
 {"cache": {"entries": 7, "byte_size": 57509, "hits": 1, "misses": 7,
            "hit_rate": 0.125},
- "timings_ms": {"evaluate_median": 60.96, "evaluate_p95": 99.23}}
+ "timings_ms": {"evaluate_median": 60.96, "evaluate_p95": 99.23,
+                "source": "eval"}}
 ```
 
 How to read: `hit_rate` = hits ÷ (hits + misses) over process life;
 `timings_ms.evaluate_*` = full-handler wall ms of `/api/evaluate` (body read
 + parse + key + cache-or-engine + serialize) over the last ≤512 samples —
 the whole serve cost, not the cache-lookup slice. With no evaluate traffic
-yet it falls back to cache-lookup timings; with no data at all both read
-`0.0`. Experiment jobs carry their own envelope at
+yet it falls back to cache-lookup timings and `timings_ms.source` reads
+`"cache_lookup"` (vs `"eval"`) so the two populations are never conflated;
+with no data at all both read `0.0`. Experiment jobs carry their own envelope at
 `GET /api/experiments/{id}`: `timings: {queue_ms, run_ms}` + `workers`
 (result payload itself stays width-invariant so the parallel==serial gate
 holds over the whole dict). Live sample after an 8-request mixed load
@@ -193,6 +195,12 @@ score reaches any headline.
 # Benchmarks ($0, MockBackend only)
 uv run python packages/experiments/bench.py --n 50 --seed 0 --mode per-trace
 uv run python packages/experiments/bench.py --n 250 --seed 0 --mode matrix --out experiments/baseline-day3.json
+
+# Re-baseline on new hardware: one command, then force-add (baselines are
+# gitignored). The committed baselines are a historical record for THIS
+# file's tables -- CI never compares against them (tests/test_ci_perf_gate.py
+# uses same-run ratios instead, so it is machine-independent).
+make bench && git add -f experiments/baseline-day3*.json
 
 # Full suite (must stay green) + Day-3 gate tests
 uv run pytest

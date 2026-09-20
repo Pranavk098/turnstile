@@ -171,13 +171,26 @@ def _trace_dict(call: IngestCall, rates: RateTable) -> dict[str, Any]:
                     "turnstile.text": tts.text,
                 })
             if tts.chars_played is not None:
+                # truncated_by derivation (Day-4 Part C): "barge_in" exactly
+                # when the turn is flagged barge_in AND both char counts are
+                # present AND played < synthesized (something was cut).
+                # Boundary: no "hangup" cause is derived here -- no ingest
+                # field carries a hangup-truncation signal.
+                truncated = (
+                    "barge_in"
+                    if (turn.barge_in
+                        and tts.chars_played is not None
+                        and tts.chars_synthesized is not None
+                        and tts.chars_played < tts.chars_synthesized)
+                    else None
+                )
                 playback_spans.append({
                     "span_id": f"{call.id}:t{i}:play",
                     "turnstile.start_offset_ms": tts.start_ms,
                     "turnstile.duration_ms": tts.duration_ms,
                     "turnstile.chars_played": tts.chars_played,
                     "turnstile.audio_seconds_played": tts.duration_ms / 1000.0,
-                    "turnstile.truncated_by": None,
+                    "turnstile.truncated_by": truncated,
                 })
 
         turns.append({
