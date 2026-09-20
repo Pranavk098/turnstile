@@ -39,7 +39,7 @@ jobs:
       id-token: write # attest-build-provenance (push runs only)
       attestations: write # attest-build-provenance (push runs only)
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18, re-verified in use 2026-09-19)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18, re-verified in use 2026-09-19)
       # GHCR image names MUST be lowercase, but one project remote uses a mixed-
       # case owner (Pranavk098/...): lowercase here instead of trusting the context.
       - name: decide push + refs

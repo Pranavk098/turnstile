@@ -12,14 +12,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - run: uv run --frozen python -m pytest -q
 
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       # Exit 1 = no hits (grep finds nothing); any hit fails the job BEFORE publish.
       # NOTE (Part D, 2026-09-18): the naive `sk-` substring from the work-split
       # false-positives on this tree (37 `sk-test-fake` fixtures + prose like
@@ -39,7 +39,7 @@ jobs:
     needs: [test, secret-scan]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |
@@ -67,7 +67,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |
@@ -90,7 +90,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: build the 7 library distributions
         run: |

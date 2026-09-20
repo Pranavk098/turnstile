@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # SHAs checked 2026-09-18: checkout@v5, setup-uv@v6.
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
       - uses: astral-sh/setup-uv@v6 # d0cc045d04ccac9d8b7881df0226f9e82c39688e
       # --with injects the scanner ephemerally: no pip-audit in any
       # dependencies list, nothing committed. Fails on ANY known vuln,
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # SHAs checked 2026-09-18: checkout@v5, setup-uv@v6.
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
       - uses: astral-sh/setup-uv@v6 # d0cc045d04ccac9d8b7881df0226f9e82c39688e
       # Scope `packages` (not a shell glob) so the scan behaves identically
       # on every runner OS. Threshold MUST stay explicit: bare `-l` exits 1
