@@ -22,7 +22,7 @@ The number that started it: **about 4% of text-to-speech spend is generated, bil
 
 One rule runs through the whole project: **never claim a number you can't back up.** Every figure wears one of three labels:
 
-- **Measured** — we stand behind it. The 0.57% recoverable margin (exact rate arbitrage, reproducible from every run). The ~4% barge-in waste on real TTS. The 7.8% cheaper-model fork rate with 98.5% outcome preservation on the calls where it agreed.
+- **Measured** — we stand behind it. The 0.57% recoverable margin (n=250, seed 0; exact rate arbitrage, reproducible from every run). The ~4% barge-in waste on real TTS (committed harness report, n=150, seed 0; live probe n=200 in METHOD.md). The 7.8% cheaper-model fork rate with 98.5% outcome preservation on the non-divergent paid pivots where it agreed.
 - **Instrumented, but not measured** — the mechanism works; we don't claim the size yet. The rest of the cost breakdown, and the silence-tax detector on synthetic audio.
 - **Not yet measured, and we say so** — divergent-decision preservation at fleet scale, and every headline re-measured on real customer traffic. The tool to measure them is built; the fleet-scale rates are openly small-n and cautionary, never presented as fleet facts.
 
@@ -51,9 +51,9 @@ Run it on **your** calls: the `ingest` package maps real voice-AI logs into Turn
 
 ## Status & limitations
 
-The full pipeline is built and green: pricing, verdict, ten waste detectors, counterfactual replay, a hardened paid-measurement path, real-format call ingestion, a live conversational agent, the dashboard, and the demo service. Barge-in waste and open-loop preservation-under-divergence are both measured at scale on real audio.
+The full pipeline is built and green: pricing, verdict, ten waste detectors, counterfactual replay, a hardened paid-measurement path, real-format call ingestion, a live conversational agent, the dashboard, and the demo service. Barge-in waste and open-loop preservation-under-divergence are both measured on real Piper audio in controlled harnesses (see below for scale).
 
-Unprompted honesty, up front: **no real customer fleet has been run through Turnstile yet.** Every headline is "the number on *this* data" — a 250-trace generated corpus, golden fixtures, and a 50-call realistic sample. The deterministic margin, the voice-stack waste, and the preservation number all become "your number on your calls" once real data flows in. [LIMITATIONS.md](docs/LIMITATIONS.md) keeps the complete unflattering list.
+Unprompted honesty, up front: **no real customer fleet has been run through Turnstile yet.** Every headline is "the number on *this* data" — a 250-trace generated corpus, golden fixtures, and a 50-call realistic sample. Barge-in waste is measured on real Piper audio in controlled harnesses (n=150–750 calls), not yet on customer traffic. The deterministic margin, the voice-stack waste, and the preservation number all become "your number on your calls" once real data flows in. [LIMITATIONS.md](docs/LIMITATIONS.md) keeps the complete unflattering list.
 
 ## License
 
