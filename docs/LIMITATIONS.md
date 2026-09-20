@@ -57,6 +57,14 @@ from real calls. It is presented as a hypothesis plus a sensitivity sweep, never
 a bare fact, and is not calibrated down to a nicer number. Real recorded call audio
 would promote it the way it promoted D7.
 
+**Live D8 is forced ABSENT (ISS-010).** On any trace with no cross-stream span
+overlap (`union == sum` — the live-recorder signature, docs/GATES.md G1), D8 is
+reported ABSENT, not shown: without concurrency data its silence is
+systematically over-reported, so the honest label is "no trustworthy
+measurement," never a tagged-but-inflated number. Overlap-bearing fixtures keep
+D8 as a detector demo; the gate lifts itself once the recorder emits real
+concurrency.
+
 ## 5. Corpus coverage gaps (not tuned away)
 
 - **D2 (context bloat) and D6 (dead tokens) do not fire** on the committed corpus.

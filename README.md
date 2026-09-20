@@ -34,7 +34,7 @@ Each stage is a small package under `packages/`. The ones that carry the weight:
 
 ```bash
 uv sync
-uv run pytest -q        # 1254 passed, 4 skipped (badge above is the live count)
+uv run pytest -q        # 1256 passed, 4 skipped (badge above is the live count)
 make demo               # build the report, serve at localhost:8000, open home.html
 make serve              # same dashboard + live eval engine at localhost:8000
 ```
