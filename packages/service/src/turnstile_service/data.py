@@ -19,7 +19,10 @@ INGEST_DATA_DIR = _REPO_ROOT / "packages" / "ingest" / "data"
 INGEST_ARTIFACT = INGEST_DATA_DIR / "data.json"
 EXAMPLE_CALL_PATH = Path(__file__).resolve().parent / "example_call.json"
 
-_CALL_ID_RE = re.compile(r"[A-Za-z0-9_-]+\Z")
+# Bounded repetition ({1,128}) instead of unbounded ``+`` so a hostile
+# call_id can never drive super-linear backtracking (CodeQL py/polynomial-redos).
+# 128 is far above any real sample id (e.g. "19_edge_40_turn").
+_CALL_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
 
 #: /api/<name> -> committed sample file. The front-end's existing
 #: ``sample/*.json`` fetches map 1:1 onto these, so the API is a thin
