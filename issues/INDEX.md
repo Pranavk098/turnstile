@@ -25,6 +25,11 @@ Statuses: `accepted` (Jev act-gate) · `proposed` (review-gate or agent-flagged)
 | ISS-014 | Open-loop preservation at scale | future | replay_audit |
 | ISS-015 | Replay-executable remedies (conditional → proven) | future | — |
 | ISS-016 | Perf baseline + publish (bench, pip, deploy) | future | — |
+| ISS-017 | Validate fork-oracle escalation assumptions | proposed | matrix_audit |
+| ISS-018 | Split the reused unknown-cap 0.6 | proposed | matrix_audit |
+| ISS-019 | Remove PiperTts double synthesis | proposed | matrix_audit |
+| ISS-020 | D4 silent-no-baseline signal | proposed | matrix_audit |
+| ISS-021 | Margin annualization honesty | proposed | matrix_audit |
 
 Rule: closing an issue means its Accept-when boxes are ticked in code/tests/docs,
 not that Jev once voted for it.
