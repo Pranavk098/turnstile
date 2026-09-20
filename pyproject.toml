@@ -48,7 +48,7 @@ piper = ["piper-tts>=1.8.0"]
 # `uv sync --group embed` does. The model (all-MiniLM-L6-v2) must already be
 # in the local HuggingFace cache; tests skip cleanly without the extra and
 # never touch the network at test time.
-embed = ["sentence-transformers>=2.2"]
+embed = ["sentence-transformers>=6.0.1"]
 
 [tool.uv.sources]
 turnstile-schema = { workspace = true }
