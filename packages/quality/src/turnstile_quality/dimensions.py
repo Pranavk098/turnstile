@@ -202,7 +202,6 @@ def _escalation_appropriateness(priced: PricedTrace, verdict: Verdict) -> Qualit
         for tool in turn.tools if tool.tool_kind is ToolKind.handoff
     })
     signal_turns = _escalation_signals(trace)
-    resolved = verdict.label is VerdictLabel.RESOLVED
     stranded = verdict.label in (VerdictLabel.UNRESOLVED, VerdictLabel.ABANDONED)
     if handoff_turns:
         signaled = any(s <= handoff_turns[0] for s in signal_turns)

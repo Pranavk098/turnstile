@@ -1,0 +1,30 @@
+# CodeRabbit configuration — https://docs.coderabbit.ai/reference/configuration
+# Activate by installing the CodeRabbit GitHub App (free for open-source/public
+# repos) from the GitHub Marketplace: https://github.com/marketplace/coderabbitai
+language: en-US
+reviews:
+  profile: chill                 # fewer, higher-signal comments (vs "assertive")
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+  # Skip generated/committed artifacts so reviews focus on real source.
+  path_filters:
+    - "!**/*.lock"
+    - "!packages/dashboard/sample/**"
+    - "!packages/ingest/data/**"
+    - "!fixtures/**"
+  path_instructions:
+    - path: "packages/**"
+      instructions: >-
+        Turnstile is a margin profiler for voice-AI agents; its whole value is
+        HONEST, tier-labeled measurement. Prioritize: correctness of the
+        measurement math (pricing, union/silence, verdict), never overclaiming a
+        number the data cannot back, and the $0/free-tier constraint (no paid
+        path may run without an explicit gate). Flag anything that could
+        over-report waste, leak a secret, or present a modeled value as measured.
+chat:
+  auto_reply: true
