@@ -25,7 +25,7 @@ jobs:
       contents: read
     steps:
       # SHAs checked 2026-09-18: checkout@v5, codeql-action@v4.
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
       - uses: github/codeql-action/init@v4 # 1c5b675653bb5c22dbe9b12b556ec555138e09fd
         with:
           languages: python

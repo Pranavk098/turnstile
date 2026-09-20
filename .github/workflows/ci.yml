@@ -8,7 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - run: uv run --frozen python -m pytest -q
 
@@ -18,7 +18,7 @@ jobs:
   keyless-demo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - name: prove no secrets are available
         run: |
@@ -34,6 +34,6 @@ jobs:
   links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - run: uv run --frozen python scripts/check_links.py
