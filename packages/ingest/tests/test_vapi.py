@@ -19,7 +19,6 @@ from turnstile_schema import Baselines, load_rates
 from turnstile_verdict import adjudicate
 from turnstile_ingest import (
     IngestError,
-    describe_coverage,
     from_vapi,
     from_vapi_export,
     load,

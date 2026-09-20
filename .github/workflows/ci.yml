@@ -10,6 +10,21 @@ permissions:
   contents: read
 
 jobs:
+  # Ruff is BLOCKING on the real-bug ruleset ([tool.ruff.lint] select=E9,F);
+  # mypy is ADVISORY (continue-on-error) until the 34 pre-existing type findings
+  # are cleared -- tracked by the "lint + type-check CI gate" issue. Both run via
+  # uvx at a pinned version, so no dependency is added to uv.lock.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v7 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
+      - name: ruff (blocking — pyflakes + syntax)
+        run: uvx ruff@0.16.8 check .
+      - name: mypy (advisory — non-blocking)
+        run: uvx mypy@2.3.1 --ignore-missing-imports --exclude '(^|/)tests/' packages
+        continue-on-error: true
+
   test:
     runs-on: ubuntu-latest
     steps:
