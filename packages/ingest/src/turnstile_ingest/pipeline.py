@@ -35,6 +35,7 @@ from typing import Any
 
 from turnstile_schema import Baselines, PricedTrace, VariantSpec
 from turnstile_detectors import detect
+from turnstile_detectors.d08_silence_tax import trace_has_span_overlap
 from turnstile_pricing import price_trace
 from turnstile_quality import evaluate_quality
 from turnstile_replay import experiment
@@ -56,6 +57,13 @@ NO_TELEPHONY_REASON = (
     "no data for this input: the call carries no telephony leg, "
     "so silence cannot be priced"
 )
+NO_OVERLAP_REASON = (
+    "live D8 forced ABSENT (ISS-010): the trace has no overlapping spans "
+    "(union==sum), indistinguishable from the live-recorder artifact that "
+    "systematically over-reports silence (docs/GATES.md G1). D8 is hidden "
+    "until the recorder emits real concurrency; the data exists but is not a "
+    "trustworthy measurement"
+)
 INFERRED_DECISION_REASON = (
     "no data for this input: decision_kind is inferred by the provider "
     "adapter, not emitted by the agent -- D1 (over-model) cannot be measured "
@@ -70,7 +78,8 @@ OVER_MODEL_VARIANT = VariantSpec(model_routing={"route": "gpt-5-nano"})
 
 def describe_coverage(call: IngestCall,
                       *,
-                      inferred_decision_turns: set[int] | None = None) -> dict[int, dict[str, str]]:
+                      inferred_decision_turns: set[int] | None = None,
+                      has_span_overlap: bool | None = None) -> dict[int, dict[str, str]]:
     """Per-detector data coverage for one validated call.
 
     Returns ``{class_id: {"status": "present"|"absent", "reason": ...}}``.
@@ -99,12 +108,17 @@ def describe_coverage(call: IngestCall,
     acoustic_reason = "tts/playback spans with G2 char counts" if acoustic_complete else NO_ACOUSTIC_REASON
     for class_id in (6, 7):
         coverage[class_id] = {"status": acoustic_status, "reason": acoustic_reason}
-    if acoustic_complete and telephony_present:
-        coverage[8] = {"status": "present", "reason": "telephony leg + complete span union"}
-    elif not telephony_present:
+    if not telephony_present:
         coverage[8] = {"status": "absent", "reason": NO_TELEPHONY_REASON}
-    else:
+    elif not acoustic_complete:
         coverage[8] = {"status": "absent", "reason": NO_ACOUSTIC_REASON}
+    elif has_span_overlap is False:
+        # ISS-010 force-ABSENT: acoustic + telephony are present, but with no
+        # span overlap anywhere D8's union==sum silence is the live-recorder
+        # over-report artifact, not a measurement (docs/GATES.md G1).
+        coverage[8] = {"status": "absent", "reason": NO_OVERLAP_REASON}
+    else:
+        coverage[8] = {"status": "present", "reason": "telephony leg + complete span union"}
     return coverage
 
 
@@ -133,7 +147,11 @@ def _run_priced(
     verdict = adjudicate(priced)
     record = _provider_record(provider, call.id)
     inferred = set(record.get("inferred_decision_turns") or ())
-    coverage = describe_coverage(call, inferred_decision_turns=inferred or None)
+    coverage = describe_coverage(
+        call,
+        inferred_decision_turns=inferred or None,
+        has_span_overlap=trace_has_span_overlap(priced),
+    )
     raw = detect(priced, verdict, baselines)
     findings = [f for f in raw
                 if coverage[f.class_id]["status"] == "present"

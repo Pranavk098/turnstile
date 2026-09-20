@@ -66,6 +66,44 @@ def _spans_by_raw_category(turn: Turn):
             yield raw_category, span
 
 
+def _stream_of(raw: str) -> str:
+    """Collapse tts + playback into one 'agent speech' stream: they are the
+    same audio, co-timed by construction, so their overlap is trivial and is
+    NOT the cross-stream concurrency G1 is about."""
+    return "speech" if raw in ("tts", "playback") else raw
+
+
+def _turn_has_cross_stream_overlap(turn: Turn) -> bool:
+    """True when two spans from DIFFERENT activity streams overlap in time
+    (e.g. TTS-during-LLM) -- i.e. genuine concurrency.
+
+    ISS-010 / G1: the live TraceRecorder emits only contiguous, non-overlapping
+    spans, so a trace with no cross-stream overlap anywhere is indistinguishable
+    from that artifact and D8's silence is untrustworthy (systematically
+    over-reported). The tts<->playback same-stream pair is excluded because it
+    is co-timed on every acoustic call and would mask the real signal.
+    """
+    spans = sorted(
+        (span.start_offset_ms, span.start_offset_ms + span.duration_ms, _stream_of(raw))
+        for raw, span in _spans_by_raw_category(turn)
+    )
+    active: list[tuple[int, str]] = []  # (end, stream) still open at current start
+    for start, end, stream in spans:
+        active = [(e, s) for (e, s) in active if e > start]
+        if any(s != stream for (_e, s) in active):
+            return True
+        active.append((end, stream))
+    return False
+
+
+def trace_has_span_overlap(trace: PricedTrace) -> bool:
+    """True when at least one turn has cross-stream span overlap (genuine
+    concurrency). D8's silence numbers are trustworthy only on such traces;
+    ISS-010 forces D8 ABSENT otherwise (the live-recorder ``union == sum``
+    artifact, docs/GATES.md G1)."""
+    return any(_turn_has_cross_stream_overlap(turn) for turn in trace.trace.turns)
+
+
 def _proposed_variant(attributed_to: str) -> VariantSpec:
     if attributed_to == "tool":
         return VariantSpec(tool_batching=True)
