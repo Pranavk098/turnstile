@@ -14,6 +14,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "httpx>=0.27",
+    "sentry-sdk>=2.0",
     "turnstile-schema",
     "turnstile-ingest",
     "turnstile-pricing",

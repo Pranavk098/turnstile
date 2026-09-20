@@ -1,0 +1,11 @@
+# Bandit config for Turnstile supply-chain CI (Day-5 Part B).
+#
+# The release threshold (medium+) lives on the CLI invocation in
+# .github/workflows/security.yml (--severity-level medium), NEVER here,
+# so a config edit alone cannot loosen the gate (charter violation).
+#
+# No skips: every finding is triaged in TRIAGE.md next to this file.
+# Any future suppression MUST be a per-finding `# nosec <ID>` in the
+# flagged source with a justification + review date -- never a blanket
+# ignore added here.
+skips: []

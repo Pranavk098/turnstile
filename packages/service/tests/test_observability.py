@@ -80,7 +80,21 @@ def test_status_hit_rate_and_timings_after_mixed_load():
     assert isinstance(timings["evaluate_p95"], (int, float))
     assert timings["evaluate_median"] >= 0
     assert timings["evaluate_p95"] >= timings["evaluate_median"]
+    # After evaluate traffic the timings describe the eval handler itself.
+    assert timings["source"] == "eval"
     assert res.headers.get("cache-control") == "no-store"
+
+
+def test_status_timings_source_falls_back_to_cache_lookup():
+    """With no evaluate traffic yet, timings_ms SHALL be labeled as
+    cache-lookup timings, not presented as eval-handler timings."""
+    client = _client()
+    res = client.get("/api/status")
+    assert res.status_code == 200
+    timings = res.json()["timings_ms"]
+    assert timings["source"] == "cache_lookup"
+    assert isinstance(timings["evaluate_median"], (int, float))
+    assert isinstance(timings["evaluate_p95"], (int, float))
 
 
 def _poll_to_done(client: TestClient, job_id: str, timeout_s: float = 15.0) -> dict:

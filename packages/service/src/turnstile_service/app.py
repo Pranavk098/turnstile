@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import statistics
 import subprocess
 import threading
@@ -47,6 +48,13 @@ from turnstile_pricing import price_trace
 from turnstile_service import data as committed
 from turnstile_service.cache import EvalCache, request_key
 from turnstile_service.jobs import JobStore, JobStoreFull, run_experiment_job
+from turnstile_service.observability import (
+    capture_current_exception,
+    ensure_log_handler,
+    init_sentry,
+    json_log,
+    metrics_snapshot,
+)
 from turnstile_service.ratelimit import RateLimiter, client_ip, limiter_from_env
 
 log = logging.getLogger("turnstile_service")
@@ -183,6 +191,12 @@ async def _lifespan(app: FastAPI):
 
 
 def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
+    # Day-5 Part C: Sentry init first (DSN-unset or SDK-absent -> silent
+    # no-op; service runs identically either way) + stdout handler so the
+    # structured lines are observable under servers that only wire their
+    # own loggers.
+    init_sentry()
+    ensure_log_handler()
     app = FastAPI(title="Turnstile demo eval service", version="1.0.0",
                   lifespan=_lifespan)
     app.state.eval_cache = EvalCache()
@@ -201,8 +215,31 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
     @app.middleware("http")
     async def cache_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
         """P1 #7 cache policy: mutating + status = no-store; API reads =
-        short public cache; committed static bytes = longer public cache."""
-        response = await call_next(request)
+        short public cache; committed static bytes = longer public cache.
+
+        Day-5 Part C: also the ONE request-logging place -- wall-clock each
+        request and emit one structured JSON line (method/path/status only,
+        never bodies). An exception escaping a handler is captured to Sentry
+        and answered 500 here, so observability never breaks eval.
+        """
+        t0 = time.perf_counter()
+        try:
+            response = await call_next(request)
+        except Exception:  # noqa: BLE001 -- unhandled fault: capture + 500
+            capture_current_exception()
+            log.exception("unhandled error on %s %s",
+                          request.method, request.url.path)
+            duration_ms = (time.perf_counter() - t0) * 1000.0
+            json_log("request", method=request.method, path=request.url.path,
+                     status=500, duration_ms=round(duration_ms, 3))
+            return _json_bytes_error(500, "internal error")
+        duration_ms = (time.perf_counter() - t0) * 1000.0
+        # TURNSTILE_REQUEST_LOG=0 silences the per-request line (overhead
+        # probe + log-volume kill-switch); the duration math always runs.
+        if os.environ.get("TURNSTILE_REQUEST_LOG", "1") != "0":
+            json_log("request", method=request.method, path=request.url.path,
+                     status=response.status_code,
+                     duration_ms=round(duration_ms, 3))
         path = request.url.path
         if request.method == "POST" or path == "/api/status":
             response.headers["Cache-Control"] = "no-store"
@@ -238,11 +275,15 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
             eval_samples = list(request.app.state.eval_latencies)
         if eval_samples:
             eval_median, eval_p95 = _median_p95_ms(eval_samples)
+            timings_source = "eval"
         else:
             # No evaluate traffic yet: fall back to cache-lookup timings so
             # median/p95 are still numbers without ever running the engine.
+            # "source" says which population the numbers describe (honesty:
+            # the two are different things under one label without it).
             eval_median, eval_p95 = (
                 cache_stats["median_ms"], cache_stats["p95_ms"])
+            timings_source = "cache_lookup"
         return {
             "ok": True,
             "commit": commit_sha(),
@@ -259,8 +300,19 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
             "timings_ms": {
                 "evaluate_median": eval_median,
                 "evaluate_p95": eval_p95,
+                "source": timings_source,
             },
         }
+
+    @app.get("/metrics")
+    def api_metrics(request: Request) -> Response:
+        """Day-5 Part C: Day-3 counters as JSON (additive-only; no existing
+        route's shape changes). Counter reads under one lock each."""
+        body = json.dumps(metrics_snapshot(request.app.state),
+                          sort_keys=True, separators=(",", ":"),
+                          ensure_ascii=True).encode("utf-8")
+        return Response(content=body, media_type="application/json",
+                        headers={"Cache-Control": "no-store"})
 
     for name in committed.READ_ENDPOINTS:
         _register_sample_route(app, name)
@@ -343,6 +395,7 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
             # never a 500.
             return _json_bytes_error(422, str(exc))
         except Exception:  # noqa: BLE001 -- genuine server fault: log + 500
+            capture_current_exception()
             log.exception("evaluate failed on %d call(s)", n)
             return _json_bytes_error(500, "internal error while evaluating")
         # Additive-only shape: the run_calls artifact verbatim, plus the
@@ -396,6 +449,7 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         except IngestError as exc:
             return _json_bytes_error(422, str(exc))
         except Exception:  # noqa: BLE001 -- genuine server fault
+            capture_current_exception()
             log.exception("experiment pricing failed on %d call(s)", len(calls))
             return _json_bytes_error(500, "internal error while evaluating")
         rates_sha, baselines_sha = _content_shas()

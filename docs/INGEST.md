@@ -70,7 +70,7 @@ Turn (`start_ms`/`end_ms` required; `speaker_first` default `caller`;
 |---|---|---|---|
 | `asr` | `transcript`, `start_ms`, `duration_ms` | `model nova-3`, `system deepgram`, `confidence 0.9`, `streaming true` | `AsrTranscribe` (`audio_seconds` = duration/1000) |
 | `llm` | `model`, `input_tokens`, `output_tokens`, `decision_kind` (`route`\|`slot_fill`\|`tool_select`\|`compose`\|`escalate_check`), `decision`, **`output_text`**, `start_ms`, `duration_ms` | `system openai`, `decision_candidates [decision]`, `tool_calls []` (informational, unmapped), cache/reasoning tokens 0 | `LlmDecide` (`latency_ms` = duration) |
-| `tts` | `text`, `start_ms`, `duration_ms` | `system piper`; **`chars_synthesized` / `chars_played` optional** | `TtsSynthesize` + `AudioPlayback`, **only when the char counts are present** |
+| `tts` | `text`, `start_ms`, `duration_ms` | `system piper`; **`chars_synthesized` / `chars_played` optional** | `TtsSynthesize` + `AudioPlayback`, **only when the char counts are present**. Playback `turnstile.truncated_by` is `"barge_in"` exactly when the turn sets `barge_in: true` and both char counts are present with `chars_played < chars_synthesized`; otherwise `null` |
 | `tools[]` | `name`, **`kind`** (`retrieval`\|`mutation`\|`lookup`\|`handoff`), **`effect`** (`committed`\|`pending`\|`rejected`\|`none`\|`unknown`), `args` | `status ok`, `result null`, `start_ms` turn start, `duration_ms` 0, `cost_usd` 0.0 | `ToolCall` (`args_hash`/`result_hash` = sha256 of canonical JSON) |
 
 Provider/model strings must resolve in `pricing/rates.yaml` (e.g. LLM

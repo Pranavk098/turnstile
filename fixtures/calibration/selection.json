@@ -1,0 +1,246 @@
+{
+  "seed": 4,
+  "selection_note": "all golden fixtures (fixtures/golden/*.json, sorted by filename) + native-sample calls (packages/ingest/data/data.json calls, sorted by id, first N to reach 60); conversations sorted by call_id",
+  "conversations": [
+    {
+      "call_id": "00_baseline_clean",
+      "source": "fixtures/golden/00_baseline_clean.json"
+    },
+    {
+      "call_id": "01_over_model",
+      "source": "fixtures/golden/01_over_model.json"
+    },
+    {
+      "call_id": "02_context_bloat",
+      "source": "fixtures/golden/02_context_bloat.json"
+    },
+    {
+      "call_id": "03_redundant_retrieval",
+      "source": "fixtures/golden/03_redundant_retrieval.json"
+    },
+    {
+      "call_id": "04_turn_inflation",
+      "source": "fixtures/golden/04_turn_inflation.json"
+    },
+    {
+      "call_id": "05_reprompt_loop",
+      "source": "fixtures/golden/05_reprompt_loop.json"
+    },
+    {
+      "call_id": "06_dead_tokens",
+      "source": "fixtures/golden/06_dead_tokens.json"
+    },
+    {
+      "call_id": "07_barge_in_waste",
+      "source": "fixtures/golden/07_barge_in_waste.json"
+    },
+    {
+      "call_id": "08_silence_tax",
+      "source": "fixtures/golden/08_silence_tax.json"
+    },
+    {
+      "call_id": "09_escalation_debt",
+      "source": "fixtures/golden/09_escalation_debt.json"
+    },
+    {
+      "call_id": "10_tool_thrash",
+      "source": "fixtures/golden/10_tool_thrash.json"
+    },
+    {
+      "call_id": "11_multi_waste_a",
+      "source": "fixtures/golden/11_multi_waste_a.json"
+    },
+    {
+      "call_id": "12_multi_waste_b",
+      "source": "fixtures/golden/12_multi_waste_b.json"
+    },
+    {
+      "call_id": "13_multi_waste_c",
+      "source": "fixtures/golden/13_multi_waste_c.json"
+    },
+    {
+      "call_id": "14_escalation_early",
+      "source": "fixtures/golden/14_escalation_early.json"
+    },
+    {
+      "call_id": "15_escalation_late",
+      "source": "fixtures/golden/15_escalation_late.json"
+    },
+    {
+      "call_id": "16_abandoned",
+      "source": "fixtures/golden/16_abandoned.json"
+    },
+    {
+      "call_id": "17_false_resolve",
+      "source": "fixtures/golden/17_false_resolve.json"
+    },
+    {
+      "call_id": "18_edge_single_turn",
+      "source": "fixtures/golden/18_edge_single_turn.json"
+    },
+    {
+      "call_id": "19_edge_40_turn",
+      "source": "fixtures/golden/19_edge_40_turn.json"
+    },
+    {
+      "call_id": "20_unknown_mutation",
+      "source": "fixtures/golden/20_unknown_mutation.json"
+    },
+    {
+      "call_id": "21_handoff_rejected",
+      "source": "fixtures/golden/21_handoff_rejected.json"
+    },
+    {
+      "call_id": "22_handoff_pending",
+      "source": "fixtures/golden/22_handoff_pending.json"
+    },
+    {
+      "call_id": "ing-20260910-000",
+      "source": "packages/ingest/data/call-ing-20260910-000.json"
+    },
+    {
+      "call_id": "ing-20260910-001",
+      "source": "packages/ingest/data/call-ing-20260910-001.json"
+    },
+    {
+      "call_id": "ing-20260910-002",
+      "source": "packages/ingest/data/call-ing-20260910-002.json"
+    },
+    {
+      "call_id": "ing-20260910-003",
+      "source": "packages/ingest/data/call-ing-20260910-003.json"
+    },
+    {
+      "call_id": "ing-20260910-004",
+      "source": "packages/ingest/data/call-ing-20260910-004.json"
+    },
+    {
+      "call_id": "ing-20260910-005",
+      "source": "packages/ingest/data/call-ing-20260910-005.json"
+    },
+    {
+      "call_id": "ing-20260910-006",
+      "source": "packages/ingest/data/call-ing-20260910-006.json"
+    },
+    {
+      "call_id": "ing-20260910-007",
+      "source": "packages/ingest/data/call-ing-20260910-007.json"
+    },
+    {
+      "call_id": "ing-20260910-008",
+      "source": "packages/ingest/data/call-ing-20260910-008.json"
+    },
+    {
+      "call_id": "ing-20260910-009",
+      "source": "packages/ingest/data/call-ing-20260910-009.json"
+    },
+    {
+      "call_id": "ing-20260911-010",
+      "source": "packages/ingest/data/call-ing-20260911-010.json"
+    },
+    {
+      "call_id": "ing-20260911-011",
+      "source": "packages/ingest/data/call-ing-20260911-011.json"
+    },
+    {
+      "call_id": "ing-20260911-012",
+      "source": "packages/ingest/data/call-ing-20260911-012.json"
+    },
+    {
+      "call_id": "ing-20260911-013",
+      "source": "packages/ingest/data/call-ing-20260911-013.json"
+    },
+    {
+      "call_id": "ing-20260911-014",
+      "source": "packages/ingest/data/call-ing-20260911-014.json"
+    },
+    {
+      "call_id": "ing-20260911-015",
+      "source": "packages/ingest/data/call-ing-20260911-015.json"
+    },
+    {
+      "call_id": "ing-20260911-016",
+      "source": "packages/ingest/data/call-ing-20260911-016.json"
+    },
+    {
+      "call_id": "ing-20260911-017",
+      "source": "packages/ingest/data/call-ing-20260911-017.json"
+    },
+    {
+      "call_id": "ing-20260911-018",
+      "source": "packages/ingest/data/call-ing-20260911-018.json"
+    },
+    {
+      "call_id": "ing-20260911-019",
+      "source": "packages/ingest/data/call-ing-20260911-019.json"
+    },
+    {
+      "call_id": "ing-20260912-020",
+      "source": "packages/ingest/data/call-ing-20260912-020.json"
+    },
+    {
+      "call_id": "ing-20260912-021",
+      "source": "packages/ingest/data/call-ing-20260912-021.json"
+    },
+    {
+      "call_id": "ing-20260912-022",
+      "source": "packages/ingest/data/call-ing-20260912-022.json"
+    },
+    {
+      "call_id": "ing-20260912-023",
+      "source": "packages/ingest/data/call-ing-20260912-023.json"
+    },
+    {
+      "call_id": "ing-20260912-024",
+      "source": "packages/ingest/data/call-ing-20260912-024.json"
+    },
+    {
+      "call_id": "ing-20260912-025",
+      "source": "packages/ingest/data/call-ing-20260912-025.json"
+    },
+    {
+      "call_id": "ing-20260912-026",
+      "source": "packages/ingest/data/call-ing-20260912-026.json"
+    },
+    {
+      "call_id": "ing-20260912-027",
+      "source": "packages/ingest/data/call-ing-20260912-027.json"
+    },
+    {
+      "call_id": "ing-20260912-028",
+      "source": "packages/ingest/data/call-ing-20260912-028.json"
+    },
+    {
+      "call_id": "ing-20260912-029",
+      "source": "packages/ingest/data/call-ing-20260912-029.json"
+    },
+    {
+      "call_id": "ing-20260913-030",
+      "source": "packages/ingest/data/call-ing-20260913-030.json"
+    },
+    {
+      "call_id": "ing-20260913-031",
+      "source": "packages/ingest/data/call-ing-20260913-031.json"
+    },
+    {
+      "call_id": "ing-20260913-032",
+      "source": "packages/ingest/data/call-ing-20260913-032.json"
+    },
+    {
+      "call_id": "ing-20260913-033",
+      "source": "packages/ingest/data/call-ing-20260913-033.json"
+    },
+    {
+      "call_id": "ing-20260913-034",
+      "source": "packages/ingest/data/call-ing-20260913-034.json"
+    },
+    {
+      "call_id": "ing-20260913-035",
+      "source": "packages/ingest/data/call-ing-20260913-035.json"
+    },
+    {
+      "call_id": "ing-20260913-036",
+      "source": "packages/ingest/data/call-ing-20260913-036.json"
+    }
+  ]
+}

@@ -46,6 +46,15 @@ ENV TURNSTILE_COMMIT=${TURNSTILE_COMMIT:-${RENDER_GIT_COMMIT}}
 RUN uv sync --frozen --no-dev --package turnstile-service
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Day-5 Part E (additive OCI labels only -- no base-image change, no layer
+# reshuffle; placed AFTER the dependency layer so the layer-cache comment
+# above stays valid: label changes never invalidate the uv-sync layer).
+ARG VERSION=0.1.0-dev
+ARG GITHUB_SHA=
+LABEL org.opencontainers.image.title="turnstile-demo" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${GITHUB_SHA}"
+
 EXPOSE 8000
 
 # $PORT is set by the host (Render); default keeps `docker run -p` working.
