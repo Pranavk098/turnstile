@@ -18,7 +18,7 @@ Statuses: `accepted` (Jev act-gate) · `proposed` (review-gate or agent-flagged)
 | ISS-007 | Generated landing numbers + unified label vocab | proposed | c2_hygiene |
 | ISS-008 | README stamp + stale-number sweep | proposed | c2_readme_stamp |
 | ISS-009 | Verdict binding edge-case review | contested | verdict_audit |
-| ISS-010 | Live D8 policy: force-ABSENT vs Tier-2 tag | contested | c2_d8_absent |
+| ISS-010 | Live D8 policy: force-ABSENT (decided 2026-09-20) | decided | c2_d8_absent |
 | ISS-011 | Pricing placeholders + rate-table staleness | proposed | schema_pricing |
 | ISS-012 | Real-fleet adapter (second provider) | future | — |
 | ISS-013 | 60-label kappa study, then open judges | future | c2_ship_judges |
@@ -33,3 +33,9 @@ Statuses: `accepted` (Jev act-gate) · `proposed` (review-gate or agent-flagged)
 
 Rule: closing an issue means its Accept-when boxes are ticked in code/tests/docs,
 not that Jev once voted for it.
+
+## Working groups (see GROUPS.md for implement + test + re-vote plans)
+
+- **A — Trust surfaces & gates:** ISS-006, 007, 008, 010, 021 (ship first, all $0)
+- **B — Pipeline correctness:** ISS-001, 002, 003, 004, 005, 009, 011, 017, 018, 019, 020 (phased B1–B4)
+- **C — Capability unlocks:** ISS-012, 013, 014, 015, 016 (in order; 016 may parallelize)
