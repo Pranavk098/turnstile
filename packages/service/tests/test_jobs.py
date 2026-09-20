@@ -215,16 +215,16 @@ def test_passes_gate_agrees_with_canonical_gate():
 
 
 def test_job_refuses_non_mock_backend(live_client, monkeypatch):
-    """$0 guard: a paid backend set globally must error the job, never run it."""
+    """$0 guard (ISS-006): a paid backend set globally is refused at submit
+    with 422 -- never accepted as a 202 job. The worker-time guard stays as
+    defense in depth."""
     class _Paid:
         pass
 
     monkeypatch.setattr("turnstile_service.jobs.get_backend", lambda: _Paid())
     res = _submit(live_client, [_doc_example()])
-    assert res.status_code == 202
-    final = _poll_to_done(live_client, res.json()["job_id"])
-    assert final["status"] == "error"
-    assert "MockBackend" in final["error"]
+    assert res.status_code == 422
+    assert "MockBackend" in res.json()["detail"]
     assert isinstance(get_backend(), MockBackend)  # global untouched
 
 

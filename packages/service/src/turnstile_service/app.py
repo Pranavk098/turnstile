@@ -47,6 +47,7 @@ from turnstile_pricing import price_trace
 
 from turnstile_service import data as committed
 from turnstile_service.cache import EvalCache, request_key
+from turnstile_service import jobs as _jobs
 from turnstile_service.jobs import JobStore, JobStoreFull, run_experiment_job
 from turnstile_service.observability import (
     capture_current_exception,
@@ -418,6 +419,13 @@ def create_app(rate_limiter: RateLimiter | None = None) -> FastAPI:
         denied = _rate_limited(request)
         if denied is not None:
             return denied
+        if not isinstance(_jobs.get_backend(), _jobs.MockBackend):
+            # ISS-006: fail closed at submit (422, never 202) so a paid backend
+            # can never be accepted into the queue, even if the worker also guards.
+            # Routed via the jobs namespace so tests patch one seam.
+            return _json_bytes_error(
+                422, f"refusing experiment: process backend is "
+                f"{type(_jobs.get_backend()).__name__}, not MockBackend ($0 only)")
         declared = request.headers.get("content-length")
         if _content_length_exceeds(request.headers):
             return _json_bytes_error(
