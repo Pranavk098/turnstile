@@ -75,7 +75,7 @@ jobs:
             uv build --package "turnstile-$pkg"
           done
       - name: publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@v1.9.0 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
+        uses: pypa/gh-action-pypi-publish@v1.14.2 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
@@ -98,6 +98,6 @@ jobs:
             uv build --package "turnstile-$pkg"
           done
       - name: publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.9.0 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
+        uses: pypa/gh-action-pypi-publish@v1.14.2 # ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 (checked 2026-09-18)
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
