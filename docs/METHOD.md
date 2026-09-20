@@ -9,6 +9,14 @@ This document is deliberately precise about the line between **proven**,
 **instrumented**, and **not-yet-measured** — because the credibility of the
 whole tool rests on not overclaiming.
 
+Vocabulary note (do not conflate): the dashboard chips Proven / Measured /
+Conditional describe *pipeline claim tiers* (replayed-and-preserved, measured
+directly, priced-but-unverified). The quality layer's `measured` /
+`instrumented` / `not_measured` (`turnstile_quality.types`) describe
+*dimension scoring tiers* (deterministic rule, check-defined-but-no-data,
+needs-calibrated-judge). Same words, different axes — a rename merging them
+would lie, so it stays as is.
+
 ## The number we can prove: deterministic recoverable margin
 
 **Tier-1 (proven): routing eligible `route` decisions to a cheaper model.**
@@ -28,7 +36,7 @@ dollars, never a bare point estimate.
 |---|---|
 | Recoverable margin | **0.57% [0.49, 0.66]** |
 | Proven savings (corpus) | $0.029 [0.025, 0.034] on $5.07 total spend |
-| Annualized @ 1M calls | ~$126 |
+| Annualized @ 1M calls | ~$126 (assumes linear scaling to your traffic mix — illustration, not a forecast) |
 | Gated variant | `model_routing_gpt5_nano` |
 
 It is a **small, honest** number: only the `route` decision is replay-executable

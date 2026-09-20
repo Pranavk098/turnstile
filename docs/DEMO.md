@@ -29,7 +29,7 @@ uniform-null**; N controlled harness calls, **not production**.
 
 **② The supporting proven number — routing margin.** Deterministic rate arbitrage
 on `route` decisions to a cheaper model: **0.57% [0.49, 0.66]** recoverable,
-~$126/yr at 1M calls, §8.3-gated, reproducible from the manifest. Exact
+~$126/yr at 1M calls (linearly scaled illustration — your traffic mix will differ), §8.3-gated, reproducible from the manifest. Exact
 arithmetic — small by construction (only `route` is replay-executable today). We
 do **not** quote a measured preservation rate: that needs real traffic,
 and we won't fake it on synthetic audio. (See `docs/METHOD.md`, `docs/LIMITATIONS.md`.)
