@@ -73,7 +73,7 @@
             "duration_ms": 2613,
             "chars_played": 32,
             "audio_seconds_played": 2.613,
-            "truncated_by": null
+            "truncated_by": "barge_in"
           }
         ]
       },
@@ -374,17 +374,15 @@
       },
       {
         "id": "barge_in_courtesy",
-        "score": 0.0,
-        "label": "fail",
+        "score": 1.0,
+        "label": "pass",
         "tier": "measured",
         "evidence": {
           "n_barge_turns": 1,
           "yielded_or_uninterrupted_turns": [
             0
           ],
-          "talked_over_turns": [
-            0
-          ],
+          "talked_over_turns": [],
           "unobservable_turns": [],
           "rule": "yielded iff playback truncated_by barge_in"
         },
@@ -426,7 +424,7 @@
       }
     ],
     "overall": {
-      "label": "fail",
+      "label": "pass",
       "tier": "measured"
     },
     "evidence": [

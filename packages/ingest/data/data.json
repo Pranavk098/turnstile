@@ -23,17 +23,16 @@
     "quality": {
       "n_calls": 51,
       "overall": {
-        "fail": 17,
+        "fail": 7,
         "partial": 1,
-        "pass": 33
+        "pass": 43
       },
       "dimensions": {
         "answer_relevance": {
           "pending": 51
         },
         "barge_in_courtesy": {
-          "fail": 11,
-          "pass": 13,
+          "pass": 24,
           "unmeasured": 27
         },
         "escalation_appropriateness": {
@@ -188,7 +187,7 @@
         "turn_index": 1
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260910-005.json"
@@ -259,7 +258,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260910-009.json"
@@ -278,7 +277,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260911-010.json"
@@ -297,7 +296,7 @@
         "turn_index": 1
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260911-011.json"
@@ -335,7 +334,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260911-013.json"
@@ -467,7 +466,7 @@
         "turn_index": 3
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260912-021.json"
@@ -609,7 +608,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260912-029.json"
@@ -642,7 +641,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260913-031.json"
@@ -774,7 +773,7 @@
         "turn_index": 1
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260913-039.json"
@@ -878,7 +877,7 @@
         "turn_index": 2
       },
       "quality": {
-        "label": "fail",
+        "label": "pass",
         "tier": "measured"
       },
       "detail": "call-ing-20260914-045.json"
