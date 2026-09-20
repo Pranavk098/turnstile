@@ -109,12 +109,45 @@ def test_absence_excludes_real_raw_findings_instead_of_zeroing():
 
 def test_present_acoustics_run_d7_and_price_tts():
     report = run_call(_present_call(), RATES, BASELINES)
-    for class_id in ("6", "7", "8"):
+    for class_id in ("6", "7"):
         assert report["coverage"][class_id]["status"] == "present"
+    # _present_call has full acoustic + telephony but strictly sequential
+    # spans (no overlap), so ISS-010 forces D8 ABSENT -- union==sum silence is
+    # the live-recorder over-report artifact, not a measurement (GATES.md G1).
+    assert report["coverage"]["8"]["status"] == "absent"
+    assert "ISS-010" in report["coverage"]["8"]["reason"]
+    assert not any(f["class_id"] == 8 for f in report["findings"])
     d7 = [f for f in report["findings"] if f["class_id"] == 7]
     assert len(d7) == 1
     assert d7[0]["evidence"]["wasted_chars"] == 140
     assert report["stage_costs_usd"]["tts"] > 0
+
+
+def _overlap_call():
+    """Like _present_call but the tts span overlaps the llm decide (real
+    concurrency) -- D8's union is trustworthy, so it stays PRESENT."""
+    call = _present_call()
+    call["turns"][0]["tts"]["start_ms"] = 400  # llm decide is [0, 700]
+    return call
+
+
+def test_no_overlap_forces_d8_absent_even_with_acoustics():
+    """ISS-010: acoustic + telephony present but zero span overlap -> D8 ABSENT
+    (not 'no data' -- the data exists, it is just untrustworthy)."""
+    report = run_call(_present_call(), RATES, BASELINES)
+    d8 = report["coverage"]["8"]
+    assert d8["status"] == "absent"
+    assert "ISS-010" in d8["reason"] and "union==sum" in d8["reason"]
+    assert "no data for this input" not in d8["reason"]
+    assert 8 in report["excluded_absent_classes"]
+
+
+def test_overlap_keeps_d8_present_and_measurable():
+    """A trace with genuine span overlap keeps D8 PRESENT and can carry a
+    finding -- the policy hides only the no-overlap artifact."""
+    report = run_call(_overlap_call(), RATES, BASELINES)
+    assert report["coverage"]["8"]["status"] == "present"
+    assert any(f["class_id"] == 8 for f in report["findings"])
 
 
 def test_missing_telephony_marks_d8_absent():
@@ -173,13 +206,19 @@ def test_committed_data_artifact_is_dashboard_readable():
         assert detail["conv_cost"] == row["cost_usd"]
         coverage = detail["_provenance"]["coverage"]
         assert len(coverage) == 10
-        # Acoustic rule, per call: no G2 fields -> D6/D7/D8 absent + no findings;
-        # with G2 fields they are present and may carry findings.
+        # D8 is absent for one of two reasons: no acoustic/telephony data
+        # ("no data for this input"), or ISS-010 force-ABSENT on a no-overlap
+        # trace. Either way it carries no D8 finding.
         if coverage["8"]["status"] == "absent":
-            assert "no data for this input" in coverage["8"]["reason"]
-            assert not any(f["class_id"] in (6, 7, 8) for f in detail["findings"])
+            reason = coverage["8"]["reason"]
+            assert "no data for this input" in reason or "ISS-010" in reason
+            assert not any(f["class_id"] == 8 for f in detail["findings"])
         else:
             assert coverage["8"]["status"] == "present"
+        # An acoustic-absent class never carries its findings (D6/D7 too).
+        for cid in ("6", "7"):
+            if coverage[cid]["status"] == "absent":
+                assert not any(f["class_id"] == int(cid) for f in detail["findings"])
 
 
 def test_index_top_waste_matches_golden_shape():

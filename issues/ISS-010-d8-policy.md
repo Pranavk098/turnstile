@@ -1,6 +1,6 @@
 # ISS-010: Live D8 policy — force-ABSENT (DECIDED 2026-09-20)
 
-- Status: decided (human call 2026-09-20: **force-ABSENT** over Tier-2 tag); implementation tracked as a follow-up.
+- Status: implemented 2026-09-20 (force-ABSENT wired in the ingest coverage envelope; GATES.md + LIMITATIONS.md updated). Upper-bound follow-up specced below.
 - Source: c2_d8_absent (0.59); over-report assumption 0.72; risk 1.78 (highest)
 - Problem: union==sum on non-overlap recorders systematically over-reports silence;
   D8 is ~82% of corpus findings, mostly modeled-gap artifact (`d08:26-31`; GATES:17-27).
@@ -27,9 +27,41 @@ concurrency (the G1 concurrency redesign). Rationale:
   once G1 lands and recorders emit overlap.
 
 Not chosen: Tier-2 tag (right only if the error were symmetric uncertainty — it
-is not). A future upper-bound presentation ("silence ≤ X; no concurrency data")
-is the honest way to reclaim coverage before G1, tracked separately.
+is not).
 
-**Follow-up (implementation):** force live D8 → ABSENT in the live verdict path
-and note it in `docs/LIMITATIONS.md`; `docs/GATES.md` G1 already documents the
-underlying gate.
+## Implementation (2026-09-20)
+
+- `turnstile_detectors.d08_silence_tax.trace_has_span_overlap(trace)` — true
+  only when some turn has **cross-stream** overlap (tts+playback collapsed into
+  one "speech" stream, since they are co-timed by construction). No cross-stream
+  overlap ⇒ the `union==sum` live-recorder signature.
+- `turnstile_ingest.pipeline.describe_coverage(..., has_span_overlap=...)` —
+  when telephony + acoustic are present but there is no cross-stream overlap, D8
+  is labeled **ABSENT** (reason `NO_OVERLAP_REASON`), so its findings are
+  excluded from the report like any absent class.
+- Docs: `GATES.md` G1 + `LIMITATIONS.md §4` record the enforcement.
+- Effect on current artifacts: **zero** — the synthetic sample (49/50) and the
+  Retell call carry authored cross-stream concurrency, so they stay PRESENT; the
+  gate is a latent guard that trips on real live-recorder traffic (and lifts
+  itself once G1 lands).
+
+## Follow-up (specced, not built): D8 as an honest UPPER BOUND
+
+Reclaim D8 coverage *before* the G1 concurrency redesign without shipping a
+biased point estimate.
+
+- **Why valid.** With no overlap, `union == sum` and `silence = billed_wall −
+  sum` is the *smallest* silence any real overlap could produce collapsed to
+  its max: the reported silence is a true **ceiling**. "Silence tax ≤ X" is a
+  correct statement, not a hedge — strictly more honest than a Tier-2 tag and
+  more useful than hiding.
+- **Shape.** On a no-overlap trace, instead of ABSENT, emit D8 as a bounded
+  finding: `waste_usd` becomes `waste_usd_max`, verdict/label reads "upper
+  bound — no concurrency data (G1)", and the dashboard renders `≤` with the
+  same G1 provenance string. Never a point estimate, never summed into a
+  headline as if measured.
+- **Acceptance.** New Finding field or evidence flag `upper_bound: true`;
+  dashboard shows `≤`; a test pins that a no-overlap trace yields a bounded D8
+  (not ABSENT, not a point estimate); LIMITATIONS/GATES updated to describe the
+  ceiling. Requires owner sign-off before building (changes what the dashboard
+  shows).

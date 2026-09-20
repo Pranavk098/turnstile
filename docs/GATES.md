@@ -25,6 +25,14 @@ is a **prerequisite for trusting D8's numbers**, and a breaking change to the
 `TraceRecorder` public API. Until it lands:
 - D8's fixture results are **a demo of the detector, not a measurement**. Say so in `LIMITATIONS.md`.
 - Do it **before** `agent/` integration (the API the agent builds against must be the post-redesign one).
+- **Enforced (ISS-010, 2026-09-20 — force-ABSENT):** the ingest coverage
+  envelope forces D8 **ABSENT** on any trace with no cross-stream span overlap
+  (`union == sum` — the live-recorder signature), so real/live-shaped traffic
+  never surfaces the over-report. Overlap-bearing fixtures and the synthetic
+  sample keep D8 as the detector demo; once the recorder emits real concurrency,
+  those traces gain overlap and D8 flips back on automatically. See
+  `turnstile_detectors.d08_silence_tax.trace_has_span_overlap` and
+  `turnstile_ingest.pipeline.describe_coverage`.
 
 ## G2 — TTS must report `generated` (billed), not `intended` (blocks trusting D7)
 
