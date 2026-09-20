@@ -42,7 +42,7 @@ dev = [
 # plain `uv sync` does not install it; `uv sync --group piper` does. Every
 # test runs on the fake engine without it; the real-Piper integration test
 # skips cleanly when absent.
-piper = ["piper-tts>=1.2"]
+piper = ["piper-tts>=1.8.0"]
 # Local, offline sentence embeddings for D3's cosine half (GAP-10,
 # packages/detectors) -- OPTIONAL: plain `uv sync` does not install it;
 # `uv sync --group embed` does. The model (all-MiniLM-L6-v2) must already be
