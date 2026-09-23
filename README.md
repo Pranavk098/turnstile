@@ -2,9 +2,11 @@
 
 > A margin profiler for voice AI — the eval nobody runs: **cost**. It prices every turn, decides whether the call resolved, finds ten kinds of waste, and proves each fix by replaying the call on a cheaper path.
 
-[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://turnstile-demo.onrender.com) [![tests](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml) [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://turnstile-demo.onrender.com) [![tests](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavk098/turnstile/actions/workflows/ci.yml) [![pypi](https://img.shields.io/badge/pypi-pending-lightgrey)](https://github.com/Pranavk098/turnstile/actions/workflows/release.yml) [![docs](https://img.shields.io/badge/docs-repo-blue)](https://github.com/Pranavk098/turnstile/tree/main/docs) [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 ![The Turnstile dashboard: every number labeled by how much it is actually measured.](docs/hero.png)
+
+![Demo walkthrough: fleet headline, D7 barge-in waste, the Detector-7 call with quality beside cost, honesty tiers.](docs/hero.gif)
 
 ## 60-second story
 
@@ -22,7 +24,7 @@ The number that started it: **about 4% of text-to-speech spend is generated, bil
 
 One rule runs through the whole project: **never claim a number you can't back up.** Every figure wears one of three labels:
 
-- **Measured** — we stand behind it. The 0.57% recoverable margin (n=250, seed 0; exact rate arbitrage, reproducible from every run). The ~4% barge-in waste on real TTS (committed harness report, n=150, seed 0; live probe n=200 in METHOD.md). The 7.8% cheaper-model fork rate with 98.5% outcome preservation on the non-divergent paid pivots where it agreed.
+- **Measured** — we stand behind it. The 0.57% [0.49, 0.66] recoverable margin (n=250, seed 0; exact rate arbitrage, reproducible from every run). The ~4% barge-in waste on real TTS (committed harness report, n=150, seed 0; live probe n=200 in METHOD.md). The 7.8% cheaper-model fork rate with 98.5% outcome preservation on the non-divergent paid pivots where it agreed.
 - **Instrumented, but not measured** — the mechanism works; we don't claim the size yet. The rest of the cost breakdown, and the silence-tax detector on synthetic audio.
 - **Not yet measured, and we say so** — divergent-decision preservation at fleet scale, and every headline re-measured on real customer traffic. The tool to measure them is built; the fleet-scale rates are openly small-n and cautionary, never presented as fleet facts.
 
@@ -34,7 +36,7 @@ Each stage is a small package under `packages/`. The ones that carry the weight:
 
 ```bash
 uv sync
-uv run pytest -q        # 1256 passed, 4 skipped (badge above is the live count)
+uv run pytest -q        # 1260 passed, 4 skipped (badge above is the live count)
 make demo               # build the report, serve at localhost:8000, open home.html
 make serve              # same dashboard + live eval engine at localhost:8000
 ```
@@ -51,7 +53,7 @@ Run it on **your** calls: the `ingest` package maps real voice-AI logs into Turn
 
 ## Status & limitations
 
-The full pipeline is built and green: pricing, verdict, ten waste detectors, counterfactual replay, a hardened paid-measurement path, real-format call ingestion, a live conversational agent, the dashboard, and the demo service. Barge-in waste and open-loop preservation-under-divergence are both measured on real Piper audio in controlled harnesses (see below for scale).
+The full pipeline is built and green: pricing, verdict, ten waste detectors, counterfactual replay, a hardened paid-measurement path, real-format call ingestion, a live conversational agent, the dashboard, and the demo service. Speed, measured ($0 MockBackend): 4.46× experiment-matrix speedup, 1.4 ms cache-hit eval, 66.1 ms cold eval — see [PERF.md](PERF.md). Barge-in waste and open-loop preservation-under-divergence are both measured on real Piper audio in controlled harnesses (see below for scale).
 
 Unprompted honesty, up front: **no real customer fleet has been run through Turnstile yet.** Every headline is "the number on *this* data" — a 250-trace generated corpus, golden fixtures, and a 50-call realistic sample. Barge-in waste is measured on real Piper audio in controlled harnesses (n=150–750 calls), not yet on customer traffic. The deterministic margin, the voice-stack waste, and the preservation number all become "your number on your calls" once real data flows in. [LIMITATIONS.md](docs/LIMITATIONS.md) keeps the complete unflattering list.
 

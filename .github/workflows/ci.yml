@@ -57,3 +57,12 @@ jobs:
       - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
       - uses: astral-sh/setup-uv@v7 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
       - run: uv run --frozen python scripts/check_links.py
+
+  # Day-6 doc-number guard: key figures (margin, barge-in, PERF) must match
+  # their source docs, and README's pytest count must equal a real collection.
+  doc-numbers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v7 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
+      - run: uv run --frozen python scripts/check_doc_numbers.py
