@@ -49,6 +49,14 @@ piper = ["piper-tts>=1.8.0"]
 # in the local HuggingFace cache; tests skip cleanly without the extra and
 # never touch the network at test time.
 embed = ["sentence-transformers>=6.0.1"]
+# Docs site (Day-6 Track A): mkdocs-material + built-in search + mkdocstrings
+# for the auto API reference. OPTIONAL: `uv sync --group docs`. Not needed by
+# tests or the app; only the docs build/deploy uses it.
+docs = [
+    "mkdocs-material>=9.0",
+    "mkdocstrings>=0.26",
+    "mkdocstrings-python>=1.0",
+]
 
 [tool.uv.sources]
 turnstile-schema = { workspace = true }

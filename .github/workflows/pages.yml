@@ -1,0 +1,48 @@
+name: docs
+
+# Day-6 Track A. $0: only free first-party actions (upload/deploy-pages),
+# no paid step, no API call.
+on:
+  push:
+    branches: [main]
+    paths:
+      - mkdocs.yml
+      - docs/**
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+# Workflow-level: only what the build job needs (checkout). Pages + OIDC are
+# scoped to the deploy job below so a compromised build step can't request a
+# Pages deployment or an OIDC token.
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5 # fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 (checked 2026-09-18)
+      - uses: astral-sh/setup-uv@v10.1.0 # bec219d24cd3e171d82865faccec33120bb574f4 (checked 2026-09-18)
+      - run: uv run --group docs --frozen mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write       # request the Pages deployment
+      id-token: write    # OIDC token for actions/deploy-pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
