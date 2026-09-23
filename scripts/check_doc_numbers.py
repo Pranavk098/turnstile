@@ -87,7 +87,7 @@ def check_pytest_count(root: Path) -> list[str]:
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "--collect-only", "-q",
          "-p", "no:cacheprovider"],
-        cwd=HERE.parents[1], capture_output=True, text=True, timeout=600,
+        cwd=root, capture_output=True, text=True, timeout=600,
     )
     if proc.returncode != 0:
         return ["pytest count: collection failed:\n"

@@ -53,10 +53,14 @@ def _p95_ms(samples: list[float]) -> float:
     if len(samples) == 1:
         return float(samples[0])
     try:
-        return float(statistics.quantiles(samples, n=100)[94])
+        p95 = statistics.quantiles(samples, n=100)[94]
     except statistics.StatisticsError:
         ordered = sorted(samples)
-        return float(ordered[min(len(ordered) - 1, max(0, int(len(ordered) * 0.95)))])
+        p95 = ordered[min(len(ordered) - 1, max(0, int(len(ordered) * 0.95)))]
+    # Cap at the largest observed sample: the exclusive method can extrapolate
+    # ABOVE max on a small sample (e.g. 5 warm calls), which would false-reject
+    # a healthy service whose every measured latency is under budget.
+    return float(min(p95, max(samples)))
 
 
 def _req(method: str, url: str, body: bytes | None = None,
