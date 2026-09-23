@@ -13,10 +13,11 @@ on:
       - .github/workflows/pages.yml
   workflow_dispatch:
 
+# Workflow-level: only what the build job needs (checkout). Pages + OIDC are
+# scoped to the deploy job below so a compromised build step can't request a
+# Pages deployment or an OIDC token.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -36,6 +37,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write       # request the Pages deployment
+      id-token: write    # OIDC token for actions/deploy-pages
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
