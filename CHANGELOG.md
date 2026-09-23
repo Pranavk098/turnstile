@@ -7,21 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Installable PyPI packaging for the 7 core libraries with clean-venv smoke tests
-  (Day-5 Part A) (unreleased, pending H).
-- Supply-chain CI: `pip-audit` + `bandit` + CodeQL + Dependabot with a
-  release-blocking threshold gate (Day-5 Part B) (unreleased, pending H).
-- Service observability: structured JSON request logging, Sentry (DSN-gated,
-  inert when unset), and `GET /metrics` extending Day-3 counters
-  (Day-5 Part C) (unreleased, pending H).
-- CI Node-20 deprecation fix: `actions/checkout@v4` → `@v5`,
-  `astral-sh/setup-uv@v5` → `@v10.1.0` (spec's `@v6` still targets node20 —
-  proven by a runner warning on the fork dry-run — so current major taken),
-  all pinned to commit SHAs; `release` workflow (TestPyPI on dispatch, PyPI
-  on tag) with secret scan; weekly link-health job (Day-5 Part D)
-  (unreleased, pending H).
+_Nothing yet — the Day-5 packaging, supply-chain CI, observability, and release
+workflow are now released under [0.1.0]._
 
 ## [0.1.0] — 2026-09-20 (Day-7 launch; see LAUNCH.md)
 

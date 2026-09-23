@@ -82,8 +82,8 @@ Try it with zero install at C12; reproduce the margin free with
 **Body:**
 
 Turnstile prices every turn of a voice-AI call, adjudicates whether it
-resolved, finds ten waste classes, and proves each fix by replaying the call on
-a cheaper path.
+resolved, finds ten waste classes, and proves the routing saving — the one
+replay-executable remedy today — by replaying the call on a cheaper model.
 
 Numbers, all with (n, dataset): recoverable margin C1; barge-in TTS waste C5
 (real Piper audio, n=200); cheaper-model fork rate C3 with C4 kept honestly
@@ -103,8 +103,9 @@ Ask HN: what would you need to see before pointing this at real traffic?
 
 **Description:** Turnstile is an open-source margin profiler for voice AI.
 It prices every span from a dated rate table, decides whether the call
-resolved, detects ten waste classes, and counterfactually replays the call on
-a cheaper path to prove the saving. Headline results: C1 (deterministic,
+resolved, detects ten waste classes, and counterfactually replays the routing
+decision on a cheaper model to prove that one saving (route is the only
+replay-executable remedy today). Headline results: C1 (deterministic,
 gated); barge-in waste C5 (real audio); quality scored beside cost (C9).
 Everything labeled measured / instrumented / not-measured; limits up front
 (C10). Links: demo C12 · GitHub [OWNER-APPROVAL-REQUIRED] · PyPI
@@ -117,14 +118,15 @@ Everything labeled measured / instrumented / not-measured; limits up front
 > written to comply to best effort: open-source, no monetization, full
 > methodology, numbers with n/dataset, limits up front.
 
-**Title:** [OC] I built an open-source margin profiler for voice AI — it replays your calls on cheaper models to prove savings (0.57% gated, barge-in waste 12–41%)
+**Title:** [OC] I built an open-source margin profiler for voice AI — it replays your calls on cheaper models to prove savings (route saving 0.57% [0.49, 0.66], n=250 seed 0; barge-in waste 12–41% sweep, real Piper n=200 seed 7)
 
 **Body:** Local angle: the replay engine does exact rate arbitrage on the
 *original* token workload — no live model call needed for the gated number
 (C1), so you can quantify routing to a smaller local model before moving
 traffic. What I actually measured: C1, C2, C5 (real Piper TTS, n=200),
-C3 + C4 (paid nano runs, kept apart — divergence preservation is ~1-in-6 by
-the tool standard, narrow to refund). What I didn't: C10. Quality C9, speed
+C3 + C4 (paid nano runs, kept apart — divergence preservation is ~1-in-6 —
+16.7% registry [5.8, 39.2], n=72, cautionary, not a fleet rate — narrow to
+refund). What I didn't: C10. Quality C9, speed
 C7–C8. Repo + demo inside; the honesty docs (METHOD/LIMITATIONS) are the real
 README. Happy to answer methodology questions; will not hype what isn't measured.
 
@@ -158,7 +160,8 @@ confirm target repo URL + contribution format at PR time — do not freelance].
 **Body:**
 
 Turnstile prices every turn of a voice-AI call, adjudicates resolution,
-detects ten waste classes, and proves savings by counterfactual replay.
+detects ten waste classes, and proves the routing saving by counterfactual
+replay (the one replay-executable remedy today).
 Notable: every surfaced number carries a measured / instrumented /
 not-measured tier; METHOD.md + LIMITATIONS.md state boundaries up front
 (synthetic-corpus headlines, small-n preservation, no real fleet yet).
