@@ -1,6 +1,6 @@
 [project]
 name = "turnstile-verdict"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Resolution ledger adjudicating whether a call actually resolved."
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -18,8 +18,12 @@ dependencies = ["turnstile-schema>=0.0.0"]
 turnstile-verdict-smoke = "turnstile_verdict._smoke:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = "../.." }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/turnstile_verdict"]
