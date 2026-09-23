@@ -1,0 +1,59 @@
+site_name: Turnstile
+site_description: Voice-AI margin profiler — price every turn, adjudicate resolution, detect waste, prove savings by replay.
+site_url: https://pranavk098.github.io/turnstile/
+repo_url: https://github.com/Pranavk098/turnstile
+repo_name: GitHub
+
+theme:
+  name: material
+  # System font stack: drops the render-blocking Google Fonts request
+  # (~77 KB third-party + FOUT) — the cheapest Lighthouse lever, and the
+  # site stays readable offline.
+  font: false
+  features:
+    - navigation.instant
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+
+markdown_extensions:
+  - admonition
+  - tables
+
+strict: true
+# docs/prd/ holds working PRDs with links that resolve from the repo root,
+# not from docs/ — keep them out of the built site (check_links.py still
+# covers them at the source level).
+exclude_docs: prd/**/*
+
+nav:
+  - Home: index.md
+  - Methodology: methodology.md
+  - Ingest guide: ingest-guide.md
+  - Quality & evaluation: quality.md
+  - API reference: api.md
+  - Performance story: performance.md
+  - Live demo & deploy: DEPLOY.md
+  - Limitations: LIMITATIONS.md
+  - Source docs:
+    - Method (source): METHOD.md
+    - Ingest (source): INGEST.md
+    - Corpus: CORPUS.md
+    - Decisions: DECISIONS.md
+    - Demo script: DEMO.md
+    - Gates: GATES.md
+    - Live agent: LIVE-AGENT.md
+    - DoD live: PRD01-DOD-LIVE.md
+    - Roadmap: ROADMAP-sprint-01.md
+    # Owned by sibling tracks (video/launch) — naved here so the built
+    # site has no orphan pages; content stays theirs.
+    - Demo script: demo-script.md
+    - Demo video: demo-video.md
+    - Launch metrics: LAUNCH-METRICS.md
+    - Timed quickstart: QUICKSTART-TIMED.md

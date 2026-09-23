@@ -13,3 +13,6 @@ experiments/*.json
 !experiments/bargein_report.json
 experiments/*.jsonl
 .env
+
+# Built MkDocs site (Day-6 Track A) -- generated, never committed.
+/site/
