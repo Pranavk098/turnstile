@@ -1,6 +1,6 @@
 [project]
 name = "turnstile-detectors"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Ten named voice-AI waste detectors over priced, adjudicated traces."
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -18,8 +18,12 @@ dependencies = ["turnstile-schema>=0.0.0"]
 turnstile-detectors-smoke = "turnstile_detectors._smoke:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = "../.." }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/turnstile_detectors"]

@@ -1,6 +1,6 @@
 [project]
 name = "turnstile-quality"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Deterministic, voice-aware quality rubric reported beside cost; model judges ship calibration-pending."
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -18,8 +18,12 @@ dependencies = ["turnstile-schema>=0.0.0", "turnstile-verdict>=0.0.0"]
 turnstile-quality-smoke = "turnstile_quality._smoke:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = "../.." }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/turnstile_quality"]

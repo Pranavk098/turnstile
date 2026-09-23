@@ -1,6 +1,6 @@
 [project]
 name = "turnstile-ingest"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Maps real voice-AI platform logs (native format + Vapi adapter) to schema-valid traces; runs the full pipeline."
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -18,8 +18,12 @@ dependencies = ["turnstile-schema>=0.0.0", "turnstile-pricing>=0.0.0", "turnstil
 turnstile-ingest-smoke = "turnstile_ingest._smoke:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { root = "../.." }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/turnstile_ingest"]
