@@ -27,8 +27,12 @@ Binding v1.1 rules (schema v1.1 amendment, Sec. "Verdict-layer consequences"):
     the scenario_id / terminal tool_name (deterministic stand-in for the scenario
     registry; with no derivable intent tokens FALSE_RESOLVE is never claimed).
   - unknown blocks confident verdicts: any required mutation at ``effect ==
-    unknown`` caps confidence at 0.6, forbids RESOLVED/FALSE_RESOLVE, and records
-    the ambiguity in evidence.
+    unknown`` caps confidence at 0.6 (``UNKNOWN_EFFECT_CONFIDENCE_CAP``),
+    forbids RESOLVED/FALSE_RESOLVE, and records the ambiguity in evidence.
+    The informational path's non-clean end (timeout/error/agent_hangup) caps
+    confidence the same way via ``NON_CLEAN_END_CONFIDENCE_CAP``; the two
+    ambiguities are separate constants with a shared value until ISS-001
+    calibrates each.
   - ESCALATED requires ``handoff.effect == committed``; a rejected handoff ->
     UNRESOLVED, a pending handoff -> UNRESOLVED (not yet ESCALATED).
   - Section C2 (GAP-11) via the minimal scenario registry
@@ -89,8 +93,24 @@ CONF_MISROUTED = 0.85               # deterministic: committed tool != registry'
 CONF_PARTIALLY_RESOLVED = 0.75      # registry-matched mutation attempted (pending), not committed
 
 # Binding v1.1: any required mutation at effect=unknown caps confidence here and
-# forbids RESOLVED / FALSE_RESOLVE.
-UNKNOWN_CONFIDENCE_CAP = 0.60
+# forbids RESOLVED / FALSE_RESOLVE. Covers the unknown-EFFECT ambiguity only
+# (a required mutation came back effect==unknown): the outcome is genuinely
+# ambiguous, the verdict is fixed at that turn. Value is shared with
+# NON_CLEAN_END_CONFIDENCE_CAP on purpose until ISS-001 calibrates them
+# independently on real traffic.
+UNKNOWN_EFFECT_CONFIDENCE_CAP = 0.60
+
+# Non-clean end on the informational path (no required mutation/handoff; the
+# call ended with timeout / error / agent_hangup). Same ambiguity family as the
+# unknown effect (declining to fabricate a resolution) but a distinct cause:
+# the dialogue was cut off from outside, so no determining turn exists. Value
+# is shared with UNKNOWN_EFFECT_CONFIDENCE_CAP on purpose until ISS-001
+# calibrates them independently on real traffic.
+NON_CLEAN_END_CONFIDENCE_CAP = 0.60
+
+# Kept for existing imports outside the verdict package; the unknown-effect
+# cap under its original name.
+UNKNOWN_CONFIDENCE_CAP = UNKNOWN_EFFECT_CONFIDENCE_CAP
 
 # End reasons that mean the call did NOT finish normally. On the informational
 # path (no required mutation/handoff) a non-clean end forbids the default
@@ -279,9 +299,13 @@ def adjudicate(trace: PricedTrace) -> Verdict:
                     "RESOLVED/FALSE_RESOLVE forbidden."
                 ),
             }]
+            # unknown effect: the verdict is fixed the moment the ambiguous
+            # mutation happens, so the determining turn is that mutation's
+            # own turn (PRD Sec.7 "earliest turn at which the final verdict
+            # was already determined").
             return Verdict(
                 label=VerdictLabel.UNRESOLVED,
-                confidence=UNKNOWN_CONFIDENCE_CAP,
+                confidence=UNKNOWN_EFFECT_CONFIDENCE_CAP,
                 evidence=evidence,
                 turn_of_no_return=u_turn,
             )
@@ -472,10 +496,15 @@ def _adjudicate_informational(trace: Trace) -> Verdict:
     # style: mark unknown, cap confidence, forbid RESOLVED, record the
     # ambiguity in evidence. (Placed after the ABANDONED branch, which requires
     # caller_hangup and is therefore disjoint from this guard.)
+    # Non-clean end: the conversation never reached a determining turn; the
+    # call was cut off by something outside the dialogue (timeout, error,
+    # agent hangup), so there is no turn of no return to point at. (Contrast
+    # ABANDONED above, where the caller's own hangup turn IS the determining
+    # event.)
     if trace.conversation.end_reason in NON_CLEAN_END_REASONS:
         return Verdict(
             label=VerdictLabel.UNRESOLVED,
-            confidence=UNKNOWN_CONFIDENCE_CAP,
+            confidence=NON_CLEAN_END_CONFIDENCE_CAP,
             evidence=[{
                 "source": "informational_resolution",
                 "rule": "non_clean_end_blocks_informational_resolution",
