@@ -230,6 +230,16 @@ while D7's billed waste keeps the full synthesized chars — exact D8 union, exa
   spend the whole budget on internal reasoning and return empty content. Routing
   needs no deep reasoning, so minimal effort is the honest, consistent setting —
   not per-trace tuning.
+- **Confidence caps for the two ambiguities.** The adjudicator declines to
+  fabricate in two distinct situations, each with its own named constant
+  sharing the value 0.60 pending ISS-001 (threshold tuning on real traffic):
+  a required mutation returning `effect=unknown` (`UNKNOWN_EFFECT_CONFIDENCE_CAP`;
+  the verdict is fixed the moment the ambiguous mutation happens, so
+  `turn_of_no_return` is that mutation's turn), and an informational call that
+  ends non-cleanly via timeout, error, or agent hangup
+  (`NON_CLEAN_END_CONFIDENCE_CAP`; the dialogue never reached a determining
+  turn, so `turn_of_no_return` is None, unlike ABANDONED where the caller's
+  own hangup turn is the determining event).
 - **Rate table** is dated with source URLs (`pricing/rates.yaml`); every run's
   manifest records its SHA-256, the git commit, the seed, the model ids, and —
   per variant — which VariantSpec fields the replay engine actually *applied*

@@ -25,7 +25,11 @@ from turnstile_schema.enums import (
 from turnstile_schema.spans import LlmDecide, ToolCall
 from turnstile_schema.trace import Conversation, Trace, Turn
 from turnstile_verdict import adjudicate
-from turnstile_verdict.adjudicate import UNKNOWN_CONFIDENCE_CAP
+from turnstile_verdict.adjudicate import (
+    NON_CLEAN_END_CONFIDENCE_CAP,
+    UNKNOWN_CONFIDENCE_CAP,
+    UNKNOWN_EFFECT_CONFIDENCE_CAP,
+)
 
 GOLDEN = Path(__file__).parents[3] / "fixtures" / "golden"
 MANIFEST = GOLDEN / "manifest.yaml"
@@ -167,7 +171,7 @@ def test_escalated_golden_fixtures_turn_of_no_return_is_escalate_check_turn(fid,
 def test_fixture_20_unknown_mutation_caps_confidence_and_restricts_label():
     v = adjudicate(_fixture("20_unknown_mutation"))
     assert v.label not in (VerdictLabel.RESOLVED, VerdictLabel.FALSE_RESOLVE)
-    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence <= UNKNOWN_EFFECT_CONFIDENCE_CAP
     assert any(e.get("effect") == "unknown" for e in v.evidence)
 
 
@@ -187,7 +191,7 @@ def test_committed_mutation_is_resolved():
     v = adjudicate(_synthetic(tool=_tool(ToolKind.mutation, Effect.committed),
                               llm_text="All done."))
     assert v.label is VerdictLabel.RESOLVED
-    assert v.confidence > UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence > UNKNOWN_EFFECT_CONFIDENCE_CAP
 
 
 def test_rejected_mutation_with_completion_assertion_is_false_resolve():
@@ -260,7 +264,7 @@ def test_unknown_mutation_caps_confidence_and_forbids_resolved_and_false_resolve
         tool=_tool(ToolKind.mutation, Effect.unknown, ToolStatus.error),
         llm_text="Your cancellation is processed."))
     assert v.label not in (VerdictLabel.RESOLVED, VerdictLabel.FALSE_RESOLVE)
-    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence <= UNKNOWN_EFFECT_CONFIDENCE_CAP
     assert any(e.get("effect") == "unknown" for e in v.evidence)
 
 
@@ -342,7 +346,7 @@ def test_non_clean_end_on_informational_path_is_not_resolved(reason):
     UNRESOLVED with confidence capped at the unknown cap, rule in evidence."""
     v = adjudicate(_synthetic(llm_text="Your order ships tomorrow.", end_reason=reason))
     assert v.label is VerdictLabel.UNRESOLVED
-    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence <= NON_CLEAN_END_CONFIDENCE_CAP
     assert any(e.get("rule") == "non_clean_end_blocks_informational_resolution"
                for e in v.evidence)
     assert v.evidence[0]["end_reason"] == reason.value
@@ -354,7 +358,7 @@ def test_non_clean_end_blocks_resolved_even_with_a_clean_close_utterance():
     v = adjudicate(_synthetic(llm_text="Glad I could help. Goodbye!",
                               end_reason=EndReason.timeout))
     assert v.label is VerdictLabel.UNRESOLVED
-    assert v.confidence <= UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence <= NON_CLEAN_END_CONFIDENCE_CAP
     assert v.evidence[0]["clean_close"] is True
 
 
@@ -363,4 +367,63 @@ def test_clean_end_informational_path_still_resolves():
     v = adjudicate(_synthetic(llm_text="Your order ships tomorrow. Goodbye.",
                               end_reason=EndReason.caller_hangup))
     assert v.label is VerdictLabel.RESOLVED
-    assert v.confidence > UNKNOWN_CONFIDENCE_CAP
+    assert v.confidence > NON_CLEAN_END_CONFIDENCE_CAP
+
+
+# -- ISS-018: the two ambiguity caps are distinct named constants ------------- #
+
+def test_unknown_effect_and_non_clean_end_caps_are_distinct_names():
+    """The two ambiguities have their own constants (ISS-018): each branch reads
+    its own name; the values are shared at 0.60 on purpose until ISS-001
+    calibrates them independently, and the old name stays as an alias."""
+    assert UNKNOWN_EFFECT_CONFIDENCE_CAP == pytest.approx(0.60)
+    assert NON_CLEAN_END_CONFIDENCE_CAP == pytest.approx(0.60)
+    assert UNKNOWN_CONFIDENCE_CAP == UNKNOWN_EFFECT_CONFIDENCE_CAP
+
+
+def test_unknown_effect_turn_of_no_return_is_unknown_turn():
+    """Golden fixture 20: the determining turn is the unknown mutation's own
+    turn (the verdict was fixed the moment the ambiguous mutation happened)."""
+    raw = load_trace((GOLDEN / "20_unknown_mutation").with_suffix(".json"))
+    unknown_turn = next(
+        t.turn_index
+        for t in raw.turns
+        if any(tool.effect is Effect.unknown for tool in t.tools)
+    )
+    v = adjudicate(_fixture("20_unknown_mutation"))
+    assert v.label is VerdictLabel.UNRESOLVED
+    assert v.turn_of_no_return == unknown_turn
+
+
+def test_non_clean_end_turn_of_no_return_is_none():
+    """Informational trace cut off by a non-clean end: the conversation never
+    reached a determining turn, so turn_of_no_return is None (contrast
+    ABANDONED, where the caller's hangup turn is the determining event)."""
+    v = adjudicate(_synthetic(llm_text="Your order ships tomorrow.",
+                              end_reason=EndReason.timeout))
+    assert v.label is VerdictLabel.UNRESOLVED
+    assert v.confidence == pytest.approx(NON_CLEAN_END_CONFIDENCE_CAP)
+    assert v.turn_of_no_return is None
+
+
+def test_split_is_real_non_clean_end_cap_patchable_independently(monkeypatch):
+    """The split is not cosmetic: patching the non-clean-end cap moves only
+    the non-clean-end verdict; the unknown-effect branch keeps its own cap."""
+    # The package __init__ re-exports adjudicate() under the same name as the
+    # submodule, so `import turnstile_verdict.adjudicate` binds the function.
+    # Reach the owning module through sys.modules to patch its constant.
+    import sys
+    _module = sys.modules["turnstile_verdict.adjudicate"]
+
+    unknown_v = adjudicate(_synthetic(
+        tool=_tool(ToolKind.mutation, Effect.unknown, ToolStatus.error),
+        llm_text="Your cancellation is processed."))
+    assert unknown_v.confidence == pytest.approx(0.60)
+
+    monkeypatch.setattr(_module, "NON_CLEAN_END_CONFIDENCE_CAP", 0.5)
+    non_clean_v = adjudicate(_synthetic(llm_text="Your order ships tomorrow.",
+                                        end_reason=EndReason.timeout))
+    assert non_clean_v.confidence == pytest.approx(0.5)
+    assert adjudicate(_synthetic(
+        tool=_tool(ToolKind.mutation, Effect.unknown, ToolStatus.error),
+        llm_text="Your cancellation is processed.")).confidence == pytest.approx(0.60)
