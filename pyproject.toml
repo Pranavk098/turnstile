@@ -54,7 +54,7 @@ embed = ["sentence-transformers>=6.0.1"]
 # tests or the app; only the docs build/deploy uses it.
 docs = [
     "mkdocs-material>=9.0",
-    "mkdocstrings>=0.26",
+    "mkdocstrings>=1.0.8",
     "mkdocstrings-python>=1.0",
 ]
 
